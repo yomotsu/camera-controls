@@ -12,21 +12,21 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var _v3 = new THREE.Vector3();
-	var _xColumn = new THREE.Vector3();
-	var _yColumn = new THREE.Vector3();
-	var EPSILON = 0.01;
-	var STATE = {
-		NONE: -1,
-		ROTATE: 0,
-		DOLLY: 1,
-		PAN: 2,
-		TOUCH_ROTATE: 3,
-		TOUCH_DOLLY: 4,
-		TOUCH_PAN: 5
-	};
-
 	var cameraControls = function (THREE) {
+
+		var _v3 = new THREE.Vector3();
+		var _xColumn = new THREE.Vector3();
+		var _yColumn = new THREE.Vector3();
+		var EPSILON = 0.01;
+		var STATE = {
+			NONE: -1,
+			ROTATE: 0,
+			DOLLY: 1,
+			PAN: 2,
+			TOUCH_ROTATE: 3,
+			TOUCH_DOLLY: 4,
+			TOUCH_PAN: 5
+		};
 
 		return function () {
 			function CameraControls(object, domElement) {
@@ -314,14 +314,14 @@
 				this._needsUpdate = true;
 			};
 
-			CameraControls.prototype.dolly = function dolly(z, enableTransition) {
+			CameraControls.prototype.dolly = function dolly(distance, enableTransition) {
 
-				this.dollyTo(this._sphericalEnd.radius + z, enableTransition);
+				this.dollyTo(this._sphericalEnd.radius + distance, enableTransition);
 			};
 
-			CameraControls.prototype.dollyTo = function dollyTo(z, enableTransition) {
+			CameraControls.prototype.dollyTo = function dollyTo(distance, enableTransition) {
 
-				this._sphericalEnd.radius = THREE.Math.clamp(z, this.minDistance, this.maxDistance);
+				this._sphericalEnd.radius = THREE.Math.clamp(distance, this.minDistance, this.maxDistance);
 
 				if (!enableTransition) {
 

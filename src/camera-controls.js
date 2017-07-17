@@ -1,18 +1,18 @@
-const _v3 = new THREE.Vector3();
-const _xColumn = new THREE.Vector3();
-const _yColumn = new THREE.Vector3();
-const EPSILON = 0.01;
-const STATE = {
-	NONE        : - 1,
-	ROTATE      :   0,
-	DOLLY       :   1,
-	PAN         :   2,
-	TOUCH_ROTATE:   3,
-	TOUCH_DOLLY :   4,
-	TOUCH_PAN   :   5
-};
-
 export default function ( THREE ) {
+
+	const _v3 = new THREE.Vector3();
+	const _xColumn = new THREE.Vector3();
+	const _yColumn = new THREE.Vector3();
+	const EPSILON = 0.01;
+	const STATE = {
+		NONE        : - 1,
+		ROTATE      :   0,
+		DOLLY       :   1,
+		PAN         :   2,
+		TOUCH_ROTATE:   3,
+		TOUCH_DOLLY :   4,
+		TOUCH_PAN   :   5
+	};
 
 	return class CameraControls {
 
