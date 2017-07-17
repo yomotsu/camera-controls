@@ -1,0 +1,26 @@
+{
+  "name": "view3d-controls",
+  "version": "0.0.1",
+  "author": "Yomotsu",
+  "license": "MIT",
+  "main": "dist/view3d-controls.js",
+  "repository": "yomotsu/view3d-controls",
+  "jsnext:main": "dist/view3d-controls.module.js",
+  "module": "dist/view3d-controls.module.js",
+  "devDependencies": {
+    "babel-preset-env": "1.6.0",
+    "rollup": "^0.45.2",
+    "rollup-plugin-babel": "2.7.1",
+    "rollup-watch": "^4.3.1",
+    "uglify-js": "^3.0.25"
+  },
+  "scripts": {
+    "start": "npm run watch",
+    "watch": "rollup --config --watch",
+    "build": "rollup --config",
+    "release": "rollup --config && uglifyjs dist/view3d-controls.js -cm --preamble \"/*!\n * view3d-controls\n * https://github.com/yomotsu/view3d-controls\n * (c) 2017 @yomotsu\n * Released under the MIT License.\n */\" > dist/view3d-controls.min.js"
+  },
+  "keywords": [
+    "three", "three.js", "OrbitControls"
+  ]
+}

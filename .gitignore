@@ -1,0 +1,10 @@
+*.DS_Store
+Thumbs.db
+
+logs
+*.log
+npm-debug.log*
+
+*.map
+
+node_modules
