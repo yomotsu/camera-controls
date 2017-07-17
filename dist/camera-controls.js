@@ -12,7 +12,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var cameraControls = function (THREE) {
+	function cameraControlsFactory(THREE) {
 
 		var _v3 = new THREE.Vector3();
 		var _xColumn = new THREE.Vector3();
@@ -373,6 +373,8 @@
 
 				this._targetEnd.copy(this._target0);
 				this._sphericalEnd.setFromVector3(this._position0);
+				this._sphericalEnd.theta = this._sphericalEnd.theta % (2 * Math.PI);
+				this._spherical.theta = this._sphericalEnd.theta;
 
 				if (!enableTransition) {
 
@@ -416,8 +418,8 @@
 
 			return CameraControls;
 		}();
-	};
+	}
 
-	return cameraControls;
+	return cameraControlsFactory;
 
 })));
