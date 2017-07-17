@@ -1,6 +1,6 @@
 {
   "name": "camera-controls",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Yomotsu",
   "license": "MIT",
   "main": "dist/camera-controls.js",
@@ -25,7 +25,7 @@
     "three.js",
     "orbit",
     "controls",
-    "OrbitControls", 
+    "OrbitControls",
     "camera"
   ]
 }
