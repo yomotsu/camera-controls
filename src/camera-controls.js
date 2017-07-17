@@ -1,4 +1,4 @@
-export default function ( THREE ) {
+export default function cameraControlsFactory ( THREE ) {
 
 	const _v3 = new THREE.Vector3();
 	const _xColumn = new THREE.Vector3();

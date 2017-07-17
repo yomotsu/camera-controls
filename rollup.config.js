@@ -31,7 +31,7 @@ export default {
 	targets: [
 		{
 			format: 'umd',
-			moduleName: 'cameracontrols',
+			moduleName: 'cameraControlsFactory',
 			dest: 'dist/camera-controls.js',
 			banner: license
 		},
