@@ -395,7 +395,7 @@ export default function cameraControlsFactory ( THREE ) {
 			this._targetEnd.copy( this._target0 );
 			this._sphericalEnd.setFromVector3( this._position0 );
 			this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
-			this._spherical.theta = this._sphericalEnd.theta;
+			this._spherical.theta    = this._spherical.theta    % ( 2 * Math.PI );
 
 			if ( ! enableTransition ) {
 
