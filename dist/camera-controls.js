@@ -149,8 +149,9 @@
 
 						event.preventDefault();
 
-						var x = event.clientX || event.touches[0].clientX;
-						var y = event.clientY || event.touches[0].clientY;
+						var _event = !!event.touches ? event.touches[0] : event;
+						var x = _event.clientX;
+						var y = _event.clientY;
 
 						elementRect = scope.domElement.getBoundingClientRect();
 						dragStart.set(x, y);
@@ -183,8 +184,9 @@
 
 						event.preventDefault();
 
-						var x = event.clientX || event.touches[0].clientX;
-						var y = event.clientY || event.touches[0].clientY;
+						var _event = !!event.touches ? event.touches[0] : event;
+						var x = _event.clientX;
+						var y = _event.clientY;
 
 						var deltaX = dragStart.x - x;
 						var deltaY = dragStart.y - y;
