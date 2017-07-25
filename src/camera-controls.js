@@ -168,8 +168,9 @@ export default function cameraControlsFactory ( THREE ) {
 
 					event.preventDefault();
 
-					const x = event.clientX || event.touches[ 0 ].clientX;
-					const y = event.clientY || event.touches[ 0 ].clientY;
+					const _event = !! event.touches ? event.touches[ 0 ] : event;
+					const x = _event.clientX;
+					const y = _event.clientY;
 
 					elementRect = scope.domElement.getBoundingClientRect();
 					dragStart.set( x, y );
@@ -204,8 +205,9 @@ export default function cameraControlsFactory ( THREE ) {
 
 					event.preventDefault();
 
-					const x = event.clientX || event.touches[ 0 ].clientX;
-					const y = event.clientY || event.touches[ 0 ].clientY;
+					const _event = !! event.touches ? event.touches[ 0 ] : event;
+					const x = _event.clientX;
+					const y = _event.clientY;
 
 					const deltaX = dragStart.x - x;
 					const deltaY = dragStart.y - y;
