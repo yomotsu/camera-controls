@@ -15,7 +15,7 @@
     "uglify-js": "^3.0.25"
   },
   "scripts": {
-    "start": "npm run watch",
+    "dev": "npm run watch",
     "watch": "rollup --config --watch",
     "build": "rollup --config",
     "release": "rollup --config && uglifyjs dist/camera-controls.js -cm --preamble \"/*!\n * camera-controls\n * https://github.com/yomotsu/camera-controls\n * (c) 2017 @yomotsu\n * Released under the MIT License.\n */\" > dist/camera-controls.min.js"
