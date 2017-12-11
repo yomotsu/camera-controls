@@ -42,8 +42,7 @@ a{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/86/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
-'use strict';
-const CameraControls = cameraControlsFactory( THREE );
+CameraControls.install( { THREE: THREE } );
 
 const width  = window.innerWidth;
 const height = window.innerHeight;

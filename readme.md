@@ -11,8 +11,10 @@ A camera control for three.js, similar to THREE.OrbitControls but supports smoot
 ## Usage
 
 ```javascript
-import cameraControlsFactory from 'camera-controls';
-const CameraControls = cameraControlsFactory( THREE );
+import * as THREE from 'three';
+import CameraControls from 'camera-controls';
+
+CameraControls.install( { THREE: THREE } );
 
 // snip ( init three scene... )
 
