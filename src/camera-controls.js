@@ -30,6 +30,10 @@ export default class CameraControls {
 
 		this.minDistance = 0;
 		this.maxDistance = Infinity;
+		this.minPolarAngle = 0; // radians
+		this.maxPolarAngle = Math.PI; // radians
+		this.minAzimuthAngle = - Infinity; // radians
+		this.maxAzimuthAngle = Infinity; // radians
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
 		this.zoomSpeed = 1.0;
@@ -318,8 +322,11 @@ export default class CameraControls {
 	// rotY in radian
 	rotateTo ( rotX, rotY, enableTransition ) {
 
-		this._sphericalEnd.theta = rotX;
-		this._sphericalEnd.phi   = rotY;
+		const theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, rotX ) );
+		const phi   = Math.max( this.minPolarAngle,   Math.min( this.maxPolarAngle,   rotY ) );
+
+		this._sphericalEnd.theta = theta;
+		this._sphericalEnd.phi   = phi;
 		this._sphericalEnd.makeSafe();
 
 		if ( ! enableTransition ) {
