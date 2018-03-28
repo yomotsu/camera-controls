@@ -24,7 +24,7 @@ export default class CameraControls {
 
 	}
 
-	constructor ( object, domElement ) {
+	constructor( object, domElement ) {
 
 		this.object = object;
 		this.enabled = true;
@@ -59,7 +59,7 @@ export default class CameraControls {
 
 		if ( ! this.domElement ) {
 
-			this.dispose = function () {}
+			this.dispose = () => {};
 
 		} else {
 
@@ -75,7 +75,7 @@ export default class CameraControls {
 			this.domElement.addEventListener( 'wheel', onMouseWheel );
 			this.domElement.addEventListener( 'contextmenu', onContextMenu );
 
-			this.dispose = function () {
+			this.dispose = () => {
 
 				scope.domElement.removeEventListener( 'mousedown', onMouseDown );
 				scope.domElement.removeEventListener( 'touchstart', onTouchStart );
@@ -86,10 +86,11 @@ export default class CameraControls {
 				document.removeEventListener( 'mouseup', endDragging );
 				document.removeEventListener( 'touchend', endDragging );
 
-			}
+			};
 
-			function onMouseDown ( event ) {
-				if(scope.enabled === false) return;
+			function onMouseDown( event ) {
+
+				if ( ! scope.enabled ) return;
 
 				event.preventDefault();
 
@@ -117,13 +118,14 @@ export default class CameraControls {
 				if ( prevState === STATE.NONE ) {
 
 					startDragging( event );
-					
+
 				}
 
 			}
 
 			function onTouchStart( event ) {
-				if(scope.enabled === false) return;
+
+				if ( ! scope.enabled ) return;
 
 				event.preventDefault();
 
@@ -157,14 +159,15 @@ export default class CameraControls {
 			}
 
 
-			function onMouseWheel ( event ) {
-				if(scope.enabled === false) return;
+			function onMouseWheel( event ) {
+
+				if ( ! scope.enabled ) return;
 
 				event.preventDefault();
 
 				if ( event.deltaY < 0 ) {
 
-					dollyIn()
+					dollyIn();
 
 				} else if ( event.deltaY > 0 ) {
 
@@ -175,14 +178,16 @@ export default class CameraControls {
 			}
 
 			function onContextMenu( event ) {
-				if(scope.enabled === false) return;
+
+				if ( ! scope.enabled ) return;
 
 				event.preventDefault();
 
 			}
 
 			function startDragging ( event ) {
-				if(scope.enabled === false) return;
+
+				if ( ! scope.enabled ) return;
 
 				event.preventDefault();
 
@@ -219,8 +224,9 @@ export default class CameraControls {
 
 			}
 
-			function dragging ( event ) {
-				if(scope.enabled === false) return;
+			function dragging( event ) {
+
+				if ( ! scope.enabled ) return;
 
 				event.preventDefault();
 
@@ -282,8 +288,9 @@ export default class CameraControls {
 
 			}
 
-			function endDragging ( event ) {
-				if(scope.enabled === false) return;
+			function endDragging( event ) {
+
+				if ( ! scope.enabled ) return;
 
 				scope.dampingFactor = savedDampingFactor;
 				state = STATE.NONE;
@@ -295,14 +302,14 @@ export default class CameraControls {
 
 			}
 
-			function dollyIn () {
+			function dollyIn() {
 
 				const zoomScale = Math.pow( 0.95, scope.zoomSpeed );
 				scope.dolly( scope._sphericalEnd.radius * zoomScale - scope._sphericalEnd.radius );
 
 			}
 
-			function dollyOut () {
+			function dollyOut() {
 
 				const zoomScale = Math.pow( 0.95, scope.zoomSpeed );
 				scope.dolly( scope._sphericalEnd.radius / zoomScale - scope._sphericalEnd.radius );
@@ -316,7 +323,7 @@ export default class CameraControls {
 
 	// rotX in radian
 	// rotY in radian
-	rotate ( rotX, rotY, enableTransition ) {
+	rotate( rotX, rotY, enableTransition ) {
 
 		this.rotateTo(
 			this._sphericalEnd.theta + rotX,
@@ -328,7 +335,7 @@ export default class CameraControls {
 
 	// rotX in radian
 	// rotY in radian
-	rotateTo ( rotX, rotY, enableTransition ) {
+	rotateTo( rotX, rotY, enableTransition ) {
 
 		const theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, rotX ) );
 		const phi   = Math.max( this.minPolarAngle,   Math.min( this.maxPolarAngle,   rotY ) );
@@ -348,13 +355,13 @@ export default class CameraControls {
 
 	}
 
-	dolly ( distance, enableTransition ) {
+	dolly( distance, enableTransition ) {
 
 		this.dollyTo( this._sphericalEnd.radius + distance, enableTransition );
 
 	}
 
-	dollyTo ( distance, enableTransition ) {
+	dollyTo( distance, enableTransition ) {
 
 		this._sphericalEnd.radius = THREE.Math.clamp(
 			distance,
@@ -372,7 +379,7 @@ export default class CameraControls {
 
 	}
 
-	pan ( x, y, enableTransition ) {
+	pan( x, y, enableTransition ) {
 
 		this.object.updateMatrix();
 
@@ -394,7 +401,7 @@ export default class CameraControls {
 
 	}
 
-	moveTo ( x, y, z, enableTransition ) {
+	moveTo( x, y, z, enableTransition ) {
 
 		this._targetEnd.set( x, y, z );
 
@@ -408,14 +415,14 @@ export default class CameraControls {
 
 	}
 
-	saveState () {
+	saveState() {
 
 		this._target0.copy( this.target );
 		this._position0.copy( this.object.position );
 
 	}
 
-	reset ( enableTransition ) {
+	reset( enableTransition ) {
 
 		this._targetEnd.copy( this._target0 );
 		this._sphericalEnd.setFromVector3( this._position0 );
@@ -433,7 +440,7 @@ export default class CameraControls {
 
 	}
 
-	update ( delta ) {
+	update( delta ) {
 
 		const dampingFactor = this.dampingFactor * delta / 0.016;
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
