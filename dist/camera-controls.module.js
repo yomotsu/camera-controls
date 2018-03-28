@@ -34,6 +34,7 @@ var CameraControls = function () {
 		_classCallCheck(this, CameraControls);
 
 		this.object = object;
+		this.enabled = true;
 
 		this.minDistance = 0;
 		this.maxDistance = Infinity;
@@ -68,6 +69,7 @@ var CameraControls = function () {
 			this.dispose = function () {};
 		} else {
 			var _onMouseDown = function _onMouseDown(event) {
+				if (scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -99,6 +101,7 @@ var CameraControls = function () {
 			};
 
 			var _onTouchStart = function _onTouchStart(event) {
+				if (scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -133,6 +136,7 @@ var CameraControls = function () {
 			};
 
 			var _onMouseWheel = function _onMouseWheel(event) {
+				if (scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -146,11 +150,13 @@ var CameraControls = function () {
 			};
 
 			var _onContextMenu = function _onContextMenu(event) {
+				if (scope.enabled === false) return;
 
 				event.preventDefault();
 			};
 
 			var _startDragging = function _startDragging(event) {
+				if (scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -186,6 +192,7 @@ var CameraControls = function () {
 			};
 
 			var _dragging = function _dragging(event) {
+				if (scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -245,6 +252,7 @@ var CameraControls = function () {
 			};
 
 			var _endDragging = function _endDragging(event) {
+				if (scope.enabled === false) return;
 
 				scope.dampingFactor = savedDampingFactor;
 				state = STATE.NONE;
