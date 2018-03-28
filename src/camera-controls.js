@@ -27,6 +27,7 @@ export default class CameraControls {
 	constructor ( object, domElement ) {
 
 		this.object = object;
+		this.enabled = true;
 
 		this.minDistance = 0;
 		this.maxDistance = Infinity;
@@ -88,6 +89,7 @@ export default class CameraControls {
 			}
 
 			function onMouseDown ( event ) {
+				if(scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -121,6 +123,7 @@ export default class CameraControls {
 			}
 
 			function onTouchStart( event ) {
+				if(scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -155,6 +158,7 @@ export default class CameraControls {
 
 
 			function onMouseWheel ( event ) {
+				if(scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -171,12 +175,14 @@ export default class CameraControls {
 			}
 
 			function onContextMenu( event ) {
+				if(scope.enabled === false) return;
 
 				event.preventDefault();
 
 			}
 
 			function startDragging ( event ) {
+				if(scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -214,6 +220,7 @@ export default class CameraControls {
 			}
 
 			function dragging ( event ) {
+				if(scope.enabled === false) return;
 
 				event.preventDefault();
 
@@ -276,6 +283,7 @@ export default class CameraControls {
 			}
 
 			function endDragging ( event ) {
+				if(scope.enabled === false) return;
 
 				scope.dampingFactor = savedDampingFactor;
 				state = STATE.NONE;
