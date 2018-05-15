@@ -45,6 +45,7 @@ var CameraControls = function () {
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
 		this.zoomSpeed = 1.0;
+		this.panSpeed = 2.0;
 
 		this.domElement = domElement;
 
@@ -249,8 +250,8 @@ var CameraControls = function () {
 						var offset = _v3.copy(scope.object.position).sub(scope._target);
 						// half of the fov is center to top of screen
 						var targetDistance = offset.length() * Math.tan(scope.object.fov / 2 * Math.PI / 180);
-						var panX = 2 * deltaX * targetDistance / elementRect.height;
-						var panY = 2 * deltaY * targetDistance / elementRect.height;
+						var panX = scope.panSpeed * deltaX * targetDistance / elementRect.height;
+						var panY = scope.panSpeed * deltaY * targetDistance / elementRect.height;
 						scope.pan(panX, panY, true);
 						break;
 
