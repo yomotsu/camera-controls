@@ -38,7 +38,7 @@ export default class CameraControls {
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
 		this.zoomSpeed = 1.0;
-    this.panSpeed = 2.0;
+		this.panSpeed = 2.0;
 
 		this.domElement = domElement;
 
