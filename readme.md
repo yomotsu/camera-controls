@@ -41,22 +41,22 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 `CameraControls( camera, domElement )`
 
-`camera` is a three.js perspective camera to be controlled.
-`domElement` is a HTML element for draggable area.
+- `camera` is a three.js perspective camera to be controlled.
+- `domElement` is a HTML element for draggable area.
 
 ## Properties
 
-`.enabled`: Default is `true`. Whether or not the controls are enabled.
-`.minDistance`: Default is `0`. Minimum distance for dolly.
-`.maxDistance`: Default is `Infinity`. Maximum distance for dolly.
-`.minPolarAngle`: Default is `0`, in radians.
-`.maxPolarAngle`: Default is `Math.PI`, in radians.
-`.minAzimuthAngle`: Default is `-Infinity`, in radians.
-`.maxAzimuthAngle`: Default is `Infinity`, in radians.
-`.dampingFactor`: Default is `0.05`.
-`.draggingDampingFactor`: Default is `0.25`.
-`.zoomSpeed`: Default is `1.0`. Spped of drag and mouse-wheel dollying.
-`.panSpeed`: Default is `2.0`. Spped of drag panning.
+- `.enabled`: Default is `true`. Whether or not the controls are enabled.
+- `.minDistance`: Default is `0`. Minimum distance for dolly.
+- `.maxDistance`: Default is `Infinity`. Maximum distance for dolly.
+- `.minPolarAngle`: Default is `0`, in radians.
+- `.maxPolarAngle`: Default is `Math.PI`, in radians.
+- `.minAzimuthAngle`: Default is `-Infinity`, in radians.
+- `.maxAzimuthAngle`: Default is `Infinity`, in radians.
+- `.dampingFactor`: Default is `0.05`.
+- `.draggingDampingFactor`: Default is `0.25`.
+- `.zoomSpeed`: Default is `1.0`. Spped of drag and mouse-wheel dollying.
+- `.panSpeed`: Default is `2.0`. Spped of drag panning.
 
 ## Methods
 
