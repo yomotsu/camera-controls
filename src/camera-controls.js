@@ -38,6 +38,7 @@ export default class CameraControls {
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
 		this.zoomSpeed = 1.0;
+		this.panSpeed = 2.0;
 
 		this.domElement = domElement;
 
@@ -279,8 +280,8 @@ export default class CameraControls {
 						const offset = _v3.copy( scope.object.position ).sub( scope._target );
 						// half of the fov is center to top of screen
 						const targetDistance = offset.length() * Math.tan( ( scope.object.fov / 2 ) * Math.PI / 180 );
-						const panX = ( 2 * deltaX * targetDistance / elementRect.height );
-						const panY = ( 2 * deltaY * targetDistance / elementRect.height );
+						const panX = ( scope.panSpeed * deltaX * targetDistance / elementRect.height );
+						const panY = ( scope.panSpeed * deltaY * targetDistance / elementRect.height );
 						scope.pan( panX, panY, true );
 						break;
 
