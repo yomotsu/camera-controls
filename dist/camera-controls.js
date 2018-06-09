@@ -16,7 +16,7 @@
 	var _v3 = void 0;
 	var _xColumn = void 0;
 	var _yColumn = void 0;
-	var EPSILON = 0.01;
+	var EPSILON = 0.001;
 	var STATE = {
 		NONE: -1,
 		ROTATE: 0,
@@ -56,7 +56,7 @@
 			this.domElement = domElement;
 
 			// the location of focus, where the object orbits around
-			this._target = new THREE.Vector3();
+			this.target = new THREE.Vector3();
 			this._targetEnd = new THREE.Vector3();
 
 			// rotation
@@ -65,7 +65,7 @@
 			this._sphericalEnd = new THREE.Spherical().copy(this._spherical);
 
 			// reset
-			this._target0 = this._target.clone();
+			this._target0 = this.target.clone();
 			this._position0 = this.object.position.clone();
 
 			this._needsUpdate = true;
@@ -253,7 +253,7 @@
 						case STATE.PAN:
 						case STATE.TOUCH_PAN:
 
-							var offset = _v3.copy(scope.object.position).sub(scope._target);
+							var offset = _v3.copy(scope.object.position).sub(scope.target);
 							// half of the fov is center to top of screen
 							var targetDistance = offset.length() * Math.tan(scope.object.fov / 2 * Math.PI / 180);
 							var panX = scope.panSpeed * deltaX * targetDistance / elementRect.height;
@@ -264,7 +264,7 @@
 					}
 				};
 
-				var _endDragging = function _endDragging(event) {
+				var _endDragging = function _endDragging() {
 
 					if (!scope.enabled) return;
 
@@ -377,7 +377,7 @@
 
 			if (!enableTransition) {
 
-				this._target.copy(this._targetEnd);
+				this.target.copy(this._targetEnd);
 			}
 
 			this._needsUpdate = true;
@@ -389,7 +389,7 @@
 
 			if (!enableTransition) {
 
-				this._target.copy(this._targetEnd);
+				this.target.copy(this._targetEnd);
 			}
 
 			this._needsUpdate = true;
@@ -410,7 +410,7 @@
 
 			if (!enableTransition) {
 
-				this._target.copy(this._targetEnd);
+				this.target.copy(this._targetEnd);
 				this._spherical.copy(this._sphericalEnd);
 			}
 
@@ -423,24 +423,24 @@
 			var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 			var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 			var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-			var deltaTarget = new THREE.Vector3().subVectors(this._targetEnd, this._target);
+			var deltaTarget = new THREE.Vector3().subVectors(this._targetEnd, this.target);
 
 			if (Math.abs(deltaTheta) > EPSILON || Math.abs(deltaPhi) > EPSILON || Math.abs(deltaRadius) > EPSILON || Math.abs(deltaTarget.x) > EPSILON || Math.abs(deltaTarget.y) > EPSILON || Math.abs(deltaTarget.z) > EPSILON) {
 
 				this._spherical.set(this._spherical.radius + deltaRadius * dampingFactor, this._spherical.phi + deltaPhi * dampingFactor, this._spherical.theta + deltaTheta * dampingFactor);
 
-				this._target.add(deltaTarget.multiplyScalar(dampingFactor));
+				this.target.add(deltaTarget.multiplyScalar(dampingFactor));
 
 				this._needsUpdate = true;
 			} else {
 
 				this._spherical.copy(this._sphericalEnd);
-				this._target.copy(this._targetEnd);
+				this.target.copy(this._targetEnd);
 			}
 
 			this._spherical.makeSafe();
-			this.object.position.setFromSpherical(this._spherical).add(this._target);
-			this.object.lookAt(this._target);
+			this.object.position.setFromSpherical(this._spherical).add(this.target);
+			this.object.lookAt(this.target);
 
 			var needsUpdate = this._needsUpdate;
 			this._needsUpdate = false;
