@@ -2,7 +2,7 @@ let THREE;
 let _v3;
 let _xColumn;
 let _yColumn;
-const EPSILON = 0.01;
+const EPSILON = 0.001;
 const STATE = {
 	NONE        : - 1,
 	ROTATE      :   0,
@@ -43,7 +43,7 @@ export default class CameraControls {
 		this.domElement = domElement;
 
 		// the location of focus, where the object orbits around
-		this._target = new THREE.Vector3();
+		this.target = new THREE.Vector3();
 		this._targetEnd = new THREE.Vector3();
 
 		// rotation
@@ -52,7 +52,7 @@ export default class CameraControls {
 		this._sphericalEnd = new THREE.Spherical().copy( this._spherical );
 
 		// reset
-		this._target0 = this._target.clone();
+		this._target0 = this.target.clone();
 		this._position0 = this.object.position.clone();
 
 		this._needsUpdate = true;
@@ -186,7 +186,7 @@ export default class CameraControls {
 
 			}
 
-			function startDragging ( event ) {
+			function startDragging( event ) {
 
 				if ( ! scope.enabled ) return;
 
@@ -277,7 +277,7 @@ export default class CameraControls {
 					case STATE.PAN:
 					case STATE.TOUCH_PAN:
 
-						const offset = _v3.copy( scope.object.position ).sub( scope._target );
+						const offset = _v3.copy( scope.object.position ).sub( scope.target );
 						// half of the fov is center to top of screen
 						const targetDistance = offset.length() * Math.tan( ( scope.object.fov / 2 ) * Math.PI / 180 );
 						const panX = ( scope.panSpeed * deltaX * targetDistance / elementRect.height );
@@ -289,7 +289,7 @@ export default class CameraControls {
 
 			}
 
-			function endDragging( event ) {
+			function endDragging() {
 
 				if ( ! scope.enabled ) return;
 
@@ -394,7 +394,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this._target.copy( this._targetEnd );
+			this.target.copy( this._targetEnd );
 
 		}
 
@@ -408,7 +408,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this._target.copy( this._targetEnd );
+			this.target.copy( this._targetEnd );
 
 		}
 
@@ -432,7 +432,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this._target.copy( this._targetEnd );
+			this.target.copy( this._targetEnd );
 			this._spherical.copy( this._sphericalEnd );
 
 		}
@@ -447,7 +447,7 @@ export default class CameraControls {
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-		const deltaTarget = new THREE.Vector3().subVectors( this._targetEnd, this._target );
+		const deltaTarget = new THREE.Vector3().subVectors( this._targetEnd, this.target );
 
 		if (
 			Math.abs( deltaTheta    ) > EPSILON ||
@@ -464,20 +464,20 @@ export default class CameraControls {
 				this._spherical.theta  + deltaTheta  * dampingFactor
 			);
 
-			this._target.add( deltaTarget.multiplyScalar( dampingFactor ) );
+			this.target.add( deltaTarget.multiplyScalar( dampingFactor ) );
 
 			this._needsUpdate = true;
 
 		} else {
 
 			this._spherical.copy( this._sphericalEnd );
-			this._target.copy( this._targetEnd );
+			this.target.copy( this._targetEnd );
 
 		}
 
 		this._spherical.makeSafe();
-		this.object.position.setFromSpherical( this._spherical ).add( this._target );
-		this.object.lookAt( this._target );
+		this.object.position.setFromSpherical( this._spherical ).add( this.target );
+		this.object.lookAt( this.target );
 
 		const needsUpdate = this._needsUpdate;
 		this._needsUpdate = false;
