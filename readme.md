@@ -99,11 +99,11 @@ Update camera position and directions. This should be called in your tick loop a
 
 #### `toJSON()`
 
-get all state in JSON string
+Get all state in JSON string
 
 #### `fromJSON( json, enableTransition )`
 
-reproduce the control state with JSON. `enableTransition` is where anim or not in a boolean.
+Reproduce the control state with JSON. `enableTransition` is where anim or not in a boolean.
 
 #### `dispose()`
 

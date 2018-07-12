@@ -514,7 +514,7 @@ export default class CameraControls {
 	fromJSON( json, enableTransition ) {
 
 		const obj = JSON.parse( json );
-		const position = new THREE.Vector3().fromArray(  obj.position )
+		const position = new THREE.Vector3().fromArray( obj.position )
 
 		this.enabled               = obj.enabled;
 
@@ -529,12 +529,11 @@ export default class CameraControls {
 		this.zoomSpeed             = obj.zoomSpeed;
 		this.panSpeed              = obj.panSpeed;
 
-		this._targetEnd.fromArray( obj.target );
-		this._sphericalEnd.setFromVector3( position );
-
 		this._target0.fromArray( obj.target0 );
 		this._position0.fromArray( obj.position0 );
 
+		this._targetEnd.fromArray( obj.target );
+		this._sphericalEnd.setFromVector3( position.sub( this._target0 ) );
 
 		if ( ! enableTransition ) {
 
