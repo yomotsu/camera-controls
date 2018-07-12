@@ -486,4 +486,83 @@ export default class CameraControls {
 
 	}
 
+	toJSON() {
+
+		return JSON.stringify( {
+			enabled              : this.enabled,
+
+			minDistance          : this.minDistance,
+			maxDistance          : infinityToMaxNumber( this.maxDistance ),
+			minPolarAngle        : this.minPolarAngle,
+			maxPolarAngle        : infinityToMaxNumber( this.maxPolarAngle ),
+			minAzimuthAngle      : infinityToMaxNumber( this.minAzimuthAngle ),
+			maxAzimuthAngle      : infinityToMaxNumber( this.maxAzimuthAngle ),
+			dampingFactor        : this.dampingFactor,
+			draggingDampingFactor: this.draggingDampingFactor,
+			zoomSpeed            : this.zoomSpeed,
+			panSpeed             : this.panSpeed,
+
+			target               : this._targetEnd.toArray(),
+			position             : this.object.position.toArray(),
+
+			target0              : this._target0.toArray(),
+			position0            : this._position0.toArray(),
+		} );
+
+	}
+
+	fromJSON( json, enableTransition ) {
+
+		const obj = JSON.parse( json );
+		const position = new THREE.Vector3().fromArray(  obj.position )
+
+		this.enabled               = obj.enabled;
+
+		this.minDistance           = obj.minDistance;
+		this.maxDistance           = maxNumberToInfinity( obj.maxDistance );
+		this.minPolarAngle         = obj.minPolarAngle;
+		this.maxPolarAngle         = maxNumberToInfinity( obj.maxPolarAngle );
+		this.minAzimuthAngle       = maxNumberToInfinity( obj.minAzimuthAngle );
+		this.maxAzimuthAngle       = maxNumberToInfinity( obj.maxAzimuthAngle );
+		this.dampingFactor         = obj.dampingFactor;
+		this.draggingDampingFactor = obj.draggingDampingFactor;
+		this.zoomSpeed             = obj.zoomSpeed;
+		this.panSpeed              = obj.panSpeed;
+
+		this._targetEnd.fromArray( obj.target );
+		this._sphericalEnd.setFromVector3( position );
+
+		this._target0.fromArray( obj.target0 );
+		this._position0.fromArray( obj.position0 );
+
+
+		if ( ! enableTransition ) {
+
+			this.target.copy( this._targetEnd );
+			this._spherical.copy( this._sphericalEnd );
+
+		}
+
+		this._needsUpdate = true;
+
+	}
+
+}
+
+function infinityToMaxNumber( value ) {
+
+	if ( isFinite( value ) ) return value;
+
+	if ( value < 0 ) return - Number.MAX_VALUE;
+
+	return Number.MAX_VALUE;
+
+}
+
+function maxNumberToInfinity( value ) {
+
+	if ( Math.abs( value ) < Number.MAX_VALUE ) return value;
+
+	return value * Infinity;
+
 }

@@ -97,6 +97,14 @@ Reset all rotation, zoom, position to default.
 Update camera position and directions. This should be called in your tick loop and returns `true` if re-rendering is needed.
 `delta` is delta time between previous update call.
 
+#### `toJSON()`
+
+get all state in JSON string
+
+#### `fromJSON( json, enableTransition )`
+
+reproduce the control state with JSON. `enableTransition` is where anim or not in a boolean.
+
 #### `dispose()`
 
 Dispose cameraControls instancem, remove all eventListeners.
