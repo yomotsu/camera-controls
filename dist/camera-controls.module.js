@@ -484,11 +484,11 @@ var CameraControls = function () {
 		this.zoomSpeed = obj.zoomSpeed;
 		this.panSpeed = obj.panSpeed;
 
-		this._targetEnd.fromArray(obj.target);
-		this._sphericalEnd.setFromVector3(position);
-
 		this._target0.fromArray(obj.target0);
 		this._position0.fromArray(obj.position0);
+
+		this._targetEnd.fromArray(obj.target);
+		this._sphericalEnd.setFromVector3(position.sub(this._target0));
 
 		if (!enableTransition) {
 
