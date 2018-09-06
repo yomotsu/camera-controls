@@ -50,8 +50,8 @@
 			this.maxAzimuthAngle = Infinity; // radians
 			this.dampingFactor = 0.05;
 			this.draggingDampingFactor = 0.25;
-			this.zoomSpeed = 1.0;
-			this.panSpeed = 2.0;
+			this.dollySpeed = 1.0;
+			this.truckSpeed = 2.0;
 
 			this.domElement = domElement;
 
@@ -256,8 +256,8 @@
 							var offset = _v3.copy(scope.object.position).sub(scope.target);
 							// half of the fov is center to top of screen
 							var targetDistance = offset.length() * Math.tan(scope.object.fov / 2 * Math.PI / 180);
-							var panX = scope.panSpeed * deltaX * targetDistance / elementRect.height;
-							var panY = scope.panSpeed * deltaY * targetDistance / elementRect.height;
+							var panX = scope.truckSpeed * deltaX * targetDistance / elementRect.height;
+							var panY = scope.truckSpeed * deltaY * targetDistance / elementRect.height;
 							scope.pan(panX, panY, true);
 							break;
 
@@ -279,13 +279,13 @@
 
 				var _dollyIn = function _dollyIn() {
 
-					var zoomScale = Math.pow(0.95, scope.zoomSpeed);
+					var zoomScale = Math.pow(0.95, scope.dollySpeed);
 					scope.dolly(scope._sphericalEnd.radius * zoomScale - scope._sphericalEnd.radius);
 				};
 
 				var _dollyOut = function _dollyOut() {
 
-					var zoomScale = Math.pow(0.95, scope.zoomSpeed);
+					var zoomScale = Math.pow(0.95, scope.dollySpeed);
 					scope.dolly(scope._sphericalEnd.radius / zoomScale - scope._sphericalEnd.radius);
 				};
 
@@ -467,8 +467,8 @@
 				maxAzimuthAngle: infinityToMaxNumber(this.maxAzimuthAngle),
 				dampingFactor: this.dampingFactor,
 				draggingDampingFactor: this.draggingDampingFactor,
-				zoomSpeed: this.zoomSpeed,
-				panSpeed: this.panSpeed,
+				dollySpeed: this.dollySpeed,
+				truckSpeed: this.truckSpeed,
 
 				target: this._targetEnd.toArray(),
 				position: this.object.position.toArray(),
@@ -493,8 +493,8 @@
 			this.maxAzimuthAngle = maxNumberToInfinity(obj.maxAzimuthAngle);
 			this.dampingFactor = obj.dampingFactor;
 			this.draggingDampingFactor = obj.draggingDampingFactor;
-			this.zoomSpeed = obj.zoomSpeed;
-			this.panSpeed = obj.panSpeed;
+			this.dollySpeed = obj.dollySpeed;
+			this.truckSpeed = obj.truckSpeed;
 
 			this._target0.fromArray(obj.target0);
 			this._position0.fromArray(obj.position0);
