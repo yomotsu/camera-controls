@@ -365,6 +365,12 @@
 
 		CameraControls.prototype.pan = function pan(x, y, enableTransition) {
 
+			console.log('`pan` has been renamed to `truck`');
+			this.truck(x, y, enableTransition);
+		};
+
+		CameraControls.prototype.truck = function truck(x, y, enableTransition) {
+
 			this.object.updateMatrix();
 
 			_xColumn.setFromMatrixColumn(this.object.matrix, 0);
