@@ -55,8 +55,8 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 - `.maxAzimuthAngle`: Default is `Infinity`, in radians.
 - `.dampingFactor`: Default is `0.05`.
 - `.draggingDampingFactor`: Default is `0.25`.
-- `.zoomSpeed`: Default is `1.0`. Spped of drag and mouse-wheel dollying.
-- `.panSpeed`: Default is `2.0`. Spped of drag panning.
+- `.zoomSpeed`: Default is `1.0`. speed of mouse-wheel dollying.
+- `.truckSpeed`: Default is `2.0`. speed of drag for truck and pedestal.
 
 ## Methods
 
@@ -76,9 +76,9 @@ Dolly in/out camera position. `distance` is in a number. `enableTransition` is i
 
 Dolly in/out camera position to given distance
 
-#### `pan( x, y, enableTransition )`
+#### `truck( x, y, enableTransition )`
 
-Pan camera using current azimuthal angle.
+Truck and pedestal camera using current azimuthal angle.
 
 #### `moveTo( x, y, z, enableTransition )`
 

@@ -382,6 +382,13 @@ export default class CameraControls {
 
 	pan( x, y, enableTransition ) {
 
+		console.log( '`pan` has been renamed to `truck`' );
+		this.truck( x, y, enableTransition );
+
+	}
+
+	truck( x, y, enableTransition ) {
+
 		this.object.updateMatrix();
 
 		_xColumn.setFromMatrixColumn( this.object.matrix, 0 );
@@ -514,7 +521,7 @@ export default class CameraControls {
 	fromJSON( json, enableTransition ) {
 
 		const obj = JSON.parse( json );
-		const position = new THREE.Vector3().fromArray( obj.position )
+		const position = new THREE.Vector3().fromArray( obj.position );
 
 		this.enabled               = obj.enabled;
 
