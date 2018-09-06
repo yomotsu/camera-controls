@@ -55,7 +55,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 - `.maxAzimuthAngle`: Default is `Infinity`, in radians.
 - `.dampingFactor`: Default is `0.05`.
 - `.draggingDampingFactor`: Default is `0.25`.
-- `.zoomSpeed`: Default is `1.0`. speed of mouse-wheel dollying.
+- `.dollySpeed`: Default is `1.0`. speed of mouse-wheel dollying.
 - `.truckSpeed`: Default is `2.0`. speed of drag for truck and pedestal.
 
 ## Methods
@@ -90,7 +90,7 @@ Set current camera position as the default position
 
 #### `reset( enableTransition )`
 
-Reset all rotation, zoom, position to default.
+Reset all rotation and position to default.
 
 #### `update( delta )`
 
