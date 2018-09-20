@@ -84,7 +84,7 @@
 			} else {
 				var _onMouseDown = function _onMouseDown(event) {
 
-					if (!_scope.enabled) return;
+					if (!scope.enabled) return;
 
 					event.preventDefault();
 
@@ -117,7 +117,7 @@
 
 				var _onTouchStart = function _onTouchStart(event) {
 
-					if (!_scope.enabled) return;
+					if (!scope.enabled) return;
 
 					event.preventDefault();
 
@@ -153,7 +153,7 @@
 
 				var _onMouseWheel = function _onMouseWheel(event) {
 
-					if (!_scope.enabled) return;
+					if (!scope.enabled) return;
 
 					event.preventDefault();
 
@@ -168,14 +168,14 @@
 
 				var _onContextMenu = function _onContextMenu(event) {
 
-					if (!_scope.enabled) return;
+					if (!scope.enabled) return;
 
 					event.preventDefault();
 				};
 
 				var _startDragging = function _startDragging(event) {
 
-					if (!_scope.enabled) return;
+					if (!scope.enabled) return;
 
 					event.preventDefault();
 
@@ -183,7 +183,7 @@
 					var x = _event.clientX;
 					var y = _event.clientY;
 
-					elementRect = _scope.domElement.getBoundingClientRect();
+					elementRect = scope.domElement.getBoundingClientRect();
 					dragStart.set(x, y);
 
 					// if ( state === STATE.DOLLY ) {
@@ -201,8 +201,8 @@
 						dollyStart.set(0, distance);
 					}
 
-					savedDampingFactor = _scope.dampingFactor;
-					_scope.dampingFactor = _scope.draggingDampingFactor;
+					savedDampingFactor = scope.dampingFactor;
+					scope.dampingFactor = scope.draggingDampingFactor;
 
 					document.addEventListener('mousemove', _dragging, { passive: false });
 					document.addEventListener('touchmove', _dragging, { passive: false });
@@ -212,7 +212,7 @@
 
 				var _dragging = function _dragging(event) {
 
-					if (!_scope.enabled) return;
+					if (!scope.enabled) return;
 
 					event.preventDefault();
 
@@ -232,7 +232,7 @@
 
 							var rotX = 2 * Math.PI * deltaX / elementRect.width;
 							var rotY = 2 * Math.PI * deltaY / elementRect.height;
-							_scope.rotate(rotX, rotY, true);
+							scope.rotate(rotX, rotY, true);
 							break;
 
 						case STATE.DOLLY:
@@ -260,22 +260,22 @@
 						case STATE.TRUCK:
 						case STATE.TOUCH_TRUCK:
 
-							if (_scope.object.isPerspectiveCamera) {
+							if (scope.object.isPerspectiveCamera) {
 
-								var offset = _v3.copy(_scope.object.position).sub(_scope.target);
+								var offset = _v3.copy(scope.object.position).sub(scope.target);
 								// half of the fov is center to top of screen
-								var fovInRad = _scope.object.fov * THREE.Math.DEG2RAD;
+								var fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
 								var targetDistance = offset.length() * Math.tan(fovInRad / 2);
-								var truckX = _scope.truckSpeed * deltaX * targetDistance / elementRect.height;
-								var pedestalY = _scope.truckSpeed * deltaY * targetDistance / elementRect.height;
-								_scope.truck(truckX, pedestalY, true);
+								var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.height;
+								var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.height;
+								scope.truck(truckX, pedestalY, true);
 								break;
-							} else if (_scope.object.isOrthographicCamera) {
+							} else if (scope.object.isOrthographicCamera) {
 
 								// orthographic
-								var _truckX = deltaX * (_scope.object.right - _scope.object.left) / _scope.object.zoom / elementRect.width;
-								var _pedestalY = deltaY * (_scope.object.top - _scope.object.bottom) / _scope.object.zoom / elementRect.height;
-								_scope.truck(_truckX, _pedestalY, true);
+								var _truckX = deltaX * (scope.object.right - scope.object.left) / scope.object.zoom / elementRect.width;
+								var _pedestalY = deltaY * (scope.object.top - scope.object.bottom) / scope.object.zoom / elementRect.height;
+								scope.truck(_truckX, _pedestalY, true);
 								break;
 							}
 
@@ -284,9 +284,9 @@
 
 				var _endDragging = function _endDragging() {
 
-					if (!_scope.enabled) return;
+					if (!scope.enabled) return;
 
-					_scope.dampingFactor = savedDampingFactor;
+					scope.dampingFactor = savedDampingFactor;
 					state = STATE.NONE;
 
 					document.removeEventListener('mousemove', _dragging);
@@ -297,35 +297,35 @@
 
 				var _dollyIn = function _dollyIn() {
 
-					var dollyScale = Math.pow(0.95, _scope.dollySpeed);
+					var dollyScale = Math.pow(0.95, scope.dollySpeed);
 
-					if (_scope.object.isPerspectiveCamera) {
+					if (scope.object.isPerspectiveCamera) {
 
-						_scope.dolly(_scope._sphericalEnd.radius * dollyScale - _scope._sphericalEnd.radius);
-					} else if (_scope.object.isOrthographicCamera) {
+						scope.dolly(scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius);
+					} else if (scope.object.isOrthographicCamera) {
 
-						_scope.object.zoom = Math.max(_scope.minZoom, Math.min(_scope.maxZoom, _scope.object.zoom * dollyScale));
-						_scope.object.updateProjectionMatrix();
-						_scope._needsUpdate = true;
+						scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom * dollyScale));
+						scope.object.updateProjectionMatrix();
+						scope._needsUpdate = true;
 					}
 				};
 
 				var _dollyOut = function _dollyOut() {
 
-					var dollyScale = Math.pow(0.95, _scope.dollySpeed);
+					var dollyScale = Math.pow(0.95, scope.dollySpeed);
 
-					if (_scope.object.isPerspectiveCamera) {
+					if (scope.object.isPerspectiveCamera) {
 
-						_scope.dolly(_scope._sphericalEnd.radius / dollyScale - _scope._sphericalEnd.radius);
-					} else if (_scope.object.isOrthographicCamera) {
+						scope.dolly(scope._sphericalEnd.radius / dollyScale - scope._sphericalEnd.radius);
+					} else if (scope.object.isOrthographicCamera) {
 
-						_scope.object.zoom = Math.max(_scope.minZoom, Math.min(_scope.maxZoom, _scope.object.zoom / dollyScale));
-						_scope.object.updateProjectionMatrix();
-						_scope._needsUpdate = true;
+						scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom / dollyScale));
+						scope.object.updateProjectionMatrix();
+						scope._needsUpdate = true;
 					}
 				};
 
-				var _scope = this;
+				var scope = this;
 				var dragStart = new THREE.Vector2();
 				var dollyStart = new THREE.Vector2();
 				var state = STATE.NONE;
@@ -339,10 +339,10 @@
 
 				this.dispose = function () {
 
-					_scope.domElement.removeEventListener('mousedown', _onMouseDown);
-					_scope.domElement.removeEventListener('touchstart', _onTouchStart);
-					_scope.domElement.removeEventListener('wheel', _onMouseWheel);
-					_scope.domElement.removeEventListener('contextmenu', _onContextMenu);
+					scope.domElement.removeEventListener('mousedown', _onMouseDown);
+					scope.domElement.removeEventListener('touchstart', _onTouchStart);
+					scope.domElement.removeEventListener('wheel', _onMouseWheel);
+					scope.domElement.removeEventListener('contextmenu', _onContextMenu);
 					document.removeEventListener('mousemove', _dragging);
 					document.removeEventListener('touchmove', _dragging);
 					document.removeEventListener('mouseup', _endDragging);
@@ -384,7 +384,7 @@
 
 		CameraControls.prototype.dolly = function dolly(distance, enableTransition) {
 
-			if (scope.object.isOrthographicCamera) {
+			if (this.object.isOrthographicCamera) {
 
 				console.warn('dolly is not available for OrthographicCamera');
 				return;
@@ -395,7 +395,7 @@
 
 		CameraControls.prototype.dollyTo = function dollyTo(distance, enableTransition) {
 
-			if (scope.object.isOrthographicCamera) {
+			if (this.object.isOrthographicCamera) {
 
 				console.warn('dolly is not available for OrthographicCamera');
 				return;
