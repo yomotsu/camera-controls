@@ -399,7 +399,7 @@ export default class CameraControls {
 
 	dolly( distance, enableTransition ) {
 
-		if ( scope.object.isOrthographicCamera ) {
+		if ( this.object.isOrthographicCamera ) {
 
 			console.warn( 'dolly is not available for OrthographicCamera' );
 			return;
@@ -412,7 +412,7 @@ export default class CameraControls {
 
 	dollyTo( distance, enableTransition ) {
 
-		if ( scope.object.isOrthographicCamera ) {
+		if ( this.object.isOrthographicCamera ) {
 
 			console.warn( 'dolly is not available for OrthographicCamera' );
 			return;
