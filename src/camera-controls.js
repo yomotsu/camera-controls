@@ -7,10 +7,10 @@ const STATE = {
 	NONE        : - 1,
 	ROTATE      :   0,
 	DOLLY       :   1,
-	PAN         :   2,
+	TRUCK       :   2,
 	TOUCH_ROTATE:   3,
 	TOUCH_DOLLY :   4,
-	TOUCH_PAN   :   5
+	TOUCH_TRUCK :   5
 };
 
 export default class CameraControls {
@@ -29,8 +29,14 @@ export default class CameraControls {
 		this.object = object;
 		this.enabled = true;
 
+		// How far you can dolly in and out ( PerspectiveCamera only )
 		this.minDistance = 0;
 		this.maxDistance = Infinity;
+
+		// How far you can zoom in and out ( OrthographicCamera only )
+		this.minZoom = 0;
+		this.maxZoom = Infinity;
+
 		this.minPolarAngle = 0; // radians
 		this.maxPolarAngle = Math.PI; // radians
 		this.minAzimuthAngle = - Infinity; // radians
@@ -54,6 +60,7 @@ export default class CameraControls {
 		// reset
 		this._target0 = this.target.clone();
 		this._position0 = this.object.position.clone();
+		this._zoom0 = this.object.zoom;
 
 		this._needsUpdate = true;
 		this.update();
@@ -111,7 +118,7 @@ export default class CameraControls {
 
 					case THREE.MOUSE.RIGHT:
 
-						state = STATE.PAN;
+						state = STATE.TRUCK;
 						break;
 
 				}
@@ -144,9 +151,9 @@ export default class CameraControls {
 						state = STATE.TOUCH_DOLLY;
 						break;
 
-					case 3: // three-fingered touch: pan
+					case 3: // three-fingered touch: truck
 
-						state = STATE.TOUCH_PAN;
+						state = STATE.TOUCH_TRUCK;
 						break;
 
 				}
@@ -274,16 +281,29 @@ export default class CameraControls {
 						dollyStart.set( 0, distance );
 						break;
 
-					case STATE.PAN:
-					case STATE.TOUCH_PAN:
+					case STATE.TRUCK:
+					case STATE.TOUCH_TRUCK:
 
-						const offset = _v3.copy( scope.object.position ).sub( scope.target );
-						// half of the fov is center to top of screen
-						const targetDistance = offset.length() * Math.tan( ( scope.object.fov / 2 ) * Math.PI / 180 );
-						const panX = ( scope.truckSpeed * deltaX * targetDistance / elementRect.height );
-						const panY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.height );
-						scope.pan( panX, panY, true );
-						break;
+						if ( scope.object.isPerspectiveCamera ) {
+
+							const offset = _v3.copy( scope.object.position ).sub( scope.target );
+							// half of the fov is center to top of screen
+							const fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
+							const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
+							const truckX = ( scope.truckSpeed * deltaX * targetDistance / elementRect.height );
+							const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.height );
+							scope.truck( truckX, pedestalY, true );
+							break;
+
+						} else if ( scope.object.isOrthographicCamera ) {
+
+							// orthographic
+							const truckX = deltaX * ( scope.object.right - scope.object.left ) / scope.object.zoom / elementRect.width;
+							const pedestalY = deltaY * ( scope.object.top - scope.object.bottom ) / scope.object.zoom / elementRect.height;
+							scope.truck( truckX, pedestalY, true );
+							break;
+
+						}
 
 				}
 
@@ -305,18 +325,39 @@ export default class CameraControls {
 
 			function dollyIn() {
 
-				const zoomScale = Math.pow( 0.95, scope.dollySpeed );
-				scope.dolly( scope._sphericalEnd.radius * zoomScale - scope._sphericalEnd.radius );
+				const dollyScale = Math.pow( 0.95, scope.dollySpeed );
+
+				if ( scope.object.isPerspectiveCamera ) {
+
+					scope.dolly( scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius );
+
+				} else if ( scope.object.isOrthographicCamera ) {
+
+					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
+					scope.object.updateProjectionMatrix();
+					scope._needsUpdate = true;
+
+				}
 
 			}
 
 			function dollyOut() {
 
-				const zoomScale = Math.pow( 0.95, scope.dollySpeed );
-				scope.dolly( scope._sphericalEnd.radius / zoomScale - scope._sphericalEnd.radius );
+				const dollyScale = Math.pow( 0.95, scope.dollySpeed );
+
+				if ( scope.object.isPerspectiveCamera ) {
+
+					scope.dolly( scope._sphericalEnd.radius / dollyScale - scope._sphericalEnd.radius );
+
+				} else if ( scope.object.isOrthographicCamera ) {
+
+					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom / dollyScale ) );
+					scope.object.updateProjectionMatrix();
+					scope._needsUpdate = true;
+
+				}
 
 			}
-
 
 		}
 
@@ -358,11 +399,25 @@ export default class CameraControls {
 
 	dolly( distance, enableTransition ) {
 
+		if ( scope.object.isOrthographicCamera ) {
+
+			console.warn( 'dolly is not available for OrthographicCamera' );
+			return;
+
+		}
+
 		this.dollyTo( this._sphericalEnd.radius + distance, enableTransition );
 
 	}
 
 	dollyTo( distance, enableTransition ) {
+
+		if ( scope.object.isOrthographicCamera ) {
+
+			console.warn( 'dolly is not available for OrthographicCamera' );
+			return;
+
+		}
 
 		this._sphericalEnd.radius = THREE.Math.clamp(
 			distance,
@@ -423,17 +478,48 @@ export default class CameraControls {
 
 	}
 
-	saveState() {
+	fitTo( object, enableTransition ) {
 
-		this._target0.copy( this.target );
-		this._position0.copy( this.object.position );
+		if ( this.object.isOrthographicCamera ) {
+
+			console.warn( 'fitTo is not supported for OrthographicCamera' )
+			return;
+
+		}
+
+		const camera = this.object;
+		const boundingBox = new THREE.Box3().setFromObject( object );
+		const size = boundingBox.getSize( _v3 );
+		const boundingWidth  = size.x;
+		const boundingHeight = size.y;
+		const boundingDepth = size.z;
+		const boundingRectAspect = boundingWidth / boundingHeight;
+		const boundingBoxCenter = boundingBox.getCenter( _v3 );
+		const fov = camera.fov;
+		const aspect = camera.aspect;
+		this.rotateTo( 0, 90 * THREE.Math.DEG2RAD, enableTransition );
+		this.moveTo( boundingBoxCenter.x, boundingBoxCenter.y, boundingBoxCenter.z, enableTransition );
+
+		if ( boundingRectAspect < aspect ) {
+
+			const distance = boundingHeight * 0.5 / Math.tan( fov * Math.PI / 360 ) + boundingDepth / 2;
+			this.dollyTo( distance, enableTransition );
+			return;
+
+		} else {
+
+			const distance = boundingWidth / aspect * 0.5 / Math.tan( fov * Math.PI / 360 ) + boundingDepth / 2;
+			this.dollyTo( distance, enableTransition );
+			return;
+
+		}
 
 	}
 
 	reset( enableTransition ) {
 
 		this._targetEnd.copy( this._target0 );
-		this._sphericalEnd.setFromVector3( this._position0 );
+		this._sphericalEnd.setFromVector3( _v3.subVectors( this._position0, this._target0 ) );
 		this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
 		this._spherical.theta    = this._spherical.theta    % ( 2 * Math.PI );
 
@@ -448,7 +534,19 @@ export default class CameraControls {
 
 	}
 
+	saveState() {
+
+		this._target0.copy( this.target );
+		this._position0.copy( this.object.position );
+		this._zoom0 = this.object.zoom;
+
+	}
+
 	update( delta ) {
+
+		// var offset = new THREE.Vector3();
+		// var quat = new THREE.Quaternion().setFromUnitVectors( this.object.up, new THREE.Vector3( 0, 1, 0 ) );
+		// var quatInverse = quat.clone().inverse();
 
 		const dampingFactor = this.dampingFactor * delta / 0.016;
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
@@ -486,10 +584,10 @@ export default class CameraControls {
 		this.object.position.setFromSpherical( this._spherical ).add( this.target );
 		this.object.lookAt( this.target );
 
-		const needsUpdate = this._needsUpdate;
+		const updated = this._needsUpdate;
 		this._needsUpdate = false;
 
-		return needsUpdate;
+		return updated;
 
 	}
 
