@@ -444,6 +444,13 @@ var CameraControls = function () {
 	};
 
 	CameraControls.prototype.fitTo = function fitTo(object, enableTransition) {
+		var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+
+		var gapLeft = options.gapLeft || 0;
+		var gapRight = options.gapRight || 0;
+		var gapBottom = options.gapBottom || 0;
+		var gapTop = options.gapTop || 0;
 
 		if (this.object.isOrthographicCamera) {
 
@@ -451,30 +458,33 @@ var CameraControls = function () {
 			return;
 		}
 
-		var camera = this.object;
 		var boundingBox = new THREE.Box3().setFromObject(object);
 		var size = boundingBox.getSize(_v3);
-		var boundingWidth = size.x;
-		var boundingHeight = size.y;
+		var boundingWidth = size.x + gapLeft + gapRight;
+		var boundingHeight = size.y + gapTop + gapBottom;
 		var boundingDepth = size.z;
-		var boundingRectAspect = boundingWidth / boundingHeight;
+
+		var distance = this.getDistanceToFit(boundingWidth, boundingHeight, boundingDepth);
+		this.dollyTo(distance, enableTransition);
+
 		var boundingBoxCenter = boundingBox.getCenter(_v3);
-		var fov = camera.fov;
-		var aspect = camera.aspect;
+		var cx = boundingBoxCenter.x - (gapLeft * 0.5 - gapRight * 0.5);
+		var cy = boundingBoxCenter.y + (gapTop * 0.5 - gapBottom * 0.5);
+		var cz = boundingBoxCenter.z;
+		this.moveTo(cx, cy, cz, enableTransition);
+
 		this.rotateTo(0, 90 * THREE.Math.DEG2RAD, enableTransition);
-		this.moveTo(boundingBoxCenter.x, boundingBoxCenter.y, boundingBoxCenter.z, enableTransition);
+	};
 
-		if (boundingRectAspect < aspect) {
+	CameraControls.prototype.getDistanceToFit = function getDistanceToFit(width, height, depth) {
 
-			var distance = boundingHeight * 0.5 / Math.tan(fov * Math.PI / 360) + boundingDepth / 2;
-			this.dollyTo(distance, enableTransition);
-			return;
-		} else {
+		var camera = this.object;
+		var boundingRectAspect = width / height;
+		var fov = camera.fov * THREE.Math.DEG2RAD;
+		var aspect = camera.aspect;
 
-			var _distance = boundingWidth / aspect * 0.5 / Math.tan(fov * Math.PI / 360) + boundingDepth / 2;
-			this.dollyTo(_distance, enableTransition);
-			return;
-		}
+		var heightToFit = boundingRectAspect < aspect ? height : width / aspect;
+		return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
 	};
 
 	CameraControls.prototype.reset = function reset(enableTransition) {
