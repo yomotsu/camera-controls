@@ -478,41 +478,48 @@ export default class CameraControls {
 
 	}
 
-	fitTo( object, enableTransition ) {
+	fitTo( object, enableTransition, options = {} ) {
+
+		const gapLeft = options.gapLeft || 0;
+		const gapRight = options.gapRight || 0;
+		const gapBottom = options.gapBottom || 0;
+		const gapTop = options.gapTop || 0;
 
 		if ( this.object.isOrthographicCamera ) {
 
-			console.warn( 'fitTo is not supported for OrthographicCamera' )
+			console.warn( 'fitTo is not supported for OrthographicCamera' );
 			return;
 
 		}
 
-		const camera = this.object;
 		const boundingBox = new THREE.Box3().setFromObject( object );
 		const size = boundingBox.getSize( _v3 );
-		const boundingWidth  = size.x;
-		const boundingHeight = size.y;
+		const boundingWidth  = size.x + gapLeft + gapRight;
+		const boundingHeight = size.y + gapTop + gapBottom;
 		const boundingDepth = size.z;
-		const boundingRectAspect = boundingWidth / boundingHeight;
+
+		const distance = this.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
+		this.dollyTo( distance, enableTransition );
+
 		const boundingBoxCenter = boundingBox.getCenter( _v3 );
-		const fov = camera.fov;
-		const aspect = camera.aspect;
+		const cx = boundingBoxCenter.x - ( gapLeft * 0.5 - gapRight * 0.5 );
+		const cy = boundingBoxCenter.y + ( gapTop * 0.5 - gapBottom * 0.5 );
+		const cz = boundingBoxCenter.z;
+		this.moveTo( cx, cy, cz, enableTransition );
+
 		this.rotateTo( 0, 90 * THREE.Math.DEG2RAD, enableTransition );
-		this.moveTo( boundingBoxCenter.x, boundingBoxCenter.y, boundingBoxCenter.z, enableTransition );
 
-		if ( boundingRectAspect < aspect ) {
+	}
 
-			const distance = boundingHeight * 0.5 / Math.tan( fov * Math.PI / 360 ) + boundingDepth / 2;
-			this.dollyTo( distance, enableTransition );
-			return;
+	getDistanceToFit( width, height, depth ) {
 
-		} else {
-
-			const distance = boundingWidth / aspect * 0.5 / Math.tan( fov * Math.PI / 360 ) + boundingDepth / 2;
-			this.dollyTo( distance, enableTransition );
-			return;
-
-		}
+		const camera = this.object;
+		const boundingRectAspect = width / height;
+		const fov = camera.fov * THREE.Math.DEG2RAD;
+		const aspect = camera.aspect;
+	
+		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
+		return heightToFit * 0.5 / Math.tan( fov * 0.5 ) + depth * 0.5;
 
 	}
 

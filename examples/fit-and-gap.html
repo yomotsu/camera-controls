@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<style>
+body{
+	margin: 0;
+}
+.ruler {
+	pointer-events: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: url( "./ruler.png" ) no-repeat 0 0;
+}
+canvas{
+	display: block;
+}
+.info{
+	color: #FFF;
+	position: absolute;
+	padding: 10px 50px;
+}
+a{
+	color: inherit;
+}
+</style>
+</head>
+<body>
+<div class="ruler"></div>
+
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<button onclick="cameraControls.fitTo( mesh, true )">fit to the bounding box of the mesh</button><br>
+	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 0, gapRight: 0, gapBottom: 1, gapTop: 2 } )">fit with gap(top: 2unit, bottom: 1unit )</button>
+	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 0, gapRight: 0, gapBottom: 2, gapTop: .5 } )">fit with gap(top: 0.5unit, bottom: 2unit )</button>
+	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 4, gapRight: 4, gapBottom: 4, gapTop: 4 } )">fit with gap(top: 4unit, bottom: 4unit, left: 4unit, right: 4unit )</button>
+	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 1, gapRight: 0 } )">fit with gap(left: 1unit, right: 0unit )</button>
+	<button onclick="cssGap( 100, 100, 200, 100 )">fit with gap( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/96/three.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer( { antialias: true, stencil: false } );
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.rotation.x = Math.PI / -2
+gridHelper.position.z = 1;
+scene.add( gridHelper );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 2, 2, 2 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+mesh.material.depthTest = false;
+scene.add( mesh );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+
+
+
+function cssGap( top, right, bottom, left ) {
+
+	const boundingBox = new THREE.Box3().setFromObject( mesh );
+	const size = boundingBox.getSize( new THREE.Vector3() );
+	const boundingWidth  = size.x;
+	const boundingHeight = size.y;
+	const boundingDepth = size.z;
+
+	let distanceToFit = cameraControls.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
+	let gapTop = 0;
+	let gapBottom = 0;
+	let gapLeft = 0;
+	let gapRight = 0;
+
+	// convergence
+	for ( i = 0; i < 10; i ++ ) {
+
+		const cssPixelToUnit = getCSSPixelToUnitAtDepth( distanceToFit - boundingDepth / 2, renderer );
+		gapTop = top * cssPixelToUnit;
+		gapBottom = bottom * cssPixelToUnit;
+		gapLeft = left * cssPixelToUnit;
+		gapRight = right * cssPixelToUnit;
+
+		distanceToFit = cameraControls.getDistanceToFit(
+			boundingWidth + gapLeft + gapRight,
+			boundingHeight + gapTop + gapBottom,
+			boundingDepth
+		);
+
+	}
+
+	cameraControls.fitTo( mesh, true, { gapLeft: gapLeft, gapRight: gapRight, gapBottom: gapBottom, gapTop: gapTop } );
+
+}
+
+function getCSSPixelToUnitAtDepth( depthAt ) {
+
+	const fov = camera.fov * THREE.Math.DEG2RAD;
+	return 2 * Math.tan( fov * 0.5 ) * Math.abs( depthAt ) / renderer.getSize().height;
+
+}
+</script>
+
+</body>
+</html>

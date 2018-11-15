@@ -7,6 +7,8 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 ## Demos
 
 - [basic](https://yomotsu.github.io/camera-controls/examples/basic.html)
+- [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
+- [fit-and-gap](https://yomotsu.github.io/camera-controls/examples/fit-and-gap.html)
 
 ## Usage
 
@@ -83,6 +85,10 @@ Truck and pedestal camera using current azimuthal angle.
 #### `moveTo( x, y, z, enableTransition )`
 
 Move `target` position to given point.
+
+#### `fitTo( mesh, enableTransition, { gapTop?: number = 0, gapLeft?: number = 0, gapBottom?: number = 0, gapRight?: number = 0 } )`
+
+Fit viewport to the object bounding box. gaps are in unit.
 
 #### `saveState()`
 
