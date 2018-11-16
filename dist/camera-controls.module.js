@@ -443,14 +443,9 @@ var CameraControls = function () {
 		this._needsUpdate = true;
 	};
 
-	CameraControls.prototype.fitTo = function fitTo(object, enableTransition) {
+	CameraControls.prototype.fitTo = function fitTo(objectOrBox3, enableTransition) {
 		var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-
-		var paddingLeft = options.paddingLeft || 0;
-		var paddingRight = options.paddingRight || 0;
-		var paddingBottom = options.paddingBottom || 0;
-		var paddingTop = options.paddingTop || 0;
 
 		if (this.object.isOrthographicCamera) {
 
@@ -458,7 +453,12 @@ var CameraControls = function () {
 			return;
 		}
 
-		var boundingBox = new THREE.Box3().setFromObject(object);
+		var paddingLeft = options.paddingLeft || 0;
+		var paddingRight = options.paddingRight || 0;
+		var paddingBottom = options.paddingBottom || 0;
+		var paddingTop = options.paddingTop || 0;
+
+		var boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject(objectOrBox3);
 		var size = boundingBox.getSize(_v3);
 		var boundingWidth = size.x + paddingLeft + paddingRight;
 		var boundingHeight = size.y + paddingTop + paddingBottom;

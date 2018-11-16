@@ -97,22 +97,26 @@ renderer.render( scene, camera );
 
 function paddingInCssPixel( top, right, bottom, left ) {
 
+	const fov = camera.fov * THREE.Math.DEG2RAD;
+	const rendererHeight = renderer.getSize().height;
+
 	const boundingBox = new THREE.Box3().setFromObject( mesh );
 	const size = boundingBox.getSize( new THREE.Vector3() );
 	const boundingWidth  = size.x;
 	const boundingHeight = size.y;
 	const boundingDepth = size.z;
 
-	let distanceToFit = cameraControls.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
-	let paddingTop = 0;
-	let paddingBottom = 0;
-	let paddingLeft = 0;
-	let paddingRight = 0;
+	var distanceToFit = cameraControls.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
+	var paddingTop = 0;
+	var paddingBottom = 0;
+	var paddingLeft = 0;
+	var paddingRight = 0;
 
 	// loop to find almost convergence points
-	for ( i = 0; i < 10; i ++ ) {
+	for ( var i = 0; i < 10; i ++ ) {
 
-		const cssPixelToUnit = getCSSPixelToUnitAtDepth( distanceToFit - boundingDepth / 2, renderer );
+		const depthAt = distanceToFit - boundingDepth * 0.5;
+		const cssPixelToUnit = (2 * Math.tan(fov * 0.5) * Math.abs(depthAt)) / rendererHeight;
 		paddingTop = top * cssPixelToUnit;
 		paddingBottom = bottom * cssPixelToUnit;
 		paddingLeft = left * cssPixelToUnit;
@@ -127,13 +131,6 @@ function paddingInCssPixel( top, right, bottom, left ) {
 	}
 
 	cameraControls.fitTo( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop } );
-
-}
-
-function getCSSPixelToUnitAtDepth( depthAt ) {
-
-	const fov = camera.fov * THREE.Math.DEG2RAD;
-	return 2 * Math.tan( fov * 0.5 ) * Math.abs( depthAt ) / renderer.getSize().height;
 
 }
 </script>
