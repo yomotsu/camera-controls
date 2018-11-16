@@ -59,6 +59,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 - `.draggingDampingFactor`: Default is `0.25`.
 - `.dollySpeed`: Default is `1.0`. speed of mouse-wheel dollying.
 - `.truckSpeed`: Default is `2.0`. speed of drag for truck and pedestal.
+- `.verticalDragToForward`: Default is `false`. same as `.screenSpacePanning` in three.js's OrbitControls.
 
 ## Methods
 
