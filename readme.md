@@ -87,6 +87,10 @@ Truck and pedestal camera using current azimuthal angle.
 
 Move `target` position to given point.
 
+#### `forward( distance, enableTransition )`
+
+Move forward / backward.
+
 #### `fitTo( meshOrBox3, enableTransition, { paddingTop?: number = 0, paddingLeft?: number = 0, paddingBottom?: number = 0, paddingRight?: number = 0 } )`
 
 Fit the viewport to the object bounding box or the bounding box itself. paddings are in unit.
