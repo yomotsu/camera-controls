@@ -480,10 +480,10 @@ export default class CameraControls {
 
 	fitTo( object, enableTransition, options = {} ) {
 
-		const gapLeft = options.gapLeft || 0;
-		const gapRight = options.gapRight || 0;
-		const gapBottom = options.gapBottom || 0;
-		const gapTop = options.gapTop || 0;
+		const paddingLeft = options.paddingLeft || 0;
+		const paddingRight = options.paddingRight || 0;
+		const paddingBottom = options.paddingBottom || 0;
+		const paddingTop = options.paddingTop || 0;
 
 		if ( this.object.isOrthographicCamera ) {
 
@@ -494,16 +494,16 @@ export default class CameraControls {
 
 		const boundingBox = new THREE.Box3().setFromObject( object );
 		const size = boundingBox.getSize( _v3 );
-		const boundingWidth  = size.x + gapLeft + gapRight;
-		const boundingHeight = size.y + gapTop + gapBottom;
+		const boundingWidth  = size.x + paddingLeft + paddingRight;
+		const boundingHeight = size.y + paddingTop + paddingBottom;
 		const boundingDepth = size.z;
 
 		const distance = this.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
 		this.dollyTo( distance, enableTransition );
 
 		const boundingBoxCenter = boundingBox.getCenter( _v3 );
-		const cx = boundingBoxCenter.x - ( gapLeft * 0.5 - gapRight * 0.5 );
-		const cy = boundingBoxCenter.y + ( gapTop * 0.5 - gapBottom * 0.5 );
+		const cx = boundingBoxCenter.x - ( paddingLeft * 0.5 - paddingRight * 0.5 );
+		const cy = boundingBoxCenter.y + ( paddingTop * 0.5 - paddingBottom * 0.5 );
 		const cz = boundingBoxCenter.z;
 		this.moveTo( cx, cy, cz, enableTransition );
 

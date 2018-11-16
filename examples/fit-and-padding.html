@@ -36,11 +36,11 @@ a{
 <div class="info">
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
 	<button onclick="cameraControls.fitTo( mesh, true )">fit to the bounding box of the mesh</button><br>
-	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 0, gapRight: 0, gapBottom: 1, gapTop: 2 } )">fit with gap(top: 2unit, bottom: 1unit )</button>
-	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 0, gapRight: 0, gapBottom: 2, gapTop: .5 } )">fit with gap(top: 0.5unit, bottom: 2unit )</button>
-	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 4, gapRight: 4, gapBottom: 4, gapTop: 4 } )">fit with gap(top: 4unit, bottom: 4unit, left: 4unit, right: 4unit )</button>
-	<button onclick="cameraControls.fitTo( mesh, true, { gapLeft: 1, gapRight: 0 } )">fit with gap(left: 1unit, right: 0unit )</button>
-	<button onclick="cssGap( 100, 100, 200, 100 )">fit with gap( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
+	<button onclick="cameraControls.fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 1, paddingTop: 2 } )">fit with padding(top: 2unit, bottom: 1unit )</button>
+	<button onclick="cameraControls.fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 2, paddingTop: .5 } )">fit with padding(top: 0.5unit, bottom: 2unit )</button>
+	<button onclick="cameraControls.fitTo( mesh, true, { paddingLeft: 4, paddingRight: 4, paddingBottom: 4, paddingTop: 4 } )">fit with padding(top: 4unit, bottom: 4unit, left: 4unit, right: 4unit )</button>
+	<button onclick="cameraControls.fitTo( mesh, true, { paddingLeft: 1, paddingRight: 0 } )">fit with padding(left: 1unit, right: 0unit )</button>
+	<button onclick="paddingInCssPixel( 100, 100, 200, 100 )">fit with padding in pixel( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/96/three.min.js"></script>
@@ -95,7 +95,7 @@ renderer.render( scene, camera );
 
 
 
-function cssGap( top, right, bottom, left ) {
+function paddingInCssPixel( top, right, bottom, left ) {
 
 	const boundingBox = new THREE.Box3().setFromObject( mesh );
 	const size = boundingBox.getSize( new THREE.Vector3() );
@@ -104,29 +104,29 @@ function cssGap( top, right, bottom, left ) {
 	const boundingDepth = size.z;
 
 	let distanceToFit = cameraControls.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
-	let gapTop = 0;
-	let gapBottom = 0;
-	let gapLeft = 0;
-	let gapRight = 0;
+	let paddingTop = 0;
+	let paddingBottom = 0;
+	let paddingLeft = 0;
+	let paddingRight = 0;
 
-	// convergence
+	// loop to find almost convergence points
 	for ( i = 0; i < 10; i ++ ) {
 
 		const cssPixelToUnit = getCSSPixelToUnitAtDepth( distanceToFit - boundingDepth / 2, renderer );
-		gapTop = top * cssPixelToUnit;
-		gapBottom = bottom * cssPixelToUnit;
-		gapLeft = left * cssPixelToUnit;
-		gapRight = right * cssPixelToUnit;
+		paddingTop = top * cssPixelToUnit;
+		paddingBottom = bottom * cssPixelToUnit;
+		paddingLeft = left * cssPixelToUnit;
+		paddingRight = right * cssPixelToUnit;
 
 		distanceToFit = cameraControls.getDistanceToFit(
-			boundingWidth + gapLeft + gapRight,
-			boundingHeight + gapTop + gapBottom,
+			boundingWidth + paddingLeft + paddingRight,
+			boundingHeight + paddingTop + paddingBottom,
 			boundingDepth
 		);
 
 	}
 
-	cameraControls.fitTo( mesh, true, { gapLeft: gapLeft, gapRight: gapRight, gapBottom: gapBottom, gapTop: gapTop } );
+	cameraControls.fitTo( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop } );
 
 }
 
