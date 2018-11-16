@@ -535,6 +535,8 @@ export default class CameraControls {
 		const cz = boundingBoxCenter.z;
 		this.moveTo( cx, cy, cz, enableTransition );
 
+		this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
+		this._spherical.theta    = this._spherical.theta    % ( 2 * Math.PI );
 		this.rotateTo( 0, 90 * THREE.Math.DEG2RAD, enableTransition );
 
 	}
