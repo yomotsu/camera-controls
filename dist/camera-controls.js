@@ -453,10 +453,10 @@
 			var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
 
-			var gapLeft = options.gapLeft || 0;
-			var gapRight = options.gapRight || 0;
-			var gapBottom = options.gapBottom || 0;
-			var gapTop = options.gapTop || 0;
+			var paddingLeft = options.paddingLeft || 0;
+			var paddingRight = options.paddingRight || 0;
+			var paddingBottom = options.paddingBottom || 0;
+			var paddingTop = options.paddingTop || 0;
 
 			if (this.object.isOrthographicCamera) {
 
@@ -466,16 +466,16 @@
 
 			var boundingBox = new THREE.Box3().setFromObject(object);
 			var size = boundingBox.getSize(_v3);
-			var boundingWidth = size.x + gapLeft + gapRight;
-			var boundingHeight = size.y + gapTop + gapBottom;
+			var boundingWidth = size.x + paddingLeft + paddingRight;
+			var boundingHeight = size.y + paddingTop + paddingBottom;
 			var boundingDepth = size.z;
 
 			var distance = this.getDistanceToFit(boundingWidth, boundingHeight, boundingDepth);
 			this.dollyTo(distance, enableTransition);
 
 			var boundingBoxCenter = boundingBox.getCenter(_v3);
-			var cx = boundingBoxCenter.x - (gapLeft * 0.5 - gapRight * 0.5);
-			var cy = boundingBoxCenter.y + (gapTop * 0.5 - gapBottom * 0.5);
+			var cx = boundingBoxCenter.x - (paddingLeft * 0.5 - paddingRight * 0.5);
+			var cy = boundingBoxCenter.y + (paddingTop * 0.5 - paddingBottom * 0.5);
 			var cz = boundingBoxCenter.z;
 			this.moveTo(cx, cy, cz, enableTransition);
 
