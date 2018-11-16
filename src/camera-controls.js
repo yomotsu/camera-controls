@@ -478,12 +478,7 @@ export default class CameraControls {
 
 	}
 
-	fitTo( object, enableTransition, options = {} ) {
-
-		const paddingLeft = options.paddingLeft || 0;
-		const paddingRight = options.paddingRight || 0;
-		const paddingBottom = options.paddingBottom || 0;
-		const paddingTop = options.paddingTop || 0;
+	fitTo( objectOrBox3, enableTransition, options = {} ) {
 
 		if ( this.object.isOrthographicCamera ) {
 
@@ -492,7 +487,12 @@ export default class CameraControls {
 
 		}
 
-		const boundingBox = new THREE.Box3().setFromObject( object );
+		const paddingLeft = options.paddingLeft || 0;
+		const paddingRight = options.paddingRight || 0;
+		const paddingBottom = options.paddingBottom || 0;
+		const paddingTop = options.paddingTop || 0;
+
+		const boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject( objectOrBox3 );
 		const size = boundingBox.getSize( _v3 );
 		const boundingWidth  = size.x + paddingLeft + paddingRight;
 		const boundingHeight = size.y + paddingTop + paddingBottom;
