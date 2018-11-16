@@ -58,6 +58,7 @@
 			this.draggingDampingFactor = 0.25;
 			this.dollySpeed = 1.0;
 			this.truckSpeed = 2.0;
+			this.verticalDragToForward = false;
 
 			this.domElement = domElement;
 
@@ -268,7 +269,14 @@
 								var targetDistance = offset.length() * Math.tan(fovInRad / 2);
 								var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.height;
 								var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.height;
-								scope.truck(truckX, pedestalY, true);
+								if (scope.verticalDragToForward) {
+
+									scope.truck(truckX, 0, true);
+									scope.forward(-pedestalY, true);
+								} else {
+
+									scope.truck(truckX, pedestalY, true);
+								}
 								break;
 							} else if (scope.object.isOrthographicCamera) {
 
@@ -428,6 +436,22 @@
 
 			var offset = _v3.copy(_xColumn).add(_yColumn);
 			this._targetEnd.add(offset);
+
+			if (!enableTransition) {
+
+				this.target.copy(this._targetEnd);
+			}
+
+			this._needsUpdate = true;
+		};
+
+		CameraControls.prototype.forward = function forward(distance, enableTransition) {
+
+			_v3.setFromMatrixColumn(this.object.matrix, 0);
+			_v3.crossVectors(this.object.up, _v3);
+			_v3.multiplyScalar(distance);
+
+			this._targetEnd.add(_v3);
 
 			if (!enableTransition) {
 
