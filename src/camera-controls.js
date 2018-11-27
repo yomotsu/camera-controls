@@ -585,7 +585,7 @@ export default class CameraControls {
 		// var quat = new THREE.Quaternion().setFromUnitVectors( this.object.up, new THREE.Vector3( 0, 1, 0 ) );
 		// var quatInverse = quat.clone().inverse();
 
-		const dampingFactor = this.dampingFactor * delta / 0.016;
+		const dampingFactor = 1.0 - Math.exp( -this.dampingFactor * delta / 0.016 );
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
