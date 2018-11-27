@@ -503,6 +503,8 @@
 			var cz = boundingBoxCenter.z;
 			this.moveTo(cx, cy, cz, enableTransition);
 
+			this._sphericalEnd.theta = this._sphericalEnd.theta % (2 * Math.PI);
+			this._spherical.theta = this._spherical.theta % (2 * Math.PI);
 			this.rotateTo(0, 90 * THREE.Math.DEG2RAD, enableTransition);
 		};
 
@@ -546,7 +548,7 @@
 			// var quat = new THREE.Quaternion().setFromUnitVectors( this.object.up, new THREE.Vector3( 0, 1, 0 ) );
 			// var quatInverse = quat.clone().inverse();
 
-			var dampingFactor = this.dampingFactor * delta / 0.016;
+			var dampingFactor = 1.0 - Math.exp(-this.dampingFactor * delta / 0.016);
 			var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 			var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 			var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
