@@ -535,9 +535,68 @@ export default class CameraControls {
 		const cz = boundingBoxCenter.z;
 		this.moveTo( cx, cy, cz, enableTransition );
 
-		this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
-		this._spherical.theta    = this._spherical.theta    % ( 2 * Math.PI );
+		this._sanitizeSphericals();
 		this.rotateTo( 0, 90 * THREE.Math.DEG2RAD, enableTransition );
+
+	}
+
+	setLookAt( position, target, enableTransition ) {
+
+		this._targetEnd.copy( target );
+		this._sphericalEnd.setFromVector3( _v3.subVectors( position, target ) );
+		this._sanitizeSphericals();
+
+		if ( ! enableTransition ) {
+
+			this._target.copy( this._targetEnd );
+			this._spherical.copy( this._sphericalEnd );
+
+		}
+
+		this._needsUpdate = true;
+
+	}
+
+	lerpLookAt( positionA, targetA, positionB, targetB, x, enableTransition ) {
+
+		const sphericalA = new THREE.Spherical().setFromVector3( _v3.subVectors( positionA, targetA ) );
+		const sphericalB = new THREE.Spherical().setFromVector3( _v3.subVectors( positionB, targetB ) );
+
+		const deltaTheta  = sphericalB.theta  - sphericalA.theta;
+		const deltaPhi    = sphericalB.phi    - sphericalA.phi;
+		const deltaRadius = sphericalB.radius - sphericalA.radius;
+		const deltaTarget = new THREE.Vector3().subVectors( targetB, targetA );
+
+		this._sphericalEnd.set(
+			sphericalA.radius + deltaRadius * x,
+			sphericalA.phi    + deltaPhi    * x,
+			sphericalA.theta  + deltaTheta  * x
+		);
+
+		this._targetEnd.copy( targetA ).add( deltaTarget.multiplyScalar( x ) );
+		
+		this._sanitizeSphericals();
+
+		if ( ! enableTransition ) {
+
+			this._target.copy( this._targetEnd );
+			this._spherical.copy( this._sphericalEnd );
+
+		}
+
+		this._needsUpdate = true;
+
+	}
+
+	setPosition( position, enableTransition ) {
+
+		this.setLookAt( position, this._targetEnd, enableTransition );
+
+	}
+
+	setTarget( target, enableTransition ) {
+
+		this.setLookAt( new Vector3.setFromSpherical( this._sphericalEnd ), target, enableTransition );
 
 	}
 
@@ -553,21 +612,21 @@ export default class CameraControls {
 
 	}
 
+	getTarget() {
+
+		return this._targetEnd.clone();
+
+	}
+
+	getPosition() {
+
+		return this.object.position.clone();
+
+	}
+
 	reset( enableTransition ) {
 
-		this._targetEnd.copy( this._target0 );
-		this._sphericalEnd.setFromVector3( _v3.subVectors( this._position0, this._target0 ) );
-		this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
-		this._spherical.theta    = this._spherical.theta    % ( 2 * Math.PI );
-
-		if ( ! enableTransition ) {
-
-			this._target.copy( this._targetEnd );
-			this._spherical.copy( this._sphericalEnd );
-
-		}
-
-		this._needsUpdate = true;
+		this.setLookAt( this._position0, this._target0, enableTransition );
 
 	}
 
@@ -685,6 +744,15 @@ export default class CameraControls {
 		}
 
 		this._needsUpdate = true;
+
+	}
+
+	_sanitizeSphericals() {
+
+		this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
+		this._spherical.theta += 2 * Math.PI * Math.round(
+			( this._sphericalEnd.theta - this._spherical.theta ) / ( 2 * Math.PI )
+		);
 
 	}
 
