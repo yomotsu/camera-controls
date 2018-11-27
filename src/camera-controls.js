@@ -50,7 +50,7 @@ export default class CameraControls {
 		this.domElement = domElement;
 
 		// the location of focus, where the object orbits around
-		this.target = new THREE.Vector3();
+		this._target = new THREE.Vector3();
 		this._targetEnd = new THREE.Vector3();
 
 		// rotation
@@ -59,7 +59,7 @@ export default class CameraControls {
 		this._sphericalEnd = new THREE.Spherical().copy( this._spherical );
 
 		// reset
-		this._target0 = this.target.clone();
+		this._target0 = this._target.clone();
 		this._position0 = this.object.position.clone();
 		this._zoom0 = this.object.zoom;
 
@@ -287,7 +287,7 @@ export default class CameraControls {
 
 						if ( scope.object.isPerspectiveCamera ) {
 
-							const offset = _v3.copy( scope.object.position ).sub( scope.target );
+							const offset = _v3.copy( scope.object.position ).sub( scope._target );
 							// half of the fov is center to top of screen
 							const fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
 							const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
@@ -466,7 +466,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this.target.copy( this._targetEnd );
+			this._target.copy( this._targetEnd );
 
 		}
 
@@ -484,7 +484,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this.target.copy( this._targetEnd );
+			this._target.copy( this._targetEnd );
 
 		}
 
@@ -498,7 +498,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this.target.copy( this._targetEnd );
+			this._target.copy( this._targetEnd );
 
 		}
 
@@ -562,7 +562,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this.target.copy( this._targetEnd );
+			this._target.copy( this._targetEnd );
 			this._spherical.copy( this._sphericalEnd );
 
 		}
@@ -573,7 +573,7 @@ export default class CameraControls {
 
 	saveState() {
 
-		this._target0.copy( this.target );
+		this._target0.copy( this._target );
 		this._position0.copy( this.object.position );
 		this._zoom0 = this.object.zoom;
 
@@ -589,7 +589,7 @@ export default class CameraControls {
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-		const deltaTarget = new THREE.Vector3().subVectors( this._targetEnd, this.target );
+		const deltaTarget = new THREE.Vector3().subVectors( this._targetEnd, this._target );
 
 		if (
 			Math.abs( deltaTheta    ) > EPSILON ||
@@ -606,20 +606,20 @@ export default class CameraControls {
 				this._spherical.theta  + deltaTheta  * dampingFactor
 			);
 
-			this.target.add( deltaTarget.multiplyScalar( dampingFactor ) );
+			this._target.add( deltaTarget.multiplyScalar( dampingFactor ) );
 
 			this._needsUpdate = true;
 
 		} else {
 
 			this._spherical.copy( this._sphericalEnd );
-			this.target.copy( this._targetEnd );
+			this._target.copy( this._targetEnd );
 
 		}
 
 		this._spherical.makeSafe();
-		this.object.position.setFromSpherical( this._spherical ).add( this.target );
-		this.object.lookAt( this.target );
+		this.object.position.setFromSpherical( this._spherical ).add( this._target );
+		this.object.lookAt( this._target );
 
 		const updated = this._needsUpdate;
 		this._needsUpdate = false;
@@ -679,7 +679,7 @@ export default class CameraControls {
 
 		if ( ! enableTransition ) {
 
-			this.target.copy( this._targetEnd );
+			this._target.copy( this._targetEnd );
 			this._spherical.copy( this._sphericalEnd );
 
 		}
