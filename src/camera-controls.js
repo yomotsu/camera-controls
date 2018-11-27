@@ -620,7 +620,7 @@ export default class CameraControls {
 
 	getPosition() {
 
-		return this.object.position.clone();
+		return new Vector().setFromSpherical( this._sphericalEnd );
 
 	}
 
