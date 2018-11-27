@@ -1,9 +1,11 @@
+import { version } from '../package.json';
+
 let THREE;
 let _v3;
 let _xColumn;
 let _yColumn;
 const EPSILON = 0.001;
-const STATE = {
+const CONTROL_STATE = {
 	NONE        : - 1,
 	ROTATE      :   0,
 	DOLLY       :   1,
@@ -59,9 +61,9 @@ export default class CameraControls {
 		this._sphericalEnd = new THREE.Spherical().copy( this._spherical );
 
 		// reset
-		this._target0 = this.target.clone();
-		this._position0 = this.object.position.clone();
-		this._zoom0 = this.object.zoom;
+		this._defaultTarget = this.target.clone();
+		this._defaultPosition = this.object.position.clone();
+		this._defaultZoom = this.object.zoom;
 
 		this._needsUpdate = true;
 		this.update();
@@ -75,7 +77,7 @@ export default class CameraControls {
 			const scope = this;
 			const dragStart  = new THREE.Vector2();
 			const dollyStart = new THREE.Vector2();
-			let state = STATE.NONE;
+			let controlState = CONTROL_STATE.NONE;
 			let elementRect;
 			let savedDampingFactor;
 
@@ -103,28 +105,28 @@ export default class CameraControls {
 
 				event.preventDefault();
 
-				const prevState = state;
+				const prevState = controlState;
 
 				switch ( event.button ) {
 
 					case THREE.MOUSE.LEFT:
 
-						state = STATE.ROTATE;
+						controlState = CONTROL_STATE.ROTATE;
 						break;
 
 					case THREE.MOUSE.MIDDLE:
 
-						state = STATE.DOLLY;
+						controlState = CONTROL_STATE.DOLLY;
 						break;
 
 					case THREE.MOUSE.RIGHT:
 
-						state = STATE.TRUCK;
+						controlState = CONTROL_STATE.TRUCK;
 						break;
 
 				}
 
-				if ( prevState === STATE.NONE ) {
+				if ( prevState === CONTROL_STATE.NONE ) {
 
 					startDragging( event );
 
@@ -138,28 +140,28 @@ export default class CameraControls {
 
 				event.preventDefault();
 
-				const prevState = state;
+				const prevState = controlState;
 
 				switch ( event.touches.length ) {
 
 					case 1:	// one-fingered touch: rotate
 
-						state = STATE.TOUCH_ROTATE;
+						controlState = CONTROL_STATE.TOUCH_ROTATE;
 						break;
 
 					case 2:	// two-fingered touch: dolly
 
-						state = STATE.TOUCH_DOLLY;
+						controlState = CONTROL_STATE.TOUCH_DOLLY;
 						break;
 
 					case 3: // three-fingered touch: truck
 
-						state = STATE.TOUCH_TRUCK;
+						controlState = CONTROL_STATE.TOUCH_TRUCK;
 						break;
 
 				}
 
-				if ( prevState === STATE.NONE ) {
+				if ( prevState === CONTROL_STATE.NONE ) {
 
 					startDragging( event );
 
@@ -207,13 +209,13 @@ export default class CameraControls {
 				elementRect = scope.domElement.getBoundingClientRect();
 				dragStart.set( x, y );
 
-				// if ( state === STATE.DOLLY ) {
+				// if ( controlState === CONTROL_STATE.DOLLY ) {
 
 				// 	dollyStart.set( x, y );
 
 				// }
 
-				if ( state === STATE.TOUCH_DOLLY ) {
+				if ( controlState === CONTROL_STATE.TOUCH_DOLLY ) {
 
 					const dx = x - event.touches[ 1 ].pageX;
 					const dy = y - event.touches[ 1 ].pageY;
@@ -248,21 +250,21 @@ export default class CameraControls {
 
 				dragStart.set( x, y );
 
-				switch ( state ) {
+				switch ( controlState ) {
 
-					case STATE.ROTATE:
-					case STATE.TOUCH_ROTATE:
+					case CONTROL_STATE.ROTATE:
+					case CONTROL_STATE.TOUCH_ROTATE:
 
 						const rotX = 2 * Math.PI * deltaX / elementRect.width;
 						const rotY = 2 * Math.PI * deltaY / elementRect.height;
 						scope.rotate( rotX, rotY, true );
 						break;
 
-					case STATE.DOLLY:
+					case CONTROL_STATE.DOLLY:
 						// not implemented
 						break;
 
-					case STATE.TOUCH_DOLLY:
+					case CONTROL_STATE.TOUCH_DOLLY:
 
 						const dx = x - event.touches[ 1 ].pageX;
 						const dy = y - event.touches[ 1 ].pageY;
@@ -282,8 +284,8 @@ export default class CameraControls {
 						dollyStart.set( 0, distance );
 						break;
 
-					case STATE.TRUCK:
-					case STATE.TOUCH_TRUCK:
+					case CONTROL_STATE.TRUCK:
+					case CONTROL_STATE.TOUCH_TRUCK:
 
 						if ( scope.object.isPerspectiveCamera ) {
 
@@ -324,7 +326,7 @@ export default class CameraControls {
 				if ( ! scope.enabled ) return;
 
 				scope.dampingFactor = savedDampingFactor;
-				state = STATE.NONE;
+				controlState = CONTROL_STATE.NONE;
 
 				document.removeEventListener( 'mousemove', dragging );
 				document.removeEventListener( 'touchmove', dragging );
@@ -555,8 +557,8 @@ export default class CameraControls {
 
 	reset( enableTransition ) {
 
-		this._targetEnd.copy( this._target0 );
-		this._sphericalEnd.setFromVector3( _v3.subVectors( this._position0, this._target0 ) );
+		this._targetEnd.copy( this._defaultTarget );
+		this._sphericalEnd.setFromVector3( _v3.subVectors( this._defaultPosition, this._defaultTarget ) );
 		this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
 		this._spherical.theta    = this._spherical.theta    % ( 2 * Math.PI );
 
@@ -571,11 +573,19 @@ export default class CameraControls {
 
 	}
 
+	pushDefaultState() {
+
+		this._defaultTarget.copy( this.target );
+		this._defaultPosition.copy( this.object.position );
+		this._defaultZoom = this.object.zoom;
+
+	}
+
 	saveState() {
 
-		this._target0.copy( this.target );
-		this._position0.copy( this.object.position );
-		this._zoom0 = this.object.zoom;
+		console.warn( 'camera-controls: saveState() is now DEPRECATED! Use memoryDefaultState() instead.' );
+
+		this.memoryDefaultState();
 
 	}
 
@@ -631,6 +641,8 @@ export default class CameraControls {
 	toJSON() {
 
 		return JSON.stringify( {
+			version	             : version,
+
 			enabled              : this.enabled,
 
 			minDistance          : this.minDistance,
@@ -647,8 +659,8 @@ export default class CameraControls {
 			target               : this._targetEnd.toArray(),
 			position             : this.object.position.toArray(),
 
-			target0              : this._target0.toArray(),
-			position0            : this._position0.toArray(),
+			defaultTarget        : this._defaultTarget.toArray(),
+			defaultPosition      : this._defaultPosition.toArray(),
 		} );
 
 	}
@@ -656,6 +668,13 @@ export default class CameraControls {
 	fromJSON( json, enableTransition ) {
 
 		const obj = JSON.parse( json );
+
+		// do compat stuff
+		if ( !obj.hasOwnProperty( 'version' ) ) { // 1.7.0 or older
+			obj.defaultTarget = obj.target0;
+			obj.defaultPosition = obj.position0;
+		}
+
 		const position = new THREE.Vector3().fromArray( obj.position );
 
 		this.enabled               = obj.enabled;
@@ -671,11 +690,11 @@ export default class CameraControls {
 		this.dollySpeed            = obj.dollySpeed;
 		this.truckSpeed            = obj.truckSpeed;
 
-		this._target0.fromArray( obj.target0 );
-		this._position0.fromArray( obj.position0 );
+		this._defaultTarget.fromArray( obj.defaultTarget );
+		this._defaultPosition.fromArray( obj.defaultPosition );
 
 		this._targetEnd.fromArray( obj.target );
-		this._sphericalEnd.setFromVector3( position.sub( this._target0 ) );
+		this._sphericalEnd.setFromVector3( position.sub( this._defaultTarget ) );
 
 		if ( ! enableTransition ) {
 

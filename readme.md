@@ -95,7 +95,7 @@ Move forward / backward.
 
 Fit the viewport to the object bounding box or the bounding box itself. paddings are in unit.
 
-#### `saveState()`
+#### `pushDefaultState()` ( formerly `saveState()` )
 
 Set current camera position as the default position
 

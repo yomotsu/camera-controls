@@ -1,4 +1,5 @@
 import babel from 'rollup-plugin-babel'
+import json from 'rollup-plugin-json'
 
 const license = `/*!
  * camera-controls
@@ -12,6 +13,7 @@ export default {
 	indent: '\t',
 	sourceMap: false,
 	plugins: [
+		json(),
 		babel( {
 			exclude: 'node_modules/**',
 			presets: [

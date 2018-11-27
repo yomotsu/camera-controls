@@ -11,6 +11,7 @@
     "babel-preset-env": "1.6.0",
     "rollup": "^0.45.2",
     "rollup-plugin-babel": "2.7.1",
+    "rollup-plugin-json": "^3.1.0",
     "rollup-watch": "^4.3.1",
     "uglify-js": "^3.0.25"
   },
