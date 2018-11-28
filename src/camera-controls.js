@@ -612,15 +612,17 @@ export default class CameraControls {
 
 	}
 
-	getTarget() {
+	getTarget( out ) {
 
-		return this._targetEnd.clone();
+		const _out = out.isVector3 ? out : new THREE.Vector3();
+		return _out.copy( this._targetEnd );
 
 	}
 
-	getPosition() {
+	getPosition( out ) {
 
-		return new Vector().setFromSpherical( this._sphericalEnd );
+		const _out = out.isVector3 ? out : new THREE.Vector3();
+		return _out.setFromSpherical( this._sphericalEnd );
 
 	}
 

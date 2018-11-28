@@ -111,11 +111,11 @@ Same as `setLookAt` , but it interpolates between two states.
 
 `setLookAt` without `position` , Stay still at the position.
 
-#### `getPosition()`
+#### `getPosition( out )`
 
 Return its current position.
 
-#### `getTarget()`
+#### `getTarget( out )`
 
 Return its current gazing target.
 
