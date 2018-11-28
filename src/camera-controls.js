@@ -542,8 +542,11 @@ export default class CameraControls {
 
 	setLookAt( position, target, enableTransition ) {
 
-		this._targetEnd.copy( target );
-		this._sphericalEnd.setFromVector3( _v3.subVectors( position, target ) );
+		const _position = toVector3( position );
+		const _target = toVector3( target );
+
+		this._targetEnd.copy( _target );
+		this._sphericalEnd.setFromVector3( _v3.subVectors( _position, _target ) );
 		this._sanitizeSphericals();
 
 		if ( ! enableTransition ) {
@@ -559,13 +562,18 @@ export default class CameraControls {
 
 	lerpLookAt( positionA, targetA, positionB, targetB, x, enableTransition ) {
 
-		const sphericalA = new THREE.Spherical().setFromVector3( _v3.subVectors( positionA, targetA ) );
-		const sphericalB = new THREE.Spherical().setFromVector3( _v3.subVectors( positionB, targetB ) );
+		const _positionA = toVector3( positionA );
+		const _targetA = toVector3( targetA );
+		const _positionB = toVector3( positionB );
+		const _targetB = toVector3( targetB );
+
+		const sphericalA = new THREE.Spherical().setFromVector3( _v3.subVectors( _positionA, _targetA ) );
+		const sphericalB = new THREE.Spherical().setFromVector3( _v3.subVectors( _positionB, _targetB ) );
 
 		const deltaTheta  = sphericalB.theta  - sphericalA.theta;
 		const deltaPhi    = sphericalB.phi    - sphericalA.phi;
 		const deltaRadius = sphericalB.radius - sphericalA.radius;
-		const deltaTarget = new THREE.Vector3().subVectors( targetB, targetA );
+		const deltaTarget = new THREE.Vector3().subVectors( _targetB, _targetA );
 
 		this._sphericalEnd.set(
 			sphericalA.radius + deltaRadius * x,
@@ -573,7 +581,7 @@ export default class CameraControls {
 			sphericalA.theta  + deltaTheta  * x
 		);
 
-		this._targetEnd.copy( targetA ).add( deltaTarget.multiplyScalar( x ) );
+		this._targetEnd.copy( _targetA ).add( deltaTarget.multiplyScalar( x ) );
 		
 		this._sanitizeSphericals();
 
@@ -755,6 +763,28 @@ export default class CameraControls {
 		this._spherical.theta += 2 * Math.PI * Math.round(
 			( this._sphericalEnd.theta - this._spherical.theta ) / ( 2 * Math.PI )
 		);
+
+	}
+
+}
+
+function toVector3( value ) {
+
+	if ( !value ) {
+
+		return null;
+
+	} else if ( value.isVector3 ) {
+
+		return value;
+
+	} else if ( Array.isArray( value ) ) {
+
+		return new THREE.Vector3().fromArray( value );
+
+	} else {
+
+		return new THREE.Vector3();
 
 	}
 
