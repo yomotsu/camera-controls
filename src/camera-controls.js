@@ -596,7 +596,7 @@ export default class CameraControls {
 
 	setTarget( target, enableTransition ) {
 
-		this.setLookAt( new THREE.Vector3().setFromSpherical( this._sphericalEnd ), target, enableTransition );
+		this.setLookAt( this.getPosition(), target, enableTransition );
 
 	}
 
@@ -622,7 +622,7 @@ export default class CameraControls {
 	getPosition( out ) {
 
 		const _out = out.isVector3 ? out : new THREE.Vector3();
-		return _out.setFromSpherical( this._sphericalEnd );
+		return _out.setFromSpherical( this._sphericalEnd ).add( this._targetEnd );
 
 	}
 
