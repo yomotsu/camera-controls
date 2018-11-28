@@ -4,6 +4,8 @@
  * (c) 2017 @yomotsu
  * Released under the MIT License.
  */
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var THREE = void 0;
@@ -57,7 +59,7 @@ var CameraControls = function () {
 		this.domElement = domElement;
 
 		// the location of focus, where the object orbits around
-		this.target = new THREE.Vector3();
+		this._target = new THREE.Vector3();
 		this._targetEnd = new THREE.Vector3();
 
 		// rotation
@@ -66,7 +68,7 @@ var CameraControls = function () {
 		this._sphericalEnd = new THREE.Spherical().copy(this._spherical);
 
 		// reset
-		this._target0 = this.target.clone();
+		this._target0 = this._target.clone();
 		this._position0 = this.object.position.clone();
 		this._zoom0 = this.object.zoom;
 
@@ -257,7 +259,7 @@ var CameraControls = function () {
 
 						if (scope.object.isPerspectiveCamera) {
 
-							var offset = _v3.copy(scope.object.position).sub(scope.target);
+							var offset = _v3.copy(scope.object.position).sub(scope._target);
 							// half of the fov is center to top of screen
 							var fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
 							var targetDistance = offset.length() * Math.tan(fovInRad / 2);
@@ -433,7 +435,7 @@ var CameraControls = function () {
 
 		if (!enableTransition) {
 
-			this.target.copy(this._targetEnd);
+			this._target.copy(this._targetEnd);
 		}
 
 		this._needsUpdate = true;
@@ -449,7 +451,7 @@ var CameraControls = function () {
 
 		if (!enableTransition) {
 
-			this.target.copy(this._targetEnd);
+			this._target.copy(this._targetEnd);
 		}
 
 		this._needsUpdate = true;
@@ -461,7 +463,7 @@ var CameraControls = function () {
 
 		if (!enableTransition) {
 
-			this.target.copy(this._targetEnd);
+			this._target.copy(this._targetEnd);
 		}
 
 		this._needsUpdate = true;
@@ -497,9 +499,58 @@ var CameraControls = function () {
 		var cz = boundingBoxCenter.z;
 		this.moveTo(cx, cy, cz, enableTransition);
 
-		this._sphericalEnd.theta = this._sphericalEnd.theta % (2 * Math.PI);
-		this._spherical.theta = this._spherical.theta % (2 * Math.PI);
+		this._sanitizeSphericals();
 		this.rotateTo(0, 90 * THREE.Math.DEG2RAD, enableTransition);
+	};
+
+	CameraControls.prototype.setLookAt = function setLookAt(position, target, enableTransition) {
+
+		this._targetEnd.copy(target);
+		this._sphericalEnd.setFromVector3(_v3.subVectors(position, target));
+		this._sanitizeSphericals();
+
+		if (!enableTransition) {
+
+			this._target.copy(this._targetEnd);
+			this._spherical.copy(this._sphericalEnd);
+		}
+
+		this._needsUpdate = true;
+	};
+
+	CameraControls.prototype.lerpLookAt = function lerpLookAt(positionA, targetA, positionB, targetB, x, enableTransition) {
+
+		var sphericalA = new THREE.Spherical().setFromVector3(_v3.subVectors(positionA, targetA));
+		var sphericalB = new THREE.Spherical().setFromVector3(_v3.subVectors(positionB, targetB));
+
+		var deltaTheta = sphericalB.theta - sphericalA.theta;
+		var deltaPhi = sphericalB.phi - sphericalA.phi;
+		var deltaRadius = sphericalB.radius - sphericalA.radius;
+		var deltaTarget = new THREE.Vector3().subVectors(targetB, targetA);
+
+		this._sphericalEnd.set(sphericalA.radius + deltaRadius * x, sphericalA.phi + deltaPhi * x, sphericalA.theta + deltaTheta * x);
+
+		this._targetEnd.copy(targetA).add(deltaTarget.multiplyScalar(x));
+
+		this._sanitizeSphericals();
+
+		if (!enableTransition) {
+
+			this._target.copy(this._targetEnd);
+			this._spherical.copy(this._sphericalEnd);
+		}
+
+		this._needsUpdate = true;
+	};
+
+	CameraControls.prototype.setPosition = function setPosition(position, enableTransition) {
+
+		this.setLookAt(position, this._targetEnd, enableTransition);
+	};
+
+	CameraControls.prototype.setTarget = function setTarget(target, enableTransition) {
+
+		this.setLookAt(this.getPosition(), target, enableTransition);
 	};
 
 	CameraControls.prototype.getDistanceToFit = function getDistanceToFit(width, height, depth) {
@@ -513,25 +564,26 @@ var CameraControls = function () {
 		return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
 	};
 
+	CameraControls.prototype.getTarget = function getTarget(out) {
+
+		var _out = (typeof out === 'undefined' ? 'undefined' : _typeof(out)) === 'object' && out.isVector3 ? out : new THREE.Vector3();
+		return _out.copy(this._targetEnd);
+	};
+
+	CameraControls.prototype.getPosition = function getPosition(out) {
+
+		var _out = (typeof out === 'undefined' ? 'undefined' : _typeof(out)) === 'object' && out.isVector3 ? out : new THREE.Vector3();
+		return _out.setFromSpherical(this._sphericalEnd).add(this._targetEnd);
+	};
+
 	CameraControls.prototype.reset = function reset(enableTransition) {
 
-		this._targetEnd.copy(this._target0);
-		this._sphericalEnd.setFromVector3(_v3.subVectors(this._position0, this._target0));
-		this._sphericalEnd.theta = this._sphericalEnd.theta % (2 * Math.PI);
-		this._spherical.theta = this._spherical.theta % (2 * Math.PI);
-
-		if (!enableTransition) {
-
-			this.target.copy(this._targetEnd);
-			this._spherical.copy(this._sphericalEnd);
-		}
-
-		this._needsUpdate = true;
+		this.setLookAt(this._position0, this._target0, enableTransition);
 	};
 
 	CameraControls.prototype.saveState = function saveState() {
 
-		this._target0.copy(this.target);
+		this._target0.copy(this._target);
 		this._position0.copy(this.object.position);
 		this._zoom0 = this.object.zoom;
 	};
@@ -546,24 +598,24 @@ var CameraControls = function () {
 		var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 		var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 		var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-		var deltaTarget = new THREE.Vector3().subVectors(this._targetEnd, this.target);
+		var deltaTarget = new THREE.Vector3().subVectors(this._targetEnd, this._target);
 
 		if (Math.abs(deltaTheta) > EPSILON || Math.abs(deltaPhi) > EPSILON || Math.abs(deltaRadius) > EPSILON || Math.abs(deltaTarget.x) > EPSILON || Math.abs(deltaTarget.y) > EPSILON || Math.abs(deltaTarget.z) > EPSILON) {
 
 			this._spherical.set(this._spherical.radius + deltaRadius * dampingFactor, this._spherical.phi + deltaPhi * dampingFactor, this._spherical.theta + deltaTheta * dampingFactor);
 
-			this.target.add(deltaTarget.multiplyScalar(dampingFactor));
+			this._target.add(deltaTarget.multiplyScalar(dampingFactor));
 
 			this._needsUpdate = true;
 		} else {
 
 			this._spherical.copy(this._sphericalEnd);
-			this.target.copy(this._targetEnd);
+			this._target.copy(this._targetEnd);
 		}
 
 		this._spherical.makeSafe();
-		this.object.position.setFromSpherical(this._spherical).add(this.target);
-		this.object.lookAt(this.target);
+		this.object.position.setFromSpherical(this._spherical).add(this._target);
+		this.object.lookAt(this._target);
 
 		var updated = this._needsUpdate;
 		this._needsUpdate = false;
@@ -621,11 +673,17 @@ var CameraControls = function () {
 
 		if (!enableTransition) {
 
-			this.target.copy(this._targetEnd);
+			this._target.copy(this._targetEnd);
 			this._spherical.copy(this._sphericalEnd);
 		}
 
 		this._needsUpdate = true;
+	};
+
+	CameraControls.prototype._sanitizeSphericals = function _sanitizeSphericals() {
+
+		this._sphericalEnd.theta = this._sphericalEnd.theta % (2 * Math.PI);
+		this._spherical.theta += 2 * Math.PI * Math.round((this._sphericalEnd.theta - this._spherical.theta) / (2 * Math.PI));
 	};
 
 	return CameraControls;
