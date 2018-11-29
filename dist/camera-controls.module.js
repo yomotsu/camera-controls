@@ -9,7 +9,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var THREE = void 0;
-var _v3 = void 0;
+var _v3a = void 0;
+var _v3b = void 0;
 var _xColumn = void 0;
 var _yColumn = void 0;
 var EPSILON = 0.001;
@@ -27,7 +28,8 @@ var CameraControls = function () {
 	CameraControls.install = function install(libs) {
 
 		THREE = libs.THREE;
-		_v3 = new THREE.Vector3();
+		_v3a = new THREE.Vector3();
+		_v3b = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 	};
@@ -259,7 +261,7 @@ var CameraControls = function () {
 
 						if (scope.object.isPerspectiveCamera) {
 
-							var offset = _v3.copy(scope.object.position).sub(scope._target);
+							var offset = _v3a.copy(scope.object.position).sub(scope._target);
 							// half of the fov is center to top of screen
 							var fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
 							var targetDistance = offset.length() * Math.tan(fovInRad / 2);
@@ -430,7 +432,7 @@ var CameraControls = function () {
 		_xColumn.multiplyScalar(x);
 		_yColumn.multiplyScalar(-y);
 
-		var offset = _v3.copy(_xColumn).add(_yColumn);
+		var offset = _v3a.copy(_xColumn).add(_yColumn);
 		this._targetEnd.add(offset);
 
 		if (!enableTransition) {
@@ -443,11 +445,11 @@ var CameraControls = function () {
 
 	CameraControls.prototype.forward = function forward(distance, enableTransition) {
 
-		_v3.setFromMatrixColumn(this.object.matrix, 0);
-		_v3.crossVectors(this.object.up, _v3);
-		_v3.multiplyScalar(distance);
+		_v3a.setFromMatrixColumn(this.object.matrix, 0);
+		_v3a.crossVectors(this.object.up, _v3a);
+		_v3a.multiplyScalar(distance);
 
-		this._targetEnd.add(_v3);
+		this._targetEnd.add(_v3a);
 
 		if (!enableTransition) {
 
@@ -485,7 +487,7 @@ var CameraControls = function () {
 		var paddingTop = options.paddingTop || 0;
 
 		var boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject(objectOrBox3);
-		var size = boundingBox.getSize(_v3);
+		var size = boundingBox.getSize(_v3a);
 		var boundingWidth = size.x + paddingLeft + paddingRight;
 		var boundingHeight = size.y + paddingTop + paddingBottom;
 		var boundingDepth = size.z;
@@ -493,7 +495,7 @@ var CameraControls = function () {
 		var distance = this.getDistanceToFit(boundingWidth, boundingHeight, boundingDepth);
 		this.dollyTo(distance, enableTransition);
 
-		var boundingBoxCenter = boundingBox.getCenter(_v3);
+		var boundingBoxCenter = boundingBox.getCenter(_v3a);
 		var cx = boundingBoxCenter.x - (paddingLeft * 0.5 - paddingRight * 0.5);
 		var cy = boundingBoxCenter.y + (paddingTop * 0.5 - paddingBottom * 0.5);
 		var cz = boundingBoxCenter.z;
@@ -503,10 +505,13 @@ var CameraControls = function () {
 		this.rotateTo(0, 90 * THREE.Math.DEG2RAD, enableTransition);
 	};
 
-	CameraControls.prototype.setLookAt = function setLookAt(position, target, enableTransition) {
+	CameraControls.prototype.setLookAt = function setLookAt(positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
+
+		var position = _v3a.set(positionX, positionY, positionZ);
+		var target = _v3b.set(targetX, targetY, targetZ);
 
 		this._targetEnd.copy(target);
-		this._sphericalEnd.setFromVector3(_v3.subVectors(position, target));
+		this._sphericalEnd.setFromVector3(position.sub(target));
 		this._sanitizeSphericals();
 
 		if (!enableTransition) {
@@ -518,19 +523,23 @@ var CameraControls = function () {
 		this._needsUpdate = true;
 	};
 
-	CameraControls.prototype.lerpLookAt = function lerpLookAt(positionA, targetA, positionB, targetB, x, enableTransition) {
+	CameraControls.prototype.lerpLookAt = function lerpLookAt(positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, x, enableTransition) {
 
-		var sphericalA = new THREE.Spherical().setFromVector3(_v3.subVectors(positionA, targetA));
-		var sphericalB = new THREE.Spherical().setFromVector3(_v3.subVectors(positionB, targetB));
+		var positionA = _v3a.set(positionAX, positionAY, positionAZ);
+		var targetA = _v3b.set(targetAX, targetAY, targetAZ);
+		var sphericalA = new THREE.Spherical().setFromVector3(positionA.sub(targetA));
+
+		var targetB = _v3a.set(targetBX, targetBY, targetBZ);
+		this._targetEnd.copy(targetA).lerp(targetB, x); // tricky
+
+		var positionB = _v3b.set(positionBX, positionBY, positionBZ);
+		var sphericalB = new THREE.Spherical().setFromVector3(positionB.sub(targetB));
 
 		var deltaTheta = sphericalB.theta - sphericalA.theta;
 		var deltaPhi = sphericalB.phi - sphericalA.phi;
 		var deltaRadius = sphericalB.radius - sphericalA.radius;
-		var deltaTarget = new THREE.Vector3().subVectors(targetB, targetA);
 
 		this._sphericalEnd.set(sphericalA.radius + deltaRadius * x, sphericalA.phi + deltaPhi * x, sphericalA.theta + deltaTheta * x);
-
-		this._targetEnd.copy(targetA).add(deltaTarget.multiplyScalar(x));
 
 		this._sanitizeSphericals();
 
@@ -543,14 +552,15 @@ var CameraControls = function () {
 		this._needsUpdate = true;
 	};
 
-	CameraControls.prototype.setPosition = function setPosition(position, enableTransition) {
+	CameraControls.prototype.setPosition = function setPosition(positionX, positionY, positionZ, enableTransition) {
 
-		this.setLookAt(position, this._targetEnd, enableTransition);
+		this.setLookAt(positionX, positionY, positionZ, this._targetEnd.x, this._targetEnd.y, this._targetEnd.z, enableTransition);
 	};
 
-	CameraControls.prototype.setTarget = function setTarget(target, enableTransition) {
+	CameraControls.prototype.setTarget = function setTarget(targetX, targetY, targetZ, enableTransition) {
 
-		this.setLookAt(this.getPosition(), target, enableTransition);
+		var pos = this.getPosition(_v3a);
+		this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
 	};
 
 	CameraControls.prototype.getDistanceToFit = function getDistanceToFit(width, height, depth) {
@@ -578,7 +588,7 @@ var CameraControls = function () {
 
 	CameraControls.prototype.reset = function reset(enableTransition) {
 
-		this.setLookAt(this._position0, this._target0, enableTransition);
+		this.setLookAt(this._position0.x, this._position0.y, this._position0.z, this._target0.x, this._target0.y, this._target0.z, enableTransition);
 	};
 
 	CameraControls.prototype.saveState = function saveState() {
