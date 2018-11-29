@@ -1,5 +1,6 @@
 let THREE;
-let _v3;
+let _v3a;
+let _v3b;
 let _xColumn;
 let _yColumn;
 const EPSILON = 0.001;
@@ -18,7 +19,8 @@ export default class CameraControls {
 	static install( libs ) {
 
 		THREE = libs.THREE;
-		_v3 = new THREE.Vector3();
+		_v3a = new THREE.Vector3();
+		_v3b = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 
@@ -287,7 +289,7 @@ export default class CameraControls {
 
 						if ( scope.object.isPerspectiveCamera ) {
 
-							const offset = _v3.copy( scope.object.position ).sub( scope._target );
+							const offset = _v3a.copy( scope.object.position ).sub( scope._target );
 							// half of the fov is center to top of screen
 							const fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
 							const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
@@ -461,7 +463,7 @@ export default class CameraControls {
 		_xColumn.multiplyScalar(   x );
 		_yColumn.multiplyScalar( - y );
 
-		const offset = _v3.copy( _xColumn ).add( _yColumn );
+		const offset = _v3a.copy( _xColumn ).add( _yColumn );
 		this._targetEnd.add( offset );
 
 		if ( ! enableTransition ) {
@@ -476,11 +478,11 @@ export default class CameraControls {
 
 	forward( distance, enableTransition ) {
 
-		_v3.setFromMatrixColumn( this.object.matrix, 0 );
-		_v3.crossVectors( this.object.up, _v3 );
-		_v3.multiplyScalar( distance );
+		_v3a.setFromMatrixColumn( this.object.matrix, 0 );
+		_v3a.crossVectors( this.object.up, _v3a );
+		_v3a.multiplyScalar( distance );
 
-		this._targetEnd.add( _v3 );
+		this._targetEnd.add( _v3a );
 
 		if ( ! enableTransition ) {
 
@@ -521,7 +523,7 @@ export default class CameraControls {
 		const paddingTop = options.paddingTop || 0;
 
 		const boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject( objectOrBox3 );
-		const size = boundingBox.getSize( _v3 );
+		const size = boundingBox.getSize( _v3a );
 		const boundingWidth  = size.x + paddingLeft + paddingRight;
 		const boundingHeight = size.y + paddingTop + paddingBottom;
 		const boundingDepth = size.z;
@@ -529,7 +531,7 @@ export default class CameraControls {
 		const distance = this.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
 		this.dollyTo( distance, enableTransition );
 
-		const boundingBoxCenter = boundingBox.getCenter( _v3 );
+		const boundingBoxCenter = boundingBox.getCenter( _v3a );
 		const cx = boundingBoxCenter.x - ( paddingLeft * 0.5 - paddingRight * 0.5 );
 		const cy = boundingBoxCenter.y + ( paddingTop * 0.5 - paddingBottom * 0.5 );
 		const cz = boundingBoxCenter.z;
@@ -540,10 +542,17 @@ export default class CameraControls {
 
 	}
 
-	setLookAt( position, target, enableTransition ) {
+	setLookAt(
+		positionX, positionY, positionZ,
+		targetX, targetY, targetZ,
+		enableTransition
+	) {
+
+		const position = _v3a.set( positionX, positionY, positionZ );
+		const target = _v3b.set( targetX, targetY, targetZ );
 
 		this._targetEnd.copy( target );
-		this._sphericalEnd.setFromVector3( _v3.subVectors( position, target ) );
+		this._sphericalEnd.setFromVector3( position.sub( target ) );
 		this._sanitizeSphericals();
 
 		if ( ! enableTransition ) {
@@ -557,15 +566,27 @@ export default class CameraControls {
 
 	}
 
-	lerpLookAt( positionA, targetA, positionB, targetB, x, enableTransition ) {
+	lerpLookAt(
+		positionAX, positionAY, positionAZ,
+		targetAX, targetAY, targetAZ,
+		positionBX, positionBY, positionBZ,
+		targetBX, targetBY, targetBZ,
+		x, enableTransition
+	) {
 
-		const sphericalA = new THREE.Spherical().setFromVector3( _v3.subVectors( positionA, targetA ) );
-		const sphericalB = new THREE.Spherical().setFromVector3( _v3.subVectors( positionB, targetB ) );
+		const positionA = _v3a.set( positionAX, positionAY, positionAZ );
+		const targetA = _v3b.set( targetAX, targetAY, targetAZ );
+		const sphericalA = new THREE.Spherical().setFromVector3( positionA.sub( targetA ) );
+
+		const targetB = _v3a.set( targetBX, targetBY, targetBZ );
+		this._targetEnd.copy( targetA ).lerp( targetB, x ); // tricky
+
+		const positionB = _v3b.set( positionBX, positionBY, positionBZ );
+		const sphericalB = new THREE.Spherical().setFromVector3( positionB.sub( targetB ) );
 
 		const deltaTheta  = sphericalB.theta  - sphericalA.theta;
 		const deltaPhi    = sphericalB.phi    - sphericalA.phi;
 		const deltaRadius = sphericalB.radius - sphericalA.radius;
-		const deltaTarget = new THREE.Vector3().subVectors( targetB, targetA );
 
 		this._sphericalEnd.set(
 			sphericalA.radius + deltaRadius * x,
@@ -573,8 +594,6 @@ export default class CameraControls {
 			sphericalA.theta  + deltaTheta  * x
 		);
 
-		this._targetEnd.copy( targetA ).add( deltaTarget.multiplyScalar( x ) );
-		
 		this._sanitizeSphericals();
 
 		if ( ! enableTransition ) {
@@ -588,15 +607,24 @@ export default class CameraControls {
 
 	}
 
-	setPosition( position, enableTransition ) {
+	setPosition( positionX, positionY, positionZ, enableTransition ) {
 
-		this.setLookAt( position, this._targetEnd, enableTransition );
+		this.setLookAt(
+			positionX, positionY, positionZ,
+			this._targetEnd.x, this._targetEnd.y, this._targetEnd.z,
+			enableTransition
+		);
 
 	}
 
-	setTarget( target, enableTransition ) {
+	setTarget( targetX, targetY, targetZ, enableTransition ) {
 
-		this.setLookAt( this.getPosition(), target, enableTransition );
+		const pos = this.getPosition( _v3a );
+		this.setLookAt(
+			pos.x, pos.y, pos.z,
+			targetX, targetY, targetZ,
+			enableTransition
+		);
 
 	}
 
@@ -628,7 +656,11 @@ export default class CameraControls {
 
 	reset( enableTransition ) {
 
-		this.setLookAt( this._position0, this._target0, enableTransition );
+		this.setLookAt(
+			this._position0.x, this._position0.y, this._position0.z,
+			this._target0.x, this._target0.y, this._target0.z,
+			enableTransition
+		);
 
 	}
 
@@ -755,6 +787,28 @@ export default class CameraControls {
 		this._spherical.theta += 2 * Math.PI * Math.round(
 			( this._sphericalEnd.theta - this._spherical.theta ) / ( 2 * Math.PI )
 		);
+
+	}
+
+}
+
+function toVector3( value ) {
+
+	if ( !value ) {
+
+		return null;
+
+	} else if ( value.isVector3 ) {
+
+		return value;
+
+	} else if ( Array.isArray( value ) ) {
+
+		return new THREE.Vector3().fromArray( value );
+
+	} else {
+
+		return new THREE.Vector3();
 
 	}
 
