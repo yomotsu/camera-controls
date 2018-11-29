@@ -546,7 +546,7 @@ export default class CameraControls {
 		const _target = toVector3( target );
 
 		this._targetEnd.copy( _target );
-		this._sphericalEnd.setFromVector3( _v3.subVectors( _position, _target ) );
+		this._sphericalEnd.setFromVector3( _position.sub( _target ) );
 		this._sanitizeSphericals();
 
 		if ( ! enableTransition ) {
