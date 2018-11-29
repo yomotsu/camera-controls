@@ -95,21 +95,21 @@ Move forward / backward.
 
 Fit the viewport to the object bounding box or the bounding box itself. paddings are in unit.
 
-#### `setLookAt( position, target, enableTransition )`
+#### `setLookAt( positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition )`
 
 It moves the camera into `position` , and also make it look at `target` .
 
-#### `lerpLookAt( positionA, targetA, positionB, targetB, x, enableTransition )`
+#### `lerpLookAt( positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, x, enableTransition )`
 
 Same as `setLookAt` , but it interpolates between two states.
 
-#### `setPosition( position, enableTransition )`
+#### `setPosition( positionX, positionY, positionZ, enableTransition )`
 
-`setLookAt` without `target` , Stay gazing at the current target.
+`setLookAt` without target , Stay gazing at the current target.
 
-#### `setTarget( target, enableTransition )`
+#### `setTarget( targetX, targetY, targetZ, enableTransition )`
 
-`setLookAt` without `position` , Stay still at the position.
+`setLookAt` without position , Stay still at the position.
 
 #### `getPosition( out )`
 
