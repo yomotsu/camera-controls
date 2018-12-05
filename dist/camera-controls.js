@@ -10,9 +10,93 @@
 	(global.CameraControls = factory());
 }(this, (function () { 'use strict';
 
+	/**
+	 * This source code has been retrieved directly from Three.js repository.
+	 * Three.js is also distributed under MIT license.
+	 * https://github.com/mrdoob/three.js/blob/master/src/core/EventDispatcher.js
+	 */
+
+	/**
+	 * https://github.com/mrdoob/eventdispatcher.js/
+	 */
+
+	function EventDispatcher() {}
+
+	Object.assign(EventDispatcher.prototype, {
+
+		addEventListener: function addEventListener(type, listener) {
+
+			if (this._listeners === undefined) this._listeners = {};
+
+			var listeners = this._listeners;
+
+			if (listeners[type] === undefined) {
+
+				listeners[type] = [];
+			}
+
+			if (listeners[type].indexOf(listener) === -1) {
+
+				listeners[type].push(listener);
+			}
+		},
+
+		hasEventListener: function hasEventListener(type, listener) {
+
+			if (this._listeners === undefined) return false;
+
+			var listeners = this._listeners;
+
+			return listeners[type] !== undefined && listeners[type].indexOf(listener) !== -1;
+		},
+
+		removeEventListener: function removeEventListener(type, listener) {
+
+			if (this._listeners === undefined) return;
+
+			var listeners = this._listeners;
+			var listenerArray = listeners[type];
+
+			if (listenerArray !== undefined) {
+
+				var index = listenerArray.indexOf(listener);
+
+				if (index !== -1) {
+
+					listenerArray.splice(index, 1);
+				}
+			}
+		},
+
+		dispatchEvent: function dispatchEvent(event) {
+
+			if (this._listeners === undefined) return;
+
+			var listeners = this._listeners;
+			var listenerArray = listeners[event.type];
+
+			if (listenerArray !== undefined) {
+
+				event.target = this;
+
+				var array = listenerArray.slice(0);
+
+				for (var i = 0, l = array.length; i < l; i++) {
+
+					array[i].call(this, event);
+				}
+			}
+		}
+
+	});
+
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var THREE = void 0;
 	var _v3a = void 0;
@@ -30,7 +114,9 @@
 		TOUCH_TRUCK: 5
 	};
 
-	var CameraControls = function () {
+	var CameraControls = function (_EventDispatcher) {
+		_inherits(CameraControls, _EventDispatcher);
+
 		CameraControls.install = function install(libs) {
 
 			THREE = libs.THREE;
@@ -43,49 +129,51 @@
 		function CameraControls(object, domElement) {
 			_classCallCheck(this, CameraControls);
 
-			this.object = object;
-			this.enabled = true;
+			var _this = _possibleConstructorReturn(this, _EventDispatcher.call(this));
+
+			_this.object = object;
+			_this.enabled = true;
 
 			// How far you can dolly in and out ( PerspectiveCamera only )
-			this.minDistance = 0;
-			this.maxDistance = Infinity;
+			_this.minDistance = 0;
+			_this.maxDistance = Infinity;
 
 			// How far you can zoom in and out ( OrthographicCamera only )
-			this.minZoom = 0;
-			this.maxZoom = Infinity;
+			_this.minZoom = 0;
+			_this.maxZoom = Infinity;
 
-			this.minPolarAngle = 0; // radians
-			this.maxPolarAngle = Math.PI; // radians
-			this.minAzimuthAngle = -Infinity; // radians
-			this.maxAzimuthAngle = Infinity; // radians
-			this.dampingFactor = 0.05;
-			this.draggingDampingFactor = 0.25;
-			this.dollySpeed = 1.0;
-			this.truckSpeed = 2.0;
-			this.verticalDragToForward = false;
+			_this.minPolarAngle = 0; // radians
+			_this.maxPolarAngle = Math.PI; // radians
+			_this.minAzimuthAngle = -Infinity; // radians
+			_this.maxAzimuthAngle = Infinity; // radians
+			_this.dampingFactor = 0.05;
+			_this.draggingDampingFactor = 0.25;
+			_this.dollySpeed = 1.0;
+			_this.truckSpeed = 2.0;
+			_this.verticalDragToForward = false;
 
-			this.domElement = domElement;
+			_this.domElement = domElement;
 
 			// the location of focus, where the object orbits around
-			this._target = new THREE.Vector3();
-			this._targetEnd = new THREE.Vector3();
+			_this._target = new THREE.Vector3();
+			_this._targetEnd = new THREE.Vector3();
 
 			// rotation
-			this._spherical = new THREE.Spherical();
-			this._spherical.setFromVector3(this.object.position);
-			this._sphericalEnd = new THREE.Spherical().copy(this._spherical);
+			_this._spherical = new THREE.Spherical();
+			_this._spherical.setFromVector3(_this.object.position);
+			_this._sphericalEnd = new THREE.Spherical().copy(_this._spherical);
 
 			// reset
-			this._target0 = this._target.clone();
-			this._position0 = this.object.position.clone();
-			this._zoom0 = this.object.zoom;
+			_this._target0 = _this._target.clone();
+			_this._position0 = _this.object.position.clone();
+			_this._zoom0 = _this.object.zoom;
 
-			this._needsUpdate = true;
-			this.update();
+			_this._needsUpdate = true;
+			_this.update();
 
-			if (!this.domElement) {
+			if (!_this.domElement) {
 
-				this.dispose = function () {};
+				_this.dispose = function () {};
 			} else {
 				var _onMouseDown = function _onMouseDown(event) {
 
@@ -213,6 +301,14 @@
 					document.addEventListener('touchmove', _dragging, { passive: false });
 					document.addEventListener('mouseup', _endDragging);
 					document.addEventListener('touchend', _endDragging);
+
+					scope.dispatchEvent({
+						type: 'controlstart',
+						x: x,
+						y: y,
+						state: state,
+						originalEvent: event
+					});
 				};
 
 				var _dragging = function _dragging(event) {
@@ -292,6 +388,16 @@
 							}
 
 					}
+
+					scope.dispatchEvent({
+						type: 'control',
+						x: x,
+						y: y,
+						deltaX: deltaX,
+						deltaY: deltaY,
+						state: state,
+						originalEvent: event
+					});
 				};
 
 				var _endDragging = function _endDragging() {
@@ -305,6 +411,12 @@
 					document.removeEventListener('touchmove', _dragging);
 					document.removeEventListener('mouseup', _endDragging);
 					document.removeEventListener('touchend', _endDragging);
+
+					scope.dispatchEvent({
+						type: 'controlend',
+						state: state,
+						originalEvent: event
+					});
 				};
 
 				var _dollyIn = function _dollyIn() {
@@ -337,19 +449,19 @@
 					}
 				};
 
-				var scope = this;
+				var scope = _this;
 				var dragStart = new THREE.Vector2();
 				var dollyStart = new THREE.Vector2();
 				var state = STATE.NONE;
 				var elementRect = void 0;
 				var savedDampingFactor = void 0;
 
-				this.domElement.addEventListener('mousedown', _onMouseDown);
-				this.domElement.addEventListener('touchstart', _onTouchStart);
-				this.domElement.addEventListener('wheel', _onMouseWheel);
-				this.domElement.addEventListener('contextmenu', _onContextMenu);
+				_this.domElement.addEventListener('mousedown', _onMouseDown);
+				_this.domElement.addEventListener('touchstart', _onTouchStart);
+				_this.domElement.addEventListener('wheel', _onMouseWheel);
+				_this.domElement.addEventListener('contextmenu', _onContextMenu);
 
-				this.dispose = function () {
+				_this.dispose = function () {
 
 					scope.domElement.removeEventListener('mousedown', _onMouseDown);
 					scope.domElement.removeEventListener('touchstart', _onTouchStart);
@@ -361,6 +473,8 @@
 					document.removeEventListener('touchend', _endDragging);
 				};
 			}
+
+			return _this;
 		}
 
 		// rotX in radian
@@ -634,6 +748,12 @@
 			this.object.lookAt(this._target);
 
 			var updated = this._needsUpdate;
+			if (updated) {
+				this.dispatchEvent({
+					type: 'update'
+				});
+			}
+
 			this._needsUpdate = false;
 
 			return updated;
@@ -703,7 +823,7 @@
 		};
 
 		return CameraControls;
-	}();
+	}(EventDispatcher);
 
 	function infinityToMaxNumber(value) {
 
