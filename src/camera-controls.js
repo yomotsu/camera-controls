@@ -1,3 +1,5 @@
+import { EventDispatcher } from './event-dispatcher';
+
 let THREE;
 let _v3a;
 let _v3b;
@@ -14,7 +16,7 @@ const STATE = {
 	TOUCH_TRUCK :   5
 };
 
-export default class CameraControls {
+export default class CameraControls extends EventDispatcher {
 
 	static install( libs ) {
 
@@ -27,6 +29,8 @@ export default class CameraControls {
 	}
 
 	constructor( object, domElement ) {
+
+		super();
 
 		this.object = object;
 		this.enabled = true;
@@ -233,6 +237,14 @@ export default class CameraControls {
 				document.addEventListener( 'mouseup', endDragging );
 				document.addEventListener( 'touchend', endDragging );
 
+				scope.dispatchEvent( {
+					type: 'controlstart',
+					x,
+					y,
+					state,
+					originalEvent: event,
+				} );
+
 			}
 
 			function dragging( event ) {
@@ -319,6 +331,16 @@ export default class CameraControls {
 
 				}
 
+				scope.dispatchEvent( {
+					type: 'control',
+					x,
+					y,
+					deltaX,
+					deltaY,
+					state,
+					originalEvent: event,
+				} );
+
 			}
 
 			function endDragging() {
@@ -332,6 +354,12 @@ export default class CameraControls {
 				document.removeEventListener( 'touchmove', dragging );
 				document.removeEventListener( 'mouseup', endDragging );
 				document.removeEventListener( 'touchend', endDragging );
+
+				scope.dispatchEvent( {
+					type: 'controlend',
+					state,
+					originalEvent: event,
+				} );
 
 			}
 
@@ -715,6 +743,12 @@ export default class CameraControls {
 		this.object.lookAt( this._target );
 
 		const updated = this._needsUpdate;
+		if ( updated ) {
+			this.dispatchEvent( {
+				type: 'update'
+			} );
+		}
+
 		this._needsUpdate = false;
 
 		return updated;

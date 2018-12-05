@@ -61,6 +61,15 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 - `.truckSpeed`: Default is `2.0`. speed of drag for truck and pedestal.
 - `.verticalDragToForward`: Default is `false`. same as `.screenSpacePanning` in three.js's OrbitControls.
 
+## Events
+
+Using `addEventListener( eventname, function )` you can subscribe to these events.
+
+- `controlstart`: Fired when the user starts to control the camera via mouse / touches.
+- `control`: Fired when the user controls the camera (dragging).
+- `controlend`: Fired when the user ends to control the camera.
+- `update`: Fired when camera position is updated.
+
 ## Methods
 
 #### `rotate( rotX, rotY, enableTransition )`
@@ -142,4 +151,4 @@ Reproduce the control state with JSON. `enableTransition` is where anim or not i
 
 #### `dispose()`
 
-Dispose cameraControls instancem, remove all eventListeners.
+Dispose the cameraControls instance itself, remove all eventListeners.
