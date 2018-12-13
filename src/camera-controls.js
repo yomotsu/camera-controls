@@ -34,6 +34,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this.object = object;
 		this.enabled = true;
+		this.state = STATE.NONE;
 
 		// How far you can dolly in and out ( PerspectiveCamera only )
 		this.minDistance = 0;
@@ -81,9 +82,7 @@ export default class CameraControls extends EventDispatcher {
 			const scope = this;
 			const dragStart  = new THREE.Vector2();
 			const dollyStart = new THREE.Vector2();
-			let state = STATE.NONE;
 			let elementRect;
-			let savedDampingFactor;
 
 			this.domElement.addEventListener( 'mousedown', onMouseDown );
 			this.domElement.addEventListener( 'touchstart', onTouchStart );
@@ -109,28 +108,28 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const prevState = state;
+				const prevState = scope.state;
 
 				switch ( event.button ) {
 
 					case THREE.MOUSE.LEFT:
 
-						state = STATE.ROTATE;
+						scope.state = STATE.ROTATE;
 						break;
 
 					case THREE.MOUSE.MIDDLE:
 
-						state = STATE.DOLLY;
+						scope.state = STATE.DOLLY;
 						break;
 
 					case THREE.MOUSE.RIGHT:
 
-						state = STATE.TRUCK;
+						scope.state = STATE.TRUCK;
 						break;
 
 				}
 
-				if ( prevState === STATE.NONE ) {
+				if ( prevState !== scope.state ) {
 
 					startDragging( event );
 
@@ -144,28 +143,28 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const prevState = state;
+				const prevState = scope.state;
 
 				switch ( event.touches.length ) {
 
 					case 1:	// one-fingered touch: rotate
 
-						state = STATE.TOUCH_ROTATE;
+						scope.state = STATE.TOUCH_ROTATE;
 						break;
 
 					case 2:	// two-fingered touch: dolly
 
-						state = STATE.TOUCH_DOLLY;
+						scope.state = STATE.TOUCH_DOLLY;
 						break;
 
 					case 3: // three-fingered touch: truck
 
-						state = STATE.TOUCH_TRUCK;
+						scope.state = STATE.TOUCH_TRUCK;
 						break;
 
 				}
 
-				if ( prevState === STATE.NONE ) {
+				if ( prevState !== scope.state ) {
 
 					startDragging( event );
 
@@ -180,15 +179,27 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				if ( event.deltaY < 0 ) {
+				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
+				const mouseDeltaFactor = 120;
+				const deltaYFactor = navigator.platform.indexOf('Mac') === 0 ? -1 : -3;
 
-					dollyIn();
+				let delta;
 
-				} else if ( event.deltaY > 0 ) {
+				if ( event.wheelDelta !== undefined ) {
 
-					dollyOut();
+					delta = event.wheelDelta / mouseDeltaFactor;
+
+				} else if ( event.deltaMode === 1 ) {
+
+					delta = event.deltaY / deltaYFactor;
+
+				} else {
+
+					delta = event.deltaY / ( 10 * deltaYFactor );
 
 				}
+
+				dollyInternal( delta );
 
 			}
 
@@ -213,13 +224,13 @@ export default class CameraControls extends EventDispatcher {
 				elementRect = scope.domElement.getBoundingClientRect();
 				dragStart.set( x, y );
 
-				// if ( state === STATE.DOLLY ) {
+				// if ( scope.state === STATE.DOLLY ) {
 
 				// 	dollyStart.set( x, y );
 
 				// }
 
-				if ( state === STATE.TOUCH_DOLLY ) {
+				if ( scope.state === STATE.TOUCH_DOLLY ) {
 
 					const dx = x - event.touches[ 1 ].pageX;
 					const dy = y - event.touches[ 1 ].pageY;
@@ -228,9 +239,6 @@ export default class CameraControls extends EventDispatcher {
 					dollyStart.set( 0, distance );
 
 				}
-
-				savedDampingFactor = scope.dampingFactor;
-				scope.dampingFactor = scope.draggingDampingFactor;
 
 				document.addEventListener( 'mousemove', dragging, { passive: false } );
 				document.addEventListener( 'touchmove', dragging, { passive: false } );
@@ -241,7 +249,7 @@ export default class CameraControls extends EventDispatcher {
 					type: 'controlstart',
 					x,
 					y,
-					state,
+					state: scope.state,
 					originalEvent: event,
 				} );
 
@@ -262,7 +270,7 @@ export default class CameraControls extends EventDispatcher {
 
 				dragStart.set( x, y );
 
-				switch ( state ) {
+				switch ( scope.state ) {
 
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
@@ -283,15 +291,9 @@ export default class CameraControls extends EventDispatcher {
 						const distance = Math.sqrt( dx * dx + dy * dy );
 						const dollyDelta = dollyStart.y - distance;
 
-						if ( dollyDelta > 0 ) {
+						const touchDollyFactor = 8;
 
-							dollyOut();
-
-						} else if ( dollyDelta < 0 ) {
-
-							dollyIn();
-
-						}
+						dollyInternal( dollyDelta / touchDollyFactor );
 
 						dollyStart.set( 0, distance );
 						break;
@@ -337,7 +339,7 @@ export default class CameraControls extends EventDispatcher {
 					y,
 					deltaX,
 					deltaY,
-					state,
+					state: scope.state,
 					originalEvent: event,
 				} );
 
@@ -347,8 +349,7 @@ export default class CameraControls extends EventDispatcher {
 
 				if ( ! scope.enabled ) return;
 
-				scope.dampingFactor = savedDampingFactor;
-				state = STATE.NONE;
+				scope.state = STATE.NONE;
 
 				document.removeEventListener( 'mousemove', dragging );
 				document.removeEventListener( 'touchmove', dragging );
@@ -357,15 +358,15 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'controlend',
-					state,
+					state: scope.state,
 					originalEvent: event,
 				} );
 
 			}
 
-			function dollyIn() {
+			function dollyInternal( delta ) {
 
-				const dollyScale = Math.pow( 0.95, scope.dollySpeed );
+				const dollyScale = Math.pow( 0.95, -delta * scope.dollySpeed );
 
 				if ( scope.object.isPerspectiveCamera ) {
 
@@ -374,24 +375,6 @@ export default class CameraControls extends EventDispatcher {
 				} else if ( scope.object.isOrthographicCamera ) {
 
 					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
-					scope.object.updateProjectionMatrix();
-					scope._needsUpdate = true;
-
-				}
-
-			}
-
-			function dollyOut() {
-
-				const dollyScale = Math.pow( 0.95, scope.dollySpeed );
-
-				if ( scope.object.isPerspectiveCamera ) {
-
-					scope.dolly( scope._sphericalEnd.radius / dollyScale - scope._sphericalEnd.radius );
-
-				} else if ( scope.object.isOrthographicCamera ) {
-
-					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom / dollyScale ) );
 					scope.object.updateProjectionMatrix();
 					scope._needsUpdate = true;
 
@@ -706,7 +689,10 @@ export default class CameraControls extends EventDispatcher {
 		// var quat = new THREE.Quaternion().setFromUnitVectors( this.object.up, new THREE.Vector3( 0, 1, 0 ) );
 		// var quatInverse = quat.clone().inverse();
 
-		const dampingFactor = 1.0 - Math.exp( -this.dampingFactor * delta / 0.016 );
+		const currentDampingFactor =
+			this.state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
+		const lerpRatio = 1.0 - Math.exp( -currentDampingFactor * delta / 0.016 );
+
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
@@ -722,12 +708,12 @@ export default class CameraControls extends EventDispatcher {
 		) {
 
 			this._spherical.set(
-				this._spherical.radius + deltaRadius * dampingFactor,
-				this._spherical.phi    + deltaPhi    * dampingFactor,
-				this._spherical.theta  + deltaTheta  * dampingFactor
+				this._spherical.radius + deltaRadius * lerpRatio,
+				this._spherical.phi    + deltaPhi    * lerpRatio,
+				this._spherical.theta  + deltaTheta  * lerpRatio
 			);
 
-			this._target.add( deltaTarget.multiplyScalar( dampingFactor ) );
+			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
 
 			this._needsUpdate = true;
 
