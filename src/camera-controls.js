@@ -34,7 +34,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this.object = object;
 		this.enabled = true;
-		this.state = STATE.NONE;
+		this._state = STATE.NONE;
 
 		// How far you can dolly in and out ( PerspectiveCamera only )
 		this.minDistance = 0;
@@ -108,28 +108,28 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const prevState = scope.state;
+				const prevState = scope._state;
 
 				switch ( event.button ) {
 
 					case THREE.MOUSE.LEFT:
 
-						scope.state = STATE.ROTATE;
+						scope._state = STATE.ROTATE;
 						break;
 
 					case THREE.MOUSE.MIDDLE:
 
-						scope.state = STATE.DOLLY;
+						scope._state = STATE.DOLLY;
 						break;
 
 					case THREE.MOUSE.RIGHT:
 
-						scope.state = STATE.TRUCK;
+						scope._state = STATE.TRUCK;
 						break;
 
 				}
 
-				if ( prevState !== scope.state ) {
+				if ( prevState !== scope._state ) {
 
 					startDragging( event );
 
@@ -143,28 +143,28 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const prevState = scope.state;
+				const prevState = scope._state;
 
 				switch ( event.touches.length ) {
 
 					case 1:	// one-fingered touch: rotate
 
-						scope.state = STATE.TOUCH_ROTATE;
+						scope._state = STATE.TOUCH_ROTATE;
 						break;
 
 					case 2:	// two-fingered touch: dolly
 
-						scope.state = STATE.TOUCH_DOLLY;
+						scope._state = STATE.TOUCH_DOLLY;
 						break;
 
 					case 3: // three-fingered touch: truck
 
-						scope.state = STATE.TOUCH_TRUCK;
+						scope._state = STATE.TOUCH_TRUCK;
 						break;
 
 				}
 
-				if ( prevState !== scope.state ) {
+				if ( prevState !== scope._state ) {
 
 					startDragging( event );
 
@@ -224,13 +224,13 @@ export default class CameraControls extends EventDispatcher {
 				elementRect = scope.domElement.getBoundingClientRect();
 				dragStart.set( x, y );
 
-				// if ( scope.state === STATE.DOLLY ) {
+				// if ( scope._state === STATE.DOLLY ) {
 
 				// 	dollyStart.set( x, y );
 
 				// }
 
-				if ( scope.state === STATE.TOUCH_DOLLY ) {
+				if ( scope._state === STATE.TOUCH_DOLLY ) {
 
 					const dx = x - event.touches[ 1 ].pageX;
 					const dy = y - event.touches[ 1 ].pageY;
@@ -249,7 +249,7 @@ export default class CameraControls extends EventDispatcher {
 					type: 'controlstart',
 					x,
 					y,
-					state: scope.state,
+					state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -270,7 +270,7 @@ export default class CameraControls extends EventDispatcher {
 
 				dragStart.set( x, y );
 
-				switch ( scope.state ) {
+				switch ( scope._state ) {
 
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
@@ -339,7 +339,7 @@ export default class CameraControls extends EventDispatcher {
 					y,
 					deltaX,
 					deltaY,
-					state: scope.state,
+					state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -349,7 +349,7 @@ export default class CameraControls extends EventDispatcher {
 
 				if ( ! scope.enabled ) return;
 
-				scope.state = STATE.NONE;
+				scope._state = STATE.NONE;
 
 				document.removeEventListener( 'mousemove', dragging );
 				document.removeEventListener( 'touchmove', dragging );
@@ -358,7 +358,7 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'controlend',
-					state: scope.state,
+					state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -645,7 +645,7 @@ export default class CameraControls extends EventDispatcher {
 		const boundingRectAspect = width / height;
 		const fov = camera.fov * THREE.Math.DEG2RAD;
 		const aspect = camera.aspect;
-	
+
 		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
 		return heightToFit * 0.5 / Math.tan( fov * 0.5 ) + depth * 0.5;
 
@@ -690,7 +690,7 @@ export default class CameraControls extends EventDispatcher {
 		// var quatInverse = quat.clone().inverse();
 
 		const currentDampingFactor =
-			this.state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
+			this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
 		const lerpRatio = 1.0 - Math.exp( -currentDampingFactor * delta / 0.016 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
