@@ -133,6 +133,7 @@
 
 			_this.object = object;
 			_this.enabled = true;
+			_this._state = STATE.NONE;
 
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			_this.minDistance = 0;
@@ -181,28 +182,28 @@
 
 					event.preventDefault();
 
-					var prevState = state;
+					var prevState = scope._state;
 
 					switch (event.button) {
 
 						case THREE.MOUSE.LEFT:
 
-							state = STATE.ROTATE;
+							scope._state = STATE.ROTATE;
 							break;
 
 						case THREE.MOUSE.MIDDLE:
 
-							state = STATE.DOLLY;
+							scope._state = STATE.DOLLY;
 							break;
 
 						case THREE.MOUSE.RIGHT:
 
-							state = STATE.TRUCK;
+							scope._state = STATE.TRUCK;
 							break;
 
 					}
 
-					if (prevState === STATE.NONE) {
+					if (prevState !== scope._state) {
 
 						_startDragging(event);
 					}
@@ -214,31 +215,31 @@
 
 					event.preventDefault();
 
-					var prevState = state;
+					var prevState = scope._state;
 
 					switch (event.touches.length) {
 
 						case 1:
 							// one-fingered touch: rotate
 
-							state = STATE.TOUCH_ROTATE;
+							scope._state = STATE.TOUCH_ROTATE;
 							break;
 
 						case 2:
 							// two-fingered touch: dolly
 
-							state = STATE.TOUCH_DOLLY;
+							scope._state = STATE.TOUCH_DOLLY;
 							break;
 
 						case 3:
 							// three-fingered touch: truck
 
-							state = STATE.TOUCH_TRUCK;
+							scope._state = STATE.TOUCH_TRUCK;
 							break;
 
 					}
 
-					if (prevState === STATE.NONE) {
+					if (prevState !== scope._state) {
 
 						_startDragging(event);
 					}
@@ -250,13 +251,24 @@
 
 					event.preventDefault();
 
-					if (event.deltaY < 0) {
+					// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
+					var mouseDeltaFactor = 120;
+					var deltaYFactor = navigator.platform.indexOf('Mac') === 0 ? -1 : -3;
 
-						_dollyIn();
-					} else if (event.deltaY > 0) {
+					var delta = void 0;
 
-						_dollyOut();
+					if (event.wheelDelta !== undefined) {
+
+						delta = event.wheelDelta / mouseDeltaFactor;
+					} else if (event.deltaMode === 1) {
+
+						delta = event.deltaY / deltaYFactor;
+					} else {
+
+						delta = event.deltaY / (10 * deltaYFactor);
 					}
+
+					_dollyInternal(delta);
 				};
 
 				var _onContextMenu = function _onContextMenu(event) {
@@ -279,13 +291,13 @@
 					elementRect = scope.domElement.getBoundingClientRect();
 					dragStart.set(x, y);
 
-					// if ( state === STATE.DOLLY ) {
+					// if ( scope._state === STATE.DOLLY ) {
 
 					// 	dollyStart.set( x, y );
 
 					// }
 
-					if (state === STATE.TOUCH_DOLLY) {
+					if (scope._state === STATE.TOUCH_DOLLY) {
 
 						var dx = x - event.touches[1].pageX;
 						var dy = y - event.touches[1].pageY;
@@ -293,9 +305,6 @@
 
 						dollyStart.set(0, distance);
 					}
-
-					savedDampingFactor = scope.dampingFactor;
-					scope.dampingFactor = scope.draggingDampingFactor;
 
 					document.addEventListener('mousemove', _dragging, { passive: false });
 					document.addEventListener('touchmove', _dragging, { passive: false });
@@ -306,7 +315,7 @@
 						type: 'controlstart',
 						x: x,
 						y: y,
-						state: state,
+						state: scope._state,
 						originalEvent: event
 					});
 				};
@@ -326,7 +335,7 @@
 
 					dragStart.set(x, y);
 
-					switch (state) {
+					switch (scope._state) {
 
 						case STATE.ROTATE:
 						case STATE.TOUCH_ROTATE:
@@ -347,13 +356,9 @@
 							var distance = Math.sqrt(dx * dx + dy * dy);
 							var dollyDelta = dollyStart.y - distance;
 
-							if (dollyDelta > 0) {
+							var touchDollyFactor = 8;
 
-								_dollyOut();
-							} else if (dollyDelta < 0) {
-
-								_dollyIn();
-							}
+							_dollyInternal(dollyDelta / touchDollyFactor);
 
 							dollyStart.set(0, distance);
 							break;
@@ -395,7 +400,7 @@
 						y: y,
 						deltaX: deltaX,
 						deltaY: deltaY,
-						state: state,
+						state: scope._state,
 						originalEvent: event
 					});
 				};
@@ -404,8 +409,7 @@
 
 					if (!scope.enabled) return;
 
-					scope.dampingFactor = savedDampingFactor;
-					state = STATE.NONE;
+					scope._state = STATE.NONE;
 
 					document.removeEventListener('mousemove', _dragging);
 					document.removeEventListener('touchmove', _dragging);
@@ -414,14 +418,14 @@
 
 					scope.dispatchEvent({
 						type: 'controlend',
-						state: state,
+						state: scope._state,
 						originalEvent: event
 					});
 				};
 
-				var _dollyIn = function _dollyIn() {
+				var _dollyInternal = function _dollyInternal(delta) {
 
-					var dollyScale = Math.pow(0.95, scope.dollySpeed);
+					var dollyScale = Math.pow(0.95, -delta * scope.dollySpeed);
 
 					if (scope.object.isPerspectiveCamera) {
 
@@ -434,27 +438,10 @@
 					}
 				};
 
-				var _dollyOut = function _dollyOut() {
-
-					var dollyScale = Math.pow(0.95, scope.dollySpeed);
-
-					if (scope.object.isPerspectiveCamera) {
-
-						scope.dolly(scope._sphericalEnd.radius / dollyScale - scope._sphericalEnd.radius);
-					} else if (scope.object.isOrthographicCamera) {
-
-						scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom / dollyScale));
-						scope.object.updateProjectionMatrix();
-						scope._needsUpdate = true;
-					}
-				};
-
 				var scope = _this;
 				var dragStart = new THREE.Vector2();
 				var dollyStart = new THREE.Vector2();
-				var state = STATE.NONE;
 				var elementRect = void 0;
-				var savedDampingFactor = void 0;
 
 				_this.domElement.addEventListener('mousedown', _onMouseDown);
 				_this.domElement.addEventListener('touchstart', _onTouchStart);
@@ -724,7 +711,9 @@
 			// var quat = new THREE.Quaternion().setFromUnitVectors( this.object.up, new THREE.Vector3( 0, 1, 0 ) );
 			// var quatInverse = quat.clone().inverse();
 
-			var dampingFactor = 1.0 - Math.exp(-this.dampingFactor * delta / 0.016);
+			var currentDampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
+			var lerpRatio = 1.0 - Math.exp(-currentDampingFactor * delta / 0.016);
+
 			var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 			var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 			var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
@@ -732,9 +721,9 @@
 
 			if (Math.abs(deltaTheta) > EPSILON || Math.abs(deltaPhi) > EPSILON || Math.abs(deltaRadius) > EPSILON || Math.abs(deltaTarget.x) > EPSILON || Math.abs(deltaTarget.y) > EPSILON || Math.abs(deltaTarget.z) > EPSILON) {
 
-				this._spherical.set(this._spherical.radius + deltaRadius * dampingFactor, this._spherical.phi + deltaPhi * dampingFactor, this._spherical.theta + deltaTheta * dampingFactor);
+				this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
 
-				this._target.add(deltaTarget.multiplyScalar(dampingFactor));
+				this._target.add(deltaTarget.multiplyScalar(lerpRatio));
 
 				this._needsUpdate = true;
 			} else {
