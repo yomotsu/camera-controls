@@ -4,23 +4,18 @@
  * (c) 2017 @yomotsu
  * Released under the MIT License.
  */
-/**
- * This source code has been retrieved directly from Three.js repository.
- * Three.js is also distributed under MIT license.
- * https://github.com/mrdoob/three.js/blob/master/src/core/EventDispatcher.js
- */
+function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-/**
- * https://github.com/mrdoob/eventdispatcher.js/
- */
+// based on https://github.com/mrdoob/eventdispatcher.js/
 
-function EventDispatcher() {}
+var EventDispatcher = function () {
+	function EventDispatcher() {
+		_classCallCheck$1(this, EventDispatcher);
 
-Object.assign(EventDispatcher.prototype, {
+		this._listeners = {};
+	}
 
-	addEventListener: function addEventListener(type, listener) {
-
-		if (this._listeners === undefined) this._listeners = {};
+	EventDispatcher.prototype.addEventListener = function addEventListener(type, listener) {
 
 		var listeners = this._listeners;
 
@@ -33,20 +28,16 @@ Object.assign(EventDispatcher.prototype, {
 
 			listeners[type].push(listener);
 		}
-	},
+	};
 
-	hasEventListener: function hasEventListener(type, listener) {
-
-		if (this._listeners === undefined) return false;
+	EventDispatcher.prototype.hasEventListener = function hasEventListener(type, listener) {
 
 		var listeners = this._listeners;
 
 		return listeners[type] !== undefined && listeners[type].indexOf(listener) !== -1;
-	},
+	};
 
-	removeEventListener: function removeEventListener(type, listener) {
-
-		if (this._listeners === undefined) return;
+	EventDispatcher.prototype.removeEventListener = function removeEventListener(type, listener) {
 
 		var listeners = this._listeners;
 		var listenerArray = listeners[type];
@@ -60,11 +51,9 @@ Object.assign(EventDispatcher.prototype, {
 				listenerArray.splice(index, 1);
 			}
 		}
-	},
+	};
 
-	dispatchEvent: function dispatchEvent(event) {
-
-		if (this._listeners === undefined) return;
+	EventDispatcher.prototype.dispatchEvent = function dispatchEvent(event) {
 
 		var listeners = this._listeners;
 		var listenerArray = listeners[event.type];
@@ -80,11 +69,10 @@ Object.assign(EventDispatcher.prototype, {
 				array[i].call(this, event);
 			}
 		}
-	}
+	};
 
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	return EventDispatcher;
+}();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -93,10 +81,12 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var THREE = void 0;
-var _v3a = void 0;
-var _v3b = void 0;
+var _v3A = void 0;
+var _v3B = void 0;
 var _xColumn = void 0;
 var _yColumn = void 0;
+var _sphericalA = void 0;
+var _sphericalB = void 0;
 var EPSILON = 0.001;
 var STATE = {
 	NONE: -1,
@@ -114,10 +104,12 @@ var CameraControls = function (_EventDispatcher) {
 	CameraControls.install = function install(libs) {
 
 		THREE = libs.THREE;
-		_v3a = new THREE.Vector3();
-		_v3b = new THREE.Vector3();
+		_v3A = new THREE.Vector3();
+		_v3B = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
+		_sphericalA = new THREE.Spherical();
+		_sphericalB = new THREE.Spherical();
 	};
 
 	function CameraControls(object, domElement) {
@@ -262,7 +254,7 @@ var CameraControls = function (_EventDispatcher) {
 					delta = event.deltaY / (10 * deltaYFactor);
 				}
 
-				_dollyInternal(delta);
+				_dollyInternal(-delta);
 			};
 
 			var _onContextMenu = function _onContextMenu(event) {
@@ -362,7 +354,7 @@ var CameraControls = function (_EventDispatcher) {
 
 						if (scope.object.isPerspectiveCamera) {
 
-							var offset = _v3a.copy(scope.object.position).sub(scope._target);
+							var offset = _v3A.copy(scope.object.position).sub(scope._target);
 							// half of the fov is center to top of screen
 							var fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
 							var targetDistance = offset.length() * Math.tan(fovInRad / 2);
@@ -533,7 +525,7 @@ var CameraControls = function (_EventDispatcher) {
 		_xColumn.multiplyScalar(x);
 		_yColumn.multiplyScalar(-y);
 
-		var offset = _v3a.copy(_xColumn).add(_yColumn);
+		var offset = _v3A.copy(_xColumn).add(_yColumn);
 		this._targetEnd.add(offset);
 
 		if (!enableTransition) {
@@ -546,11 +538,11 @@ var CameraControls = function (_EventDispatcher) {
 
 	CameraControls.prototype.forward = function forward(distance, enableTransition) {
 
-		_v3a.setFromMatrixColumn(this.object.matrix, 0);
-		_v3a.crossVectors(this.object.up, _v3a);
-		_v3a.multiplyScalar(distance);
+		_v3A.setFromMatrixColumn(this.object.matrix, 0);
+		_v3A.crossVectors(this.object.up, _v3A);
+		_v3A.multiplyScalar(distance);
 
-		this._targetEnd.add(_v3a);
+		this._targetEnd.add(_v3A);
 
 		if (!enableTransition) {
 
@@ -588,7 +580,7 @@ var CameraControls = function (_EventDispatcher) {
 		var paddingTop = options.paddingTop || 0;
 
 		var boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject(objectOrBox3);
-		var size = boundingBox.getSize(_v3a);
+		var size = boundingBox.getSize(_v3A);
 		var boundingWidth = size.x + paddingLeft + paddingRight;
 		var boundingHeight = size.y + paddingTop + paddingBottom;
 		var boundingDepth = size.z;
@@ -596,7 +588,7 @@ var CameraControls = function (_EventDispatcher) {
 		var distance = this.getDistanceToFit(boundingWidth, boundingHeight, boundingDepth);
 		this.dollyTo(distance, enableTransition);
 
-		var boundingBoxCenter = boundingBox.getCenter(_v3a);
+		var boundingBoxCenter = boundingBox.getCenter(_v3A);
 		var cx = boundingBoxCenter.x - (paddingLeft * 0.5 - paddingRight * 0.5);
 		var cy = boundingBoxCenter.y + (paddingTop * 0.5 - paddingBottom * 0.5);
 		var cz = boundingBoxCenter.z;
@@ -608,8 +600,8 @@ var CameraControls = function (_EventDispatcher) {
 
 	CameraControls.prototype.setLookAt = function setLookAt(positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
 
-		var position = _v3a.set(positionX, positionY, positionZ);
-		var target = _v3b.set(targetX, targetY, targetZ);
+		var position = _v3A.set(positionX, positionY, positionZ);
+		var target = _v3B.set(targetX, targetY, targetZ);
 
 		this._targetEnd.copy(target);
 		this._sphericalEnd.setFromVector3(position.sub(target));
@@ -626,21 +618,21 @@ var CameraControls = function (_EventDispatcher) {
 
 	CameraControls.prototype.lerpLookAt = function lerpLookAt(positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, x, enableTransition) {
 
-		var positionA = _v3a.set(positionAX, positionAY, positionAZ);
-		var targetA = _v3b.set(targetAX, targetAY, targetAZ);
-		var sphericalA = new THREE.Spherical().setFromVector3(positionA.sub(targetA));
+		var positionA = _v3A.set(positionAX, positionAY, positionAZ);
+		var targetA = _v3B.set(targetAX, targetAY, targetAZ);
+		_sphericalA.setFromVector3(positionA.sub(targetA));
 
-		var targetB = _v3a.set(targetBX, targetBY, targetBZ);
+		var targetB = _v3A.set(targetBX, targetBY, targetBZ);
 		this._targetEnd.copy(targetA).lerp(targetB, x); // tricky
 
-		var positionB = _v3b.set(positionBX, positionBY, positionBZ);
-		var sphericalB = new THREE.Spherical().setFromVector3(positionB.sub(targetB));
+		var positionB = _v3B.set(positionBX, positionBY, positionBZ);
+		_sphericalB.setFromVector3(positionB.sub(targetB));
 
-		var deltaTheta = sphericalB.theta - sphericalA.theta;
-		var deltaPhi = sphericalB.phi - sphericalA.phi;
-		var deltaRadius = sphericalB.radius - sphericalA.radius;
+		var deltaTheta = _sphericalB.theta - _sphericalA.theta;
+		var deltaPhi = _sphericalB.phi - _sphericalA.phi;
+		var deltaRadius = _sphericalB.radius - _sphericalA.radius;
 
-		this._sphericalEnd.set(sphericalA.radius + deltaRadius * x, sphericalA.phi + deltaPhi * x, sphericalA.theta + deltaTheta * x);
+		this._sphericalEnd.set(_sphericalA.radius + deltaRadius * x, _sphericalA.phi + deltaPhi * x, _sphericalA.theta + deltaTheta * x);
 
 		this._sanitizeSphericals();
 
@@ -660,7 +652,7 @@ var CameraControls = function (_EventDispatcher) {
 
 	CameraControls.prototype.setTarget = function setTarget(targetX, targetY, targetZ, enableTransition) {
 
-		var pos = this.getPosition(_v3a);
+		var pos = this.getPosition(_v3A);
 		this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
 	};
 
@@ -677,13 +669,13 @@ var CameraControls = function (_EventDispatcher) {
 
 	CameraControls.prototype.getTarget = function getTarget(out) {
 
-		var _out = (typeof out === 'undefined' ? 'undefined' : _typeof(out)) === 'object' && out.isVector3 ? out : new THREE.Vector3();
+		var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 		return _out.copy(this._targetEnd);
 	};
 
 	CameraControls.prototype.getPosition = function getPosition(out) {
 
-		var _out = (typeof out === 'undefined' ? 'undefined' : _typeof(out)) === 'object' && out.isVector3 ? out : new THREE.Vector3();
+		var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 		return _out.setFromSpherical(this._sphericalEnd).add(this._targetEnd);
 	};
 
@@ -711,14 +703,13 @@ var CameraControls = function (_EventDispatcher) {
 		var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 		var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 		var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-		var deltaTarget = new THREE.Vector3().subVectors(this._targetEnd, this._target);
+		var deltaTarget = _v3A.subVectors(this._targetEnd, this._target);
 
 		if (Math.abs(deltaTheta) > EPSILON || Math.abs(deltaPhi) > EPSILON || Math.abs(deltaRadius) > EPSILON || Math.abs(deltaTarget.x) > EPSILON || Math.abs(deltaTarget.y) > EPSILON || Math.abs(deltaTarget.z) > EPSILON) {
 
 			this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
 
 			this._target.add(deltaTarget.multiplyScalar(lerpRatio));
-
 			this._needsUpdate = true;
 		} else {
 
@@ -731,14 +722,9 @@ var CameraControls = function (_EventDispatcher) {
 		this.object.lookAt(this._target);
 
 		var updated = this._needsUpdate;
-		if (updated) {
-			this.dispatchEvent({
-				type: 'update'
-			});
-		}
-
 		this._needsUpdate = false;
 
+		if (updated) this.dispatchEvent({ type: 'update' });
 		return updated;
 	};
 
