@@ -344,7 +344,6 @@ export default class CameraControls extends EventDispatcher {
 
 						if ( scope.dollyToCursor ) {
 
-							elementRect = scope.domElement.getBoundingClientRect();
 							dollyX = ( dragStart.x - elementRect.left ) / elementRect.width * 2 - 1;
 							dollyY = ( dragStart.y - elementRect.top ) / elementRect.height * -2 + 1;
 
