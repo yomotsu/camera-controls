@@ -1,10 +1,12 @@
 import { EventDispatcher } from './event-dispatcher';
 
 let THREE;
-let _v3a;
-let _v3b;
+let _v3A;
+let _v3B;
 let _xColumn;
 let _yColumn;
+let _sphericalA;
+let _sphericalB;
 const EPSILON = 0.001;
 const STATE = {
 	NONE        : - 1,
@@ -21,10 +23,12 @@ export default class CameraControls extends EventDispatcher {
 	static install( libs ) {
 
 		THREE = libs.THREE;
-		_v3a = new THREE.Vector3();
-		_v3b = new THREE.Vector3();
+		_v3A = new THREE.Vector3();
+		_v3B = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
+		_sphericalA = new THREE.Spherical();
+		_sphericalB = new THREE.Spherical();
 
 	}
 
@@ -181,7 +185,7 @@ export default class CameraControls extends EventDispatcher {
 
 				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 				const mouseDeltaFactor = 120;
-				const deltaYFactor = navigator.platform.indexOf('Mac') === 0 ? -1 : -3;
+				const deltaYFactor = navigator.platform.indexOf( 'Mac' ) === 0 ? - 1 : - 3;
 
 				let delta;
 
@@ -199,7 +203,7 @@ export default class CameraControls extends EventDispatcher {
 
 				}
 
-				dollyInternal( delta );
+				dollyInternal( - delta );
 
 			}
 
@@ -303,7 +307,7 @@ export default class CameraControls extends EventDispatcher {
 
 						if ( scope.object.isPerspectiveCamera ) {
 
-							const offset = _v3a.copy( scope.object.position ).sub( scope._target );
+							const offset = _v3A.copy( scope.object.position ).sub( scope._target );
 							// half of the fov is center to top of screen
 							const fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
 							const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
@@ -366,7 +370,7 @@ export default class CameraControls extends EventDispatcher {
 
 			function dollyInternal( delta ) {
 
-				const dollyScale = Math.pow( 0.95, -delta * scope.dollySpeed );
+				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 
 				if ( scope.object.isPerspectiveCamera ) {
 
@@ -474,7 +478,7 @@ export default class CameraControls extends EventDispatcher {
 		_xColumn.multiplyScalar(   x );
 		_yColumn.multiplyScalar( - y );
 
-		const offset = _v3a.copy( _xColumn ).add( _yColumn );
+		const offset = _v3A.copy( _xColumn ).add( _yColumn );
 		this._targetEnd.add( offset );
 
 		if ( ! enableTransition ) {
@@ -489,11 +493,11 @@ export default class CameraControls extends EventDispatcher {
 
 	forward( distance, enableTransition ) {
 
-		_v3a.setFromMatrixColumn( this.object.matrix, 0 );
-		_v3a.crossVectors( this.object.up, _v3a );
-		_v3a.multiplyScalar( distance );
+		_v3A.setFromMatrixColumn( this.object.matrix, 0 );
+		_v3A.crossVectors( this.object.up, _v3A );
+		_v3A.multiplyScalar( distance );
 
-		this._targetEnd.add( _v3a );
+		this._targetEnd.add( _v3A );
 
 		if ( ! enableTransition ) {
 
@@ -534,7 +538,7 @@ export default class CameraControls extends EventDispatcher {
 		const paddingTop = options.paddingTop || 0;
 
 		const boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject( objectOrBox3 );
-		const size = boundingBox.getSize( _v3a );
+		const size = boundingBox.getSize( _v3A );
 		const boundingWidth  = size.x + paddingLeft + paddingRight;
 		const boundingHeight = size.y + paddingTop + paddingBottom;
 		const boundingDepth = size.z;
@@ -542,7 +546,7 @@ export default class CameraControls extends EventDispatcher {
 		const distance = this.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
 		this.dollyTo( distance, enableTransition );
 
-		const boundingBoxCenter = boundingBox.getCenter( _v3a );
+		const boundingBoxCenter = boundingBox.getCenter( _v3A );
 		const cx = boundingBoxCenter.x - ( paddingLeft * 0.5 - paddingRight * 0.5 );
 		const cy = boundingBoxCenter.y + ( paddingTop * 0.5 - paddingBottom * 0.5 );
 		const cz = boundingBoxCenter.z;
@@ -559,8 +563,8 @@ export default class CameraControls extends EventDispatcher {
 		enableTransition
 	) {
 
-		const position = _v3a.set( positionX, positionY, positionZ );
-		const target = _v3b.set( targetX, targetY, targetZ );
+		const position = _v3A.set( positionX, positionY, positionZ );
+		const target = _v3B.set( targetX, targetY, targetZ );
 
 		this._targetEnd.copy( target );
 		this._sphericalEnd.setFromVector3( position.sub( target ) );
@@ -585,24 +589,24 @@ export default class CameraControls extends EventDispatcher {
 		x, enableTransition
 	) {
 
-		const positionA = _v3a.set( positionAX, positionAY, positionAZ );
-		const targetA = _v3b.set( targetAX, targetAY, targetAZ );
-		const sphericalA = new THREE.Spherical().setFromVector3( positionA.sub( targetA ) );
+		const positionA = _v3A.set( positionAX, positionAY, positionAZ );
+		const targetA = _v3B.set( targetAX, targetAY, targetAZ );
+		_sphericalA.setFromVector3( positionA.sub( targetA ) );
 
-		const targetB = _v3a.set( targetBX, targetBY, targetBZ );
+		const targetB = _v3A.set( targetBX, targetBY, targetBZ );
 		this._targetEnd.copy( targetA ).lerp( targetB, x ); // tricky
 
-		const positionB = _v3b.set( positionBX, positionBY, positionBZ );
-		const sphericalB = new THREE.Spherical().setFromVector3( positionB.sub( targetB ) );
+		const positionB = _v3B.set( positionBX, positionBY, positionBZ );
+		_sphericalB.setFromVector3( positionB.sub( targetB ) );
 
-		const deltaTheta  = sphericalB.theta  - sphericalA.theta;
-		const deltaPhi    = sphericalB.phi    - sphericalA.phi;
-		const deltaRadius = sphericalB.radius - sphericalA.radius;
+		const deltaTheta  = _sphericalB.theta  - _sphericalA.theta;
+		const deltaPhi    = _sphericalB.phi    - _sphericalA.phi;
+		const deltaRadius = _sphericalB.radius - _sphericalA.radius;
 
 		this._sphericalEnd.set(
-			sphericalA.radius + deltaRadius * x,
-			sphericalA.phi    + deltaPhi    * x,
-			sphericalA.theta  + deltaTheta  * x
+			_sphericalA.radius + deltaRadius * x,
+			_sphericalA.phi    + deltaPhi    * x,
+			_sphericalA.theta  + deltaTheta  * x
 		);
 
 		this._sanitizeSphericals();
@@ -630,7 +634,7 @@ export default class CameraControls extends EventDispatcher {
 
 	setTarget( targetX, targetY, targetZ, enableTransition ) {
 
-		const pos = this.getPosition( _v3a );
+		const pos = this.getPosition( _v3A );
 		this.setLookAt(
 			pos.x, pos.y, pos.z,
 			targetX, targetY, targetZ,
@@ -653,14 +657,14 @@ export default class CameraControls extends EventDispatcher {
 
 	getTarget( out ) {
 
-		const _out = typeof out === 'object' && out.isVector3 ? out : new THREE.Vector3();
+		const _out = !! out && out.isVector3 ? out : new THREE.Vector3();
 		return _out.copy( this._targetEnd );
 
 	}
 
 	getPosition( out ) {
 
-		const _out = typeof out === 'object' && out.isVector3 ? out : new THREE.Vector3();
+		const _out = !! out && out.isVector3 ? out : new THREE.Vector3();
 		return _out.setFromSpherical( this._sphericalEnd ).add( this._targetEnd );
 
 	}
@@ -689,14 +693,13 @@ export default class CameraControls extends EventDispatcher {
 		// var quat = new THREE.Quaternion().setFromUnitVectors( this.object.up, new THREE.Vector3( 0, 1, 0 ) );
 		// var quatInverse = quat.clone().inverse();
 
-		const currentDampingFactor =
-			this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		const lerpRatio = 1.0 - Math.exp( -currentDampingFactor * delta / 0.016 );
+		const currentDampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
+		const lerpRatio = 1.0 - Math.exp( - currentDampingFactor * delta / 0.016 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-		const deltaTarget = new THREE.Vector3().subVectors( this._targetEnd, this._target );
+		const deltaTarget = _v3A.subVectors( this._targetEnd, this._target );
 
 		if (
 			Math.abs( deltaTheta    ) > EPSILON ||
@@ -714,7 +717,6 @@ export default class CameraControls extends EventDispatcher {
 			);
 
 			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
-
 			this._needsUpdate = true;
 
 		} else {
@@ -729,14 +731,9 @@ export default class CameraControls extends EventDispatcher {
 		this.object.lookAt( this._target );
 
 		const updated = this._needsUpdate;
-		if ( updated ) {
-			this.dispatchEvent( {
-				type: 'update'
-			} );
-		}
-
 		this._needsUpdate = false;
 
+		if ( updated ) this.dispatchEvent( { type: 'update' } );
 		return updated;
 
 	}
@@ -807,28 +804,6 @@ export default class CameraControls extends EventDispatcher {
 		this._spherical.theta += 2 * Math.PI * Math.round(
 			( this._sphericalEnd.theta - this._spherical.theta ) / ( 2 * Math.PI )
 		);
-
-	}
-
-}
-
-function toVector3( value ) {
-
-	if ( !value ) {
-
-		return null;
-
-	} else if ( value.isVector3 ) {
-
-		return value;
-
-	} else if ( Array.isArray( value ) ) {
-
-		return new THREE.Vector3().fromArray( value );
-
-	} else {
-
-		return new THREE.Vector3();
 
 	}
 
