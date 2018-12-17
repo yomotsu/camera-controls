@@ -111,6 +111,36 @@ export default class CameraControls extends EventDispatcher {
 
 			};
 
+			function extractClientCoordFromEvent( event ) {
+
+				if ( event.touches ) {
+
+					let x = 0;
+					let y = 0;
+
+					for ( let i = 0; i < event.touches.length; i ++ ) {
+
+						x += event.touches[ i ].clientX;
+						y += event.touches[ i ].clientY;
+
+					}
+
+					return {
+						x: x / event.touches.length,
+						y: y / event.touches.length
+					};
+
+				} else {
+
+					return {
+						x: event.clientX,
+						y: event.clientY
+					};
+
+				}
+
+			}
+
 			function onMouseDown( event ) {
 
 				if ( ! scope.enabled ) return;
@@ -149,6 +179,8 @@ export default class CameraControls extends EventDispatcher {
 			function onTouchStart( event ) {
 
 				if ( ! scope.enabled ) return;
+
+				console.log(event);
 
 				event.preventDefault();
 
@@ -236,9 +268,7 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const _event = !! event.touches ? event.touches[ 0 ] : event;
-				const x = _event.clientX;
-				const y = _event.clientY;
+				const { x, y } = extractClientCoordFromEvent( event );
 
 				elementRect = scope.domElement.getBoundingClientRect();
 				dragStart.set( x, y );
@@ -280,9 +310,7 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const _event = !! event.touches ? event.touches[ 0 ] : event;
-				const x = _event.clientX;
-				const y = _event.clientY;
+				const { x, y } = extractClientCoordFromEvent( event );
 
 				const deltaX = dragStart.x - x;
 				const deltaY = dragStart.y - y;
@@ -312,7 +340,17 @@ export default class CameraControls extends EventDispatcher {
 
 						const touchDollyFactor = 8;
 
-						dollyInternal( dollyDelta / touchDollyFactor );
+						let dollyX, dollyY;
+
+						if ( scope.dollyToCursor ) {
+
+							elementRect = scope.domElement.getBoundingClientRect();
+							dollyX = ( dragStart.x - elementRect.left ) / elementRect.width * 2 - 1;
+							dollyY = ( dragStart.y - elementRect.top ) / elementRect.height * -2 + 1;
+
+						}
+
+						dollyInternal( dollyDelta / touchDollyFactor, dollyX, dollyY );
 
 						dollyStart.set( 0, distance );
 						break;
@@ -398,7 +436,6 @@ export default class CameraControls extends EventDispatcher {
 						const angle = _raycaster.ray.direction.angleTo( _v3A.setFromSpherical( scope._sphericalEnd ) );
 						const dist = scope._sphericalEnd.radius / -Math.cos( angle );
 						_raycaster.ray.at( dist, _v3A );
-						console.log( distance );
 						scope._targetEnd.lerp( _v3A, -distance / scope._sphericalEnd.radius );
 						scope._target.copy( scope._targetEnd );
 
