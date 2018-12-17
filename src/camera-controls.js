@@ -111,31 +111,27 @@ export default class CameraControls extends EventDispatcher {
 
 			};
 
-			function extractClientCoordFromEvent( event ) {
+			function extractClientCoordFromEvent( event, out ) {
+
+				out.set( 0, 0 );
 
 				if ( event.touches ) {
 
-					let x = 0;
-					let y = 0;
-
 					for ( let i = 0; i < event.touches.length; i ++ ) {
 
-						x += event.touches[ i ].clientX;
-						y += event.touches[ i ].clientY;
+						out.x += event.touches[ i ].clientX;
+						out.y += event.touches[ i ].clientY;
 
 					}
 
-					return {
-						x: x / event.touches.length,
-						y: y / event.touches.length
-					};
+					out.x /= event.touches.length;
+					out.y /= event.touches.length;
+					return out;
 
 				} else {
 
-					return {
-						x: event.clientX,
-						y: event.clientY
-					};
+					out.set( event.clientX, event.clientY );
+					return out;
 
 				}
 
@@ -179,8 +175,6 @@ export default class CameraControls extends EventDispatcher {
 			function onTouchStart( event ) {
 
 				if ( ! scope.enabled ) return;
-
-				console.log(event);
 
 				event.preventDefault();
 
@@ -268,21 +262,21 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const { x, y } = extractClientCoordFromEvent( event );
+				extractClientCoordFromEvent( event, _v2 );
 
 				elementRect = scope.domElement.getBoundingClientRect();
-				dragStart.set( x, y );
+				dragStart.copy( _v2 );
 
 				// if ( scope._state === STATE.DOLLY ) {
 
-				// 	dollyStart.set( x, y );
+				// 	dollyStart.copy( _v2 );
 
 				// }
 
 				if ( scope._state === STATE.TOUCH_DOLLY ) {
 
-					const dx = x - event.touches[ 1 ].pageX;
-					const dy = y - event.touches[ 1 ].pageY;
+					const dx = _v2.x - event.touches[ 1 ].pageX;
+					const dy = _v2.y - event.touches[ 1 ].pageY;
 					const distance = Math.sqrt( dx * dx + dy * dy );
 
 					dollyStart.set( 0, distance );
@@ -296,8 +290,8 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'controlstart',
-					x,
-					y,
+					x: _v2.x,
+					y: _v2.y,
 					state: scope._state,
 					originalEvent: event,
 				} );
@@ -310,12 +304,12 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const { x, y } = extractClientCoordFromEvent( event );
+				extractClientCoordFromEvent( event, _v2 );
 
-				const deltaX = dragStart.x - x;
-				const deltaY = dragStart.y - y;
+				const deltaX = dragStart.x - _v2.x;
+				const deltaY = dragStart.y - _v2.y;
 
-				dragStart.set( x, y );
+				dragStart.copy( _v2 );
 
 				switch ( scope._state ) {
 
@@ -333,22 +327,15 @@ export default class CameraControls extends EventDispatcher {
 
 					case STATE.TOUCH_DOLLY:
 
-						const dx = x - event.touches[ 1 ].pageX;
-						const dy = y - event.touches[ 1 ].pageY;
+						const dx = _v2.x - event.touches[ 1 ].pageX;
+						const dy = _v2.y - event.touches[ 1 ].pageY;
 						const distance = Math.sqrt( dx * dx + dy * dy );
 						const dollyDelta = dollyStart.y - distance;
 
 						const touchDollyFactor = 8;
 
-						let dollyX, dollyY;
-
-						if ( scope.dollyToCursor ) {
-
-							dollyX = ( dragStart.x - elementRect.left ) / elementRect.width * 2 - 1;
-							dollyY = ( dragStart.y - elementRect.top ) / elementRect.height * -2 + 1;
-
-						}
-
+						const dollyX = scope.dollyToCursor ? ( dragStart.x - elementRect.left ) / elementRect.width  *   2 - 1 : 0;
+						const dollyY = scope.dollyToCursor ? ( dragStart.y - elementRect.top  ) / elementRect.height * - 2 + 1 : 0;
 						dollyInternal( dollyDelta / touchDollyFactor, dollyX, dollyY );
 
 						dollyStart.set( 0, distance );
@@ -380,8 +367,8 @@ export default class CameraControls extends EventDispatcher {
 						} else if ( scope.object.isOrthographicCamera ) {
 
 							// orthographic
-							const truckX = deltaX * ( scope.object.right - scope.object.left ) / scope.object.zoom / elementRect.width;
-							const pedestalY = deltaY * ( scope.object.top - scope.object.bottom ) / scope.object.zoom / elementRect.height;
+							const truckX    = deltaX * ( scope.object.right - scope.object.left   ) / scope.object.zoom / elementRect.width;
+							const pedestalY = deltaY * ( scope.object.top   - scope.object.bottom ) / scope.object.zoom / elementRect.height;
 							scope.truck( truckX, pedestalY, true );
 							break;
 
@@ -391,8 +378,8 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'control',
-					x,
-					y,
+					x: _v2.x,
+					y: _v2.y,
 					deltaX,
 					deltaY,
 					state: scope._state,
