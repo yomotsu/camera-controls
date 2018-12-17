@@ -28,6 +28,8 @@ label{
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
 	<label><input type="checkbox" onchange="cameraControls.verticalDragToForward = this.checked">vertical drag to move forward</label>
 	<br>
+	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
+	<br>
 	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
 	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
 	<button onclick="cameraControls.rotate( 360 * THREE.Math.DEG2RAD, 0, true )">rotate theta 360deg</button>
