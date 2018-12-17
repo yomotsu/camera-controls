@@ -1,10 +1,12 @@
 import { EventDispatcher } from './event-dispatcher';
 
 let THREE;
+let _v2;
 let _v3A;
 let _v3B;
 let _xColumn;
 let _yColumn;
+let _raycaster;
 let _sphericalA;
 let _sphericalB;
 const EPSILON = 0.001;
@@ -23,10 +25,12 @@ export default class CameraControls extends EventDispatcher {
 	static install( libs ) {
 
 		THREE = libs.THREE;
+		_v2 = new THREE.Vector2();
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
+		_raycaster = new THREE.Raycaster();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
 
@@ -56,6 +60,7 @@ export default class CameraControls extends EventDispatcher {
 		this.draggingDampingFactor = 0.25;
 		this.dollySpeed = 1.0;
 		this.truckSpeed = 2.0;
+		this.dollyToCursor = false;
 		this.verticalDragToForward = false;
 
 		this.domElement = domElement;
@@ -106,6 +111,36 @@ export default class CameraControls extends EventDispatcher {
 
 			};
 
+			function extractClientCoordFromEvent( event ) {
+
+				if ( event.touches ) {
+
+					let x = 0;
+					let y = 0;
+
+					for ( let i = 0; i < event.touches.length; i ++ ) {
+
+						x += event.touches[ i ].clientX;
+						y += event.touches[ i ].clientY;
+
+					}
+
+					return {
+						x: x / event.touches.length,
+						y: y / event.touches.length
+					};
+
+				} else {
+
+					return {
+						x: event.clientX,
+						y: event.clientY
+					};
+
+				}
+
+			}
+
 			function onMouseDown( event ) {
 
 				if ( ! scope.enabled ) return;
@@ -144,6 +179,8 @@ export default class CameraControls extends EventDispatcher {
 			function onTouchStart( event ) {
 
 				if ( ! scope.enabled ) return;
+
+				console.log(event);
 
 				event.preventDefault();
 
@@ -203,7 +240,17 @@ export default class CameraControls extends EventDispatcher {
 
 				}
 
-				dollyInternal( - delta );
+				let x, y;
+
+				if ( scope.dollyToCursor ) {
+
+					elementRect = scope.domElement.getBoundingClientRect();
+					x = ( event.clientX - elementRect.left ) / elementRect.width * 2 - 1;
+					y = ( event.clientY - elementRect.top ) / elementRect.height * -2 + 1;
+
+				}
+
+				dollyInternal( - delta, x, y );
 
 			}
 
@@ -221,9 +268,7 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const _event = !! event.touches ? event.touches[ 0 ] : event;
-				const x = _event.clientX;
-				const y = _event.clientY;
+				const { x, y } = extractClientCoordFromEvent( event );
 
 				elementRect = scope.domElement.getBoundingClientRect();
 				dragStart.set( x, y );
@@ -265,9 +310,7 @@ export default class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				const _event = !! event.touches ? event.touches[ 0 ] : event;
-				const x = _event.clientX;
-				const y = _event.clientY;
+				const { x, y } = extractClientCoordFromEvent( event );
 
 				const deltaX = dragStart.x - x;
 				const deltaY = dragStart.y - y;
@@ -297,7 +340,16 @@ export default class CameraControls extends EventDispatcher {
 
 						const touchDollyFactor = 8;
 
-						dollyInternal( dollyDelta / touchDollyFactor );
+						let dollyX, dollyY;
+
+						if ( scope.dollyToCursor ) {
+
+							dollyX = ( dragStart.x - elementRect.left ) / elementRect.width * 2 - 1;
+							dollyY = ( dragStart.y - elementRect.top ) / elementRect.height * -2 + 1;
+
+						}
+
+						dollyInternal( dollyDelta / touchDollyFactor, dollyX, dollyY );
 
 						dollyStart.set( 0, distance );
 						break;
@@ -368,13 +420,27 @@ export default class CameraControls extends EventDispatcher {
 
 			}
 
-			function dollyInternal( delta ) {
+			function dollyInternal( delta, x, y ) {
 
 				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 
 				if ( scope.object.isPerspectiveCamera ) {
 
-					scope.dolly( scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius );
+					const distance = scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius;
+
+					if ( scope.dollyToCursor && scope.object.isCamera ) {
+
+						_v2.set( x, y );
+						_raycaster.setFromCamera( _v2, scope.object );
+						const angle = _raycaster.ray.direction.angleTo( _v3A.setFromSpherical( scope._sphericalEnd ) );
+						const dist = scope._sphericalEnd.radius / -Math.cos( angle );
+						_raycaster.ray.at( dist, _v3A );
+						scope._targetEnd.lerp( _v3A, -distance / scope._sphericalEnd.radius );
+						scope._target.copy( scope._targetEnd );
+
+					}
+
+					scope.dolly( distance );
 
 				} else if ( scope.object.isOrthographicCamera ) {
 
