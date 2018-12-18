@@ -167,7 +167,7 @@ var CameraControls = function (_EventDispatcher) {
 
 		if (!_this.domElement || options.ignoreDOMEventListeners) {
 
-			_this.dispose = function () {};
+			_this._removeAllEventListeners = function () {};
 		} else {
 			var extractClientCoordFromEvent = function extractClientCoordFromEvent(event, out) {
 
@@ -490,7 +490,7 @@ var CameraControls = function (_EventDispatcher) {
 			_this.domElement.addEventListener('wheel', _onMouseWheel);
 			_this.domElement.addEventListener('contextmenu', _onContextMenu);
 
-			_this.dispose = function () {
+			_this._removeAllEventListeners = function () {
 
 				scope.domElement.removeEventListener('mousedown', _onMouseDown);
 				scope.domElement.removeEventListener('touchstart', _onTouchStart);
@@ -843,6 +843,11 @@ var CameraControls = function (_EventDispatcher) {
 		}
 
 		this._needsUpdate = true;
+	};
+
+	CameraControls.prototype.dispose = function dispose() {
+
+		this._removeAllEventListeners();
 	};
 
 	CameraControls.prototype._sanitizeSphericals = function _sanitizeSphericals() {
