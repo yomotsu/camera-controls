@@ -84,7 +84,7 @@ export default class CameraControls extends EventDispatcher {
 
 		if ( ! this.domElement || options.ignoreDOMEventListeners ) {
 
-			this.dispose = () => {};
+			this._removeAllEventListeners = () => {};
 
 		} else {
 
@@ -98,7 +98,7 @@ export default class CameraControls extends EventDispatcher {
 			this.domElement.addEventListener( 'wheel', onMouseWheel );
 			this.domElement.addEventListener( 'contextmenu', onContextMenu );
 
-			this.dispose = () => {
+			this._removeAllEventListeners = () => {
 
 				scope.domElement.removeEventListener( 'mousedown', onMouseDown );
 				scope.domElement.removeEventListener( 'touchstart', onTouchStart );
@@ -859,6 +859,12 @@ export default class CameraControls extends EventDispatcher {
 		}
 
 		this._needsUpdate = true;
+
+	}
+
+	dispose() {
+
+		this._removeAllEventListeners();
 
 	}
 
