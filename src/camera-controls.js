@@ -11,13 +11,13 @@ let _sphericalA;
 let _sphericalB;
 const EPSILON = 0.001;
 const STATE = {
-	NONE        : - 1,
-	ROTATE      :   0,
-	DOLLY       :   1,
-	TRUCK       :   2,
-	TOUCH_ROTATE:   3,
-	TOUCH_DOLLY :   4,
-	TOUCH_TRUCK :   5
+	NONE              : - 1,
+	ROTATE            :   0,
+	DOLLY             :   1,
+	TRUCK             :   2,
+	TOUCH_ROTATE      :   3,
+	TOUCH_DOLLY_TRUCK :   4,
+	TOUCH_TRUCK       :   5,
 };
 
 export default class CameraControls extends EventDispatcher {
@@ -36,7 +36,7 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
-	constructor( object, domElement ) {
+	constructor( object, domElement, options = {} ) {
 
 		super();
 
@@ -82,7 +82,7 @@ export default class CameraControls extends EventDispatcher {
 		this._needsUpdate = true;
 		this.update();
 
-		if ( ! this.domElement ) {
+		if ( ! this.domElement || options.ignoreDOMEventListeners ) {
 
 			this.dispose = () => {};
 
@@ -189,7 +189,7 @@ export default class CameraControls extends EventDispatcher {
 
 					case 2:	// two-fingered touch: dolly
 
-						scope._state = STATE.TOUCH_DOLLY;
+						scope._state = STATE.TOUCH_DOLLY_TRUCK;
 						break;
 
 					case 3: // three-fingered touch: truck
@@ -267,19 +267,20 @@ export default class CameraControls extends EventDispatcher {
 				elementRect = scope.domElement.getBoundingClientRect();
 				dragStart.copy( _v2 );
 
-				// if ( scope._state === STATE.DOLLY ) {
+				if ( scope._state === STATE.TOUCH_DOLLY_TRUCK ) {
 
-				// 	dollyStart.copy( _v2 );
-
-				// }
-
-				if ( scope._state === STATE.TOUCH_DOLLY ) {
-
+					// 2 finger pinch
 					const dx = _v2.x - event.touches[ 1 ].pageX;
 					const dy = _v2.y - event.touches[ 1 ].pageY;
 					const distance = Math.sqrt( dx * dx + dy * dy );
 
 					dollyStart.set( 0, distance );
+
+					// center coords of 2 finger truck
+					const x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) * 0.5;
+					const y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) * 0.5;
+
+					dragStart.set( x, y );
 
 				}
 
@@ -290,9 +291,9 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'controlstart',
-					x: _v2.x,
-					y: _v2.y,
-					state: scope._state,
+					// x: _v2.x,
+					// y: _v2.y,
+					// state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -325,7 +326,7 @@ export default class CameraControls extends EventDispatcher {
 						// not implemented
 						break;
 
-					case STATE.TOUCH_DOLLY:
+					case STATE.TOUCH_DOLLY_TRUCK:
 
 						const dx = _v2.x - event.touches[ 1 ].pageX;
 						const dy = _v2.y - event.touches[ 1 ].pageY;
@@ -339,50 +340,24 @@ export default class CameraControls extends EventDispatcher {
 						dollyInternal( dollyDelta / touchDollyFactor, dollyX, dollyY );
 
 						dollyStart.set( 0, distance );
+						truckInternal( deltaX, deltaY );
 						break;
 
 					case STATE.TRUCK:
 					case STATE.TOUCH_TRUCK:
 
-						if ( scope.object.isPerspectiveCamera ) {
-
-							const offset = _v3A.copy( scope.object.position ).sub( scope._target );
-							// half of the fov is center to top of screen
-							const fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
-							const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
-							const truckX = ( scope.truckSpeed * deltaX * targetDistance / elementRect.height );
-							const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.height );
-							if ( scope.verticalDragToForward ) {
-
-								scope.truck( truckX, 0, true );
-								scope.forward( - pedestalY, true );
-
-							} else {
-
-								scope.truck( truckX, pedestalY, true );
-
-							}
-							break;
-
-						} else if ( scope.object.isOrthographicCamera ) {
-
-							// orthographic
-							const truckX    = deltaX * ( scope.object.right - scope.object.left   ) / scope.object.zoom / elementRect.width;
-							const pedestalY = deltaY * ( scope.object.top   - scope.object.bottom ) / scope.object.zoom / elementRect.height;
-							scope.truck( truckX, pedestalY, true );
-							break;
-
-						}
+						truckInternal( deltaX, deltaY );
+						break;
 
 				}
 
 				scope.dispatchEvent( {
 					type: 'control',
-					x: _v2.x,
-					y: _v2.y,
-					deltaX,
-					deltaY,
-					state: scope._state,
+					// x: _v2.x,
+					// y: _v2.y,
+					// deltaX,
+					// deltaY,
+					// state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -401,9 +376,41 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'controlend',
-					state: scope._state,
+					// state: scope._state,
 					originalEvent: event,
 				} );
+
+			}
+
+			function truckInternal( deltaX, deltaY ) {
+
+				if ( scope.object.isPerspectiveCamera ) {
+
+					const offset = _v3A.copy( scope.object.position ).sub( scope._target );
+					// half of the fov is center to top of screen
+					const fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
+					const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
+					const truckX    = ( scope.truckSpeed * deltaX * targetDistance / elementRect.height );
+					const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.height );
+					if ( scope.verticalDragToForward ) {
+
+						scope.truck( truckX, 0, true );
+						scope.forward( - pedestalY, true );
+
+					} else {
+
+						scope.truck( truckX, pedestalY, true );
+
+					}
+
+				} else if ( scope.object.isOrthographicCamera ) {
+
+					// orthographic
+					const truckX    = deltaX * ( scope.object.right - scope.object.left   ) / scope.object.zoom / elementRect.width;
+					const pedestalY = deltaY * ( scope.object.top   - scope.object.bottom ) / scope.object.zoom / elementRect.height;
+					scope.truck( truckX, pedestalY, true );
+
+				}
 
 			}
 
@@ -806,6 +813,8 @@ export default class CameraControls extends EventDispatcher {
 			draggingDampingFactor: this.draggingDampingFactor,
 			dollySpeed           : this.dollySpeed,
 			truckSpeed           : this.truckSpeed,
+			dollyToCursor        : this.dollyToCursor,
+			verticalDragToForward: this.verticalDragToForward,
 
 			target               : this._targetEnd.toArray(),
 			position             : this.object.position.toArray(),
@@ -833,6 +842,8 @@ export default class CameraControls extends EventDispatcher {
 		this.draggingDampingFactor = obj.draggingDampingFactor;
 		this.dollySpeed            = obj.dollySpeed;
 		this.truckSpeed            = obj.truckSpeed;
+		this.dollyToCursor         = obj.dollyToCursor;
+		this.verticalDragToForward = obj.verticalDragToForward;
 
 		this._target0.fromArray( obj.target0 );
 		this._position0.fromArray( obj.position0 );
