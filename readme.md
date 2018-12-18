@@ -6,6 +6,12 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 
 ## Demos
 
+| camera move    | user input |
+| ---            | ---        |
+| Orbit rotation | left mouse drag / touch: one-finger move |
+| Dolly (Zoom)   | middle mouse drag, or mousewheel / touch: two-finger pinch-in or out |
+| Truck (Pan)    | right mouse drag / touch: two-finger move or three-finger move |
+
 - [basic](https://yomotsu.github.io/camera-controls/examples/basic.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [fit-and-padding](https://yomotsu.github.io/camera-controls/examples/fit-and-padding.html)
@@ -27,11 +33,11 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 	// snip
 	const delta = clock.getDelta();
-	const isControlsUpdated = cameraControls.update( delta );
+	const hasControlsUpdated = cameraControls.update( delta );
 
 	requestAnimationFrame( anim );
 
-	if ( isControlsUpdated ) {
+	if ( hasControlsUpdated ) {
 
 		renderer.render( scene, camera );
 
@@ -41,10 +47,12 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ## Constructor
 
-`CameraControls( camera, domElement )`
+`CameraControls( camera, domElement, options )`
 
 - `camera` is a three.js perspective camera to be controlled.
 - `domElement` is a HTML element for draggable area.
+- `options` in Object.
+  - `ignoreDOMEventListeners`: Default is `false`. if `true`, Mouse and touch event listeners will be ignored, and you can attach your handlers instead.
 
 ## Properties
 
