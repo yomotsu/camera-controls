@@ -87,10 +87,12 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var THREE = void 0;
+	var _v2 = void 0;
 	var _v3A = void 0;
 	var _v3B = void 0;
 	var _xColumn = void 0;
 	var _yColumn = void 0;
+	var _raycaster = void 0;
 	var _sphericalA = void 0;
 	var _sphericalB = void 0;
 	var EPSILON = 0.001;
@@ -100,7 +102,7 @@
 		DOLLY: 1,
 		TRUCK: 2,
 		TOUCH_ROTATE: 3,
-		TOUCH_DOLLY: 4,
+		TOUCH_DOLLY_TRUCK: 4,
 		TOUCH_TRUCK: 5
 	};
 
@@ -110,15 +112,19 @@
 		CameraControls.install = function install(libs) {
 
 			THREE = libs.THREE;
+			_v2 = new THREE.Vector2();
 			_v3A = new THREE.Vector3();
 			_v3B = new THREE.Vector3();
 			_xColumn = new THREE.Vector3();
 			_yColumn = new THREE.Vector3();
+			_raycaster = new THREE.Raycaster();
 			_sphericalA = new THREE.Spherical();
 			_sphericalB = new THREE.Spherical();
 		};
 
 		function CameraControls(object, domElement) {
+			var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
 			_classCallCheck(this, CameraControls);
 
 			var _this = _possibleConstructorReturn(this, _EventDispatcher.call(this));
@@ -143,6 +149,7 @@
 			_this.draggingDampingFactor = 0.25;
 			_this.dollySpeed = 1.0;
 			_this.truckSpeed = 2.0;
+			_this.dollyToCursor = false;
 			_this.verticalDragToForward = false;
 
 			_this.domElement = domElement;
@@ -164,10 +171,32 @@
 			_this._needsUpdate = true;
 			_this.update();
 
-			if (!_this.domElement) {
+			if (!_this.domElement || options.ignoreDOMEventListeners) {
 
 				_this.dispose = function () {};
 			} else {
+				var extractClientCoordFromEvent = function extractClientCoordFromEvent(event, out) {
+
+					out.set(0, 0);
+
+					if (event.touches) {
+
+						for (var i = 0; i < event.touches.length; i++) {
+
+							out.x += event.touches[i].clientX;
+							out.y += event.touches[i].clientY;
+						}
+
+						out.x /= event.touches.length;
+						out.y /= event.touches.length;
+						return out;
+					} else {
+
+						out.set(event.clientX, event.clientY);
+						return out;
+					}
+				};
+
 				var _onMouseDown = function _onMouseDown(event) {
 
 					if (!scope.enabled) return;
@@ -220,7 +249,7 @@
 						case 2:
 							// two-fingered touch: dolly
 
-							scope._state = STATE.TOUCH_DOLLY;
+							scope._state = STATE.TOUCH_DOLLY_TRUCK;
 							break;
 
 						case 3:
@@ -260,7 +289,17 @@
 						delta = event.deltaY / (10 * deltaYFactor);
 					}
 
-					_dollyInternal(-delta);
+					var x = void 0,
+					    y = void 0;
+
+					if (scope.dollyToCursor) {
+
+						elementRect = scope.domElement.getBoundingClientRect();
+						x = (event.clientX - elementRect.left) / elementRect.width * 2 - 1;
+						y = (event.clientY - elementRect.top) / elementRect.height * -2 + 1;
+					}
+
+					_dollyInternal(-delta, x, y);
 				};
 
 				var _onContextMenu = function _onContextMenu(event) {
@@ -276,26 +315,25 @@
 
 					event.preventDefault();
 
-					var _event = !!event.touches ? event.touches[0] : event;
-					var x = _event.clientX;
-					var y = _event.clientY;
+					extractClientCoordFromEvent(event, _v2);
 
 					elementRect = scope.domElement.getBoundingClientRect();
-					dragStart.set(x, y);
+					dragStart.copy(_v2);
 
-					// if ( scope._state === STATE.DOLLY ) {
+					if (scope._state === STATE.TOUCH_DOLLY_TRUCK) {
 
-					// 	dollyStart.set( x, y );
-
-					// }
-
-					if (scope._state === STATE.TOUCH_DOLLY) {
-
-						var dx = x - event.touches[1].pageX;
-						var dy = y - event.touches[1].pageY;
+						// 2 finger pinch
+						var dx = _v2.x - event.touches[1].pageX;
+						var dy = _v2.y - event.touches[1].pageY;
 						var distance = Math.sqrt(dx * dx + dy * dy);
 
 						dollyStart.set(0, distance);
+
+						// center coords of 2 finger truck
+						var x = (event.touches[0].pageX + event.touches[1].pageX) * 0.5;
+						var y = (event.touches[0].pageY + event.touches[1].pageY) * 0.5;
+
+						dragStart.set(x, y);
 					}
 
 					document.addEventListener('mousemove', _dragging, { passive: false });
@@ -305,9 +343,9 @@
 
 					scope.dispatchEvent({
 						type: 'controlstart',
-						x: x,
-						y: y,
-						state: scope._state,
+						// x: _v2.x,
+						// y: _v2.y,
+						// state: scope._state,
 						originalEvent: event
 					});
 				};
@@ -318,14 +356,12 @@
 
 					event.preventDefault();
 
-					var _event = !!event.touches ? event.touches[0] : event;
-					var x = _event.clientX;
-					var y = _event.clientY;
+					extractClientCoordFromEvent(event, _v2);
 
-					var deltaX = dragStart.x - x;
-					var deltaY = dragStart.y - y;
+					var deltaX = dragStart.x - _v2.x;
+					var deltaY = dragStart.y - _v2.y;
 
-					dragStart.set(x, y);
+					dragStart.copy(_v2);
 
 					switch (scope._state) {
 
@@ -341,58 +377,38 @@
 							// not implemented
 							break;
 
-						case STATE.TOUCH_DOLLY:
+						case STATE.TOUCH_DOLLY_TRUCK:
 
-							var dx = x - event.touches[1].pageX;
-							var dy = y - event.touches[1].pageY;
+							var dx = _v2.x - event.touches[1].pageX;
+							var dy = _v2.y - event.touches[1].pageY;
 							var distance = Math.sqrt(dx * dx + dy * dy);
 							var dollyDelta = dollyStart.y - distance;
 
 							var touchDollyFactor = 8;
 
-							_dollyInternal(dollyDelta / touchDollyFactor);
+							var dollyX = scope.dollyToCursor ? (dragStart.x - elementRect.left) / elementRect.width * 2 - 1 : 0;
+							var dollyY = scope.dollyToCursor ? (dragStart.y - elementRect.top) / elementRect.height * -2 + 1 : 0;
+							_dollyInternal(dollyDelta / touchDollyFactor, dollyX, dollyY);
 
 							dollyStart.set(0, distance);
+							_truckInternal(deltaX, deltaY);
 							break;
 
 						case STATE.TRUCK:
 						case STATE.TOUCH_TRUCK:
 
-							if (scope.object.isPerspectiveCamera) {
-
-								var offset = _v3A.copy(scope.object.position).sub(scope._target);
-								// half of the fov is center to top of screen
-								var fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
-								var targetDistance = offset.length() * Math.tan(fovInRad / 2);
-								var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.height;
-								var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.height;
-								if (scope.verticalDragToForward) {
-
-									scope.truck(truckX, 0, true);
-									scope.forward(-pedestalY, true);
-								} else {
-
-									scope.truck(truckX, pedestalY, true);
-								}
-								break;
-							} else if (scope.object.isOrthographicCamera) {
-
-								// orthographic
-								var _truckX = deltaX * (scope.object.right - scope.object.left) / scope.object.zoom / elementRect.width;
-								var _pedestalY = deltaY * (scope.object.top - scope.object.bottom) / scope.object.zoom / elementRect.height;
-								scope.truck(_truckX, _pedestalY, true);
-								break;
-							}
+							_truckInternal(deltaX, deltaY);
+							break;
 
 					}
 
 					scope.dispatchEvent({
 						type: 'control',
-						x: x,
-						y: y,
-						deltaX: deltaX,
-						deltaY: deltaY,
-						state: scope._state,
+						// x: _v2.x,
+						// y: _v2.y,
+						// deltaX,
+						// deltaY,
+						// state: scope._state,
 						originalEvent: event
 					});
 				};
@@ -410,18 +426,58 @@
 
 					scope.dispatchEvent({
 						type: 'controlend',
-						state: scope._state,
+						// state: scope._state,
 						originalEvent: event
 					});
 				};
 
-				var _dollyInternal = function _dollyInternal(delta) {
+				var _truckInternal = function _truckInternal(deltaX, deltaY) {
+
+					if (scope.object.isPerspectiveCamera) {
+
+						var offset = _v3A.copy(scope.object.position).sub(scope._target);
+						// half of the fov is center to top of screen
+						var fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
+						var targetDistance = offset.length() * Math.tan(fovInRad / 2);
+						var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.height;
+						var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.height;
+						if (scope.verticalDragToForward) {
+
+							scope.truck(truckX, 0, true);
+							scope.forward(-pedestalY, true);
+						} else {
+
+							scope.truck(truckX, pedestalY, true);
+						}
+					} else if (scope.object.isOrthographicCamera) {
+
+						// orthographic
+						var _truckX = deltaX * (scope.object.right - scope.object.left) / scope.object.zoom / elementRect.width;
+						var _pedestalY = deltaY * (scope.object.top - scope.object.bottom) / scope.object.zoom / elementRect.height;
+						scope.truck(_truckX, _pedestalY, true);
+					}
+				};
+
+				var _dollyInternal = function _dollyInternal(delta, x, y) {
 
 					var dollyScale = Math.pow(0.95, -delta * scope.dollySpeed);
 
 					if (scope.object.isPerspectiveCamera) {
 
-						scope.dolly(scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius);
+						var distance = scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius;
+
+						if (scope.dollyToCursor && scope.object.isCamera) {
+
+							_v2.set(x, y);
+							_raycaster.setFromCamera(_v2, scope.object);
+							var angle = _raycaster.ray.direction.angleTo(_v3A.setFromSpherical(scope._sphericalEnd));
+							var dist = scope._sphericalEnd.radius / -Math.cos(angle);
+							_raycaster.ray.at(dist, _v3A);
+							scope._targetEnd.lerp(_v3A, -distance / scope._sphericalEnd.radius);
+							scope._target.copy(scope._targetEnd);
+						}
+
+						scope.dolly(distance);
 					} else if (scope.object.isOrthographicCamera) {
 
 						scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom * dollyScale));
@@ -749,6 +805,8 @@
 				draggingDampingFactor: this.draggingDampingFactor,
 				dollySpeed: this.dollySpeed,
 				truckSpeed: this.truckSpeed,
+				dollyToCursor: this.dollyToCursor,
+				verticalDragToForward: this.verticalDragToForward,
 
 				target: this._targetEnd.toArray(),
 				position: this.object.position.toArray(),
@@ -775,6 +833,8 @@
 			this.draggingDampingFactor = obj.draggingDampingFactor;
 			this.dollySpeed = obj.dollySpeed;
 			this.truckSpeed = obj.truckSpeed;
+			this.dollyToCursor = obj.dollyToCursor;
+			this.verticalDragToForward = obj.verticalDragToForward;
 
 			this._target0.fromArray(obj.target0);
 			this._position0.fromArray(obj.position0);
