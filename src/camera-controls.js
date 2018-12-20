@@ -45,8 +45,8 @@ export default class CameraControls extends EventDispatcher {
 		this._state = STATE.NONE;
 
 		// How far you can dolly in and out ( PerspectiveCamera only )
-		this.minDistance = 0.1;
-		this.maxDistance = 10;
+		this.minDistance = 0;
+		this.maxDistance = Infinity;
 
 		// How far you can zoom in and out ( OrthographicCamera only )
 		this.minZoom = 0;
