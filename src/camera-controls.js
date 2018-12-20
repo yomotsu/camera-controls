@@ -421,20 +421,25 @@ export default class CameraControls extends EventDispatcher {
 				if ( scope.object.isPerspectiveCamera ) {
 
 					const distance = scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius;
+					const prevRadius = scope._sphericalEnd.radius;
+
+					scope.dolly( distance );
 
 					if ( scope.dollyToCursor && scope.object.isCamera ) {
+
+						const actualDistance = scope._sphericalEnd.radius - prevRadius;
 
 						_v2.set( x, y );
 						_raycaster.setFromCamera( _v2, scope.object );
 						const angle = _raycaster.ray.direction.angleTo( _v3A.setFromSpherical( scope._sphericalEnd ) );
-						const dist = scope._sphericalEnd.radius / -Math.cos( angle );
+						const dist = prevRadius / -Math.cos( angle );
 						_raycaster.ray.at( dist, _v3A );
-						scope._targetEnd.lerp( _v3A, -distance / scope._sphericalEnd.radius );
+						scope._targetEnd.lerp( _v3A, -actualDistance / scope._sphericalEnd.radius );
 						scope._target.copy( scope._targetEnd );
 
 					}
 
-					scope.dolly( distance );
+
 
 				} else if ( scope.object.isOrthographicCamera ) {
 
