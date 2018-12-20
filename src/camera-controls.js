@@ -239,8 +239,8 @@ export default class CameraControls extends EventDispatcher {
 				if ( scope.dollyToCursor ) {
 
 					elementRect = scope.domElement.getBoundingClientRect();
-					x = ( event.clientX - elementRect.left ) / elementRect.width * 2 - 1;
-					y = ( event.clientY - elementRect.top ) / elementRect.height * -2 + 1;
+					x = ( event.clientX - elementRect.left ) / elementRect.width *   2 - 1;
+					y = ( event.clientY - elementRect.top ) / elementRect.height * - 2 + 1;
 
 				}
 
@@ -432,9 +432,9 @@ export default class CameraControls extends EventDispatcher {
 						_v2.set( x, y );
 						_raycaster.setFromCamera( _v2, scope.object );
 						const angle = _raycaster.ray.direction.angleTo( _v3A.setFromSpherical( scope._sphericalEnd ) );
-						const dist = prevRadius / -Math.cos( angle );
+						const dist = prevRadius / - Math.cos( angle );
 						_raycaster.ray.at( dist, _v3A );
-						scope._targetEnd.lerp( _v3A, -actualDistance / scope._sphericalEnd.radius );
+						scope._targetEnd.lerp( _v3A, - actualDistance / scope._sphericalEnd.radius );
 						scope._target.copy( scope._targetEnd );
 
 					}
