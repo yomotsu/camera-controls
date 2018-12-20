@@ -459,19 +459,22 @@ var CameraControls = function (_EventDispatcher) {
 				if (scope.object.isPerspectiveCamera) {
 
 					var distance = scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius;
+					var prevRadius = scope._sphericalEnd.radius;
+
+					scope.dolly(distance);
 
 					if (scope.dollyToCursor && scope.object.isCamera) {
+
+						var actualDistance = scope._sphericalEnd.radius - prevRadius;
 
 						_v2.set(x, y);
 						_raycaster.setFromCamera(_v2, scope.object);
 						var angle = _raycaster.ray.direction.angleTo(_v3A.setFromSpherical(scope._sphericalEnd));
-						var dist = scope._sphericalEnd.radius / -Math.cos(angle);
+						var dist = prevRadius / -Math.cos(angle);
 						_raycaster.ray.at(dist, _v3A);
-						scope._targetEnd.lerp(_v3A, -distance / scope._sphericalEnd.radius);
+						scope._targetEnd.lerp(_v3A, -actualDistance / scope._sphericalEnd.radius);
 						scope._target.copy(scope._targetEnd);
 					}
-
-					scope.dolly(distance);
 				} else if (scope.object.isOrthographicCamera) {
 
 					scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom * dollyScale));
