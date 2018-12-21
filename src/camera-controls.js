@@ -363,7 +363,7 @@ export default class CameraControls extends EventDispatcher {
 
 			}
 
-			function endDragging() {
+			function endDragging( event ) {
 
 				if ( ! scope.enabled ) return;
 
