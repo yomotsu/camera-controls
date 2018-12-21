@@ -407,7 +407,7 @@ var CameraControls = function (_EventDispatcher) {
 				});
 			};
 
-			var _endDragging = function _endDragging() {
+			var _endDragging = function _endDragging(event) {
 
 				if (!scope.enabled) return;
 
