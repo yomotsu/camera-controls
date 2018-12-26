@@ -7,6 +7,10 @@
   "repository": "yomotsu/camera-controls",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
+  "types": "src/types/camera-controls.d.ts",
+  "dependencies": {
+    "@types/three": "^0.93.14"
+  },
   "devDependencies": {
     "babel-preset-env": "1.6.0",
     "rollup": "^0.45.2",
