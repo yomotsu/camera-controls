@@ -36,7 +36,7 @@ export default class CameraControls extends EventDispatcher {
   public pan(x: number, y: number, enableTransition?: boolean): void;
   public truck(x: number, y: number, enableTransition?: boolean): void;
   public forward(distance: number, enableTransition?: boolean): void;
-  public move(x: number, y: number, z: number, enableTransition?: boolean): void;
+  public moveTo(x: number, y: number, z: number, enableTransition?: boolean): void;
   public fitTo(objectOrBox3: THREE.Object3D | THREE.Box3, enableTransition?: boolean, options?: {
     paddingLeft?: number,
     paddingRight?: number,
