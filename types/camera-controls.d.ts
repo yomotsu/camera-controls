@@ -62,7 +62,7 @@ export default class CameraControls extends EventDispatcher {
   public getPosition(out?: THREE.Vector3): THREE.Vector3;
   public reset(enableTransition?: boolean): void;
   public saveState(): void;
-  public update(delta: number): void;
+  public update(delta: number): boolean;
   public toJSON(): string;
   public fromJSON(json: string, enableTransition?: boolean): void;
   public dispose(): void;
