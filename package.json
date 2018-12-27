@@ -1,12 +1,16 @@
 {
   "name": "camera-controls",
-  "version": "1.10.2",
+  "version": "1.10.4",
   "author": "Yomotsu",
   "license": "MIT",
   "main": "dist/camera-controls.js",
   "repository": "yomotsu/camera-controls",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
+  "types": "src/types/camera-controls.d.ts",
+  "optionalDependencies": {
+    "@types/three": "^0.93.14"
+  },
   "devDependencies": {
     "babel-preset-env": "1.6.0",
     "rollup": "^0.45.2",
