@@ -37,6 +37,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 	requestAnimationFrame( anim );
 
+	// you can skip this condition to render though
 	if ( hasControlsUpdated ) {
 
 		renderer.render( scene, camera );
@@ -54,6 +55,14 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 - `options` in Object.
   - `ignoreDOMEventListeners`: Default is `false`. if `true`, Mouse and touch event listeners will be ignored, and you can attach your handlers instead.
 
+## Terms
+
+CameraControls uses Spherical Coordinates for orbit rotations. `theta` for azimuthal and `phi` for polar angle.
+
+If your camera is Y-up, `theta` will be x-rotation and `phi` is y-rotation. (So far, CameraControls supports only Y-up though)
+
+![](https://yomotsu.github.io/camera-controls/examples/fig1.svg)
+
 ## Properties
 
 - `.enabled`: Default is `true`. Whether or not the controls are enabled.
@@ -65,10 +74,12 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 - `.maxAzimuthAngle`: Default is `Infinity`, in radians.
 - `.dampingFactor`: Default is `0.05`.
 - `.draggingDampingFactor`: Default is `0.25`.
+- `.phiSpeed`: Default is `1.0`. speed of phi rotation.
+- `.thetaSpeed`: Default is `1.0`. speed of theta rotation.
 - `.dollySpeed`: Default is `1.0`. speed of mouse-wheel dollying.
 - `.truckSpeed`: Default is `2.0`. speed of drag for truck and pedestal.
 - `.verticalDragToForward`: Default is `false`. The same as `.screenSpacePanning` in three.js's OrbitControls.
-- `.dollyToCursor`: Default is `false`. Dolly-in to the mouse cursor coords.
+- `.dollyToCursor`: Default is `false`. `true` to enable Dolly-in to the mouse cursor coords.
 
 ## Events
 
@@ -81,9 +92,9 @@ Using `addEventListener( eventname, function )` you can subscribe to these event
 
 ## Methods
 
-#### `rotate( rotX, rotY, enableTransition )`
+#### `rotate( theta, phi, enableTransition )`
 
-Rotate azimuthal angle(theta) and polar angle(phi). `rotX` and `rotY` are in radian. `enableTransition` is in a boolean
+Rotate azimuthal angle(theta) and polar angle(phi). `theta` and `phi` are in radian. `enableTransition` is in a boolean.
 
 #### `rotateTo( rotX, rotY, enableTransition )`
 
@@ -115,27 +126,27 @@ Fit the viewport to the object bounding box or the bounding box itself. paddings
 
 #### `setLookAt( positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition )`
 
-It moves the camera into `position` , and also make it look at `target` .
+It moves the camera into `position`, and also make it look at `target`.
 
 #### `lerpLookAt( positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, x, enableTransition )`
 
-Same as `setLookAt` , but it interpolates between two states.
+Similar to `setLookAt`, but it interpolates between two states.
 
 #### `setPosition( positionX, positionY, positionZ, enableTransition )`
 
-`setLookAt` without target , Stay gazing at the current target.
+`setLookAt` without target, keep gazing at the current target.
 
 #### `setTarget( targetX, targetY, targetZ, enableTransition )`
 
-`setLookAt` without position , Stay still at the position.
+`setLookAt` without position, Stay still at the position.
 
 #### `getPosition( out )`
 
-Return its current position.
+Return its current position. `out` is in `THREE.Vector3`.
 
 #### `getTarget( out )`
 
-Return its current gazing target.
+Return its current gazing target. `out` is in `THREE.Vector3`.
 
 #### `saveState()`
 
