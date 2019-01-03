@@ -61,7 +61,7 @@ CameraControls uses Spherical Coordinates for orbit rotations. `theta` for azimu
 
 If your camera is Y-up, `theta` will be x-rotation and `phi` is y-rotation. (So far, CameraControls supports only Y-up though)
 
-![](https://yomotsu.github.io/camera-controls/examples/fig1.svg)
+![](https://yomotsu.github.io/camera-controls/examples/fig1.png)
 
 ## Properties
 
