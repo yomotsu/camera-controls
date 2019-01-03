@@ -789,7 +789,7 @@ export default class CameraControls extends EventDispatcher {
 
 			if ( this.object.isPerspectiveCamera ) {
 
-				const direction = _v3A.copy( _v3A.setFromSpherical( this._sphericalEnd ) ).normalize().negate();
+ 				const direction = _v3A.setFromSpherical( this._sphericalEnd ).normalize().negate();
 				const planeX = new THREE.Vector3().copy( direction ).cross( _v3B.set( 0.0, 1.0, 0.0 ) ).normalize();
 				const planeY = _v3B.crossVectors( planeX, direction );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( this.object.fov / 360.0 * Math.PI );
