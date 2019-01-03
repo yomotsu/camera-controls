@@ -796,7 +796,7 @@ export default class CameraControls extends EventDispatcher {
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( this.object.fov / 360.0 * Math.PI );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
-				const cursor = this._targetEnd.clone()
+				const cursor = _v3A.copy( this._targetEnd )
 					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * this.object.aspect ) )
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
 				this._targetEnd.lerp( cursor, lerpRatio );
