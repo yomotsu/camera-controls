@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { EventDispatcher } from './event-dispatcher';
 
-export class CameraControls extends EventDispatcher {
+export default class CameraControls extends EventDispatcher {
   // static methods
   static install(libs: {THREE: THREE});
 
@@ -60,7 +60,7 @@ export class CameraControls extends EventDispatcher {
   public getPosition: (out?: THREE.Vector3) => THREE.Vector3;
   public reset: (enableTransition?: boolean) => void;
   public saveState: () => void;
-  public update: (delta: number) => void;
+  public update: (delta: number) => boolean;
   public toJSON: () => string;
   public fromJSON: (json: string, enableTransition?: boolean) => void;
   public dispose: () => void;
