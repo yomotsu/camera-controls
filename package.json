@@ -7,7 +7,7 @@
   "repository": "yomotsu/camera-controls",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
-  "types": "src/types/camera-controls.d.ts",
+  "types": "types/camera-controls.d.ts",
   "optionalDependencies": {
     "@types/three": "^0.93.14"
   },
