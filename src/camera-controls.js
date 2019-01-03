@@ -4,9 +4,9 @@ let THREE;
 let _v2;
 let _v3A;
 let _v3B;
+let _v3C;
 let _xColumn;
 let _yColumn;
-let _raycaster;
 let _sphericalA;
 let _sphericalB;
 const EPSILON = 0.001;
@@ -28,9 +28,9 @@ export default class CameraControls extends EventDispatcher {
 		_v2 = new THREE.Vector2();
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
+		_v3C = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
-		_raycaster = new THREE.Raycaster();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
 
@@ -81,6 +81,8 @@ export default class CameraControls extends EventDispatcher {
 		this._position0 = this.object.position.clone();
 		this._zoom0 = this.object.zoom;
 
+		this._dollyControlAmount = 0;
+		this._dollyControlCoord = new THREE.Vector2();
 		this._needsUpdate = true;
 		this.update();
 
@@ -427,17 +429,10 @@ export default class CameraControls extends EventDispatcher {
 
 					scope.dolly( distance );
 
-					if ( scope.dollyToCursor && scope.object.isCamera ) {
+					if ( scope.dollyToCursor ) {
 
-						const actualDistance = scope._sphericalEnd.radius - prevRadius;
-
-						_v2.set( x, y );
-						_raycaster.setFromCamera( _v2, scope.object );
-						const angle = _raycaster.ray.direction.angleTo( _v3A.setFromSpherical( scope._sphericalEnd ) );
-						const dist = prevRadius / - Math.cos( angle );
-						_raycaster.ray.at( dist, _v3A );
-						scope._targetEnd.lerp( _v3A, - actualDistance / scope._sphericalEnd.radius );
-						scope._target.copy( scope._targetEnd );
+						scope._dollyControlAmount += scope._sphericalEnd.radius - prevRadius;
+						scope._dollyControlCoord.set( x, y );
 
 					}
 
@@ -784,12 +779,35 @@ export default class CameraControls extends EventDispatcher {
 			);
 
 			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
+
 			this._needsUpdate = true;
 
 		} else {
 
 			this._spherical.copy( this._sphericalEnd );
 			this._target.copy( this._targetEnd );
+
+		}
+
+		if ( this._dollyControlAmount !== 0 ) {
+
+			if ( this.object.isPerspectiveCamera ) {
+
+				const direction = _v3A.copy( _v3A.setFromSpherical( this._sphericalEnd ) ).normalize().negate();
+				const planeX = _v3B.copy( direction ).cross( _v3C.set( 0.0, 1.0, 0.0 ) ).normalize();
+				const planeY = _v3C.crossVectors( planeX, direction );
+				const worldToScreen = this._sphericalEnd.radius * Math.tan( this.object.fov * THREE.Math.DEG2RAD * 0.5 );
+				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
+				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
+				const cursor = _v3A.copy( this._targetEnd )
+					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * this.object.aspect ) )
+					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
+				this._targetEnd.lerp( cursor, lerpRatio );
+				this._target.copy( this._targetEnd );
+
+			}
+
+			this._dollyControlAmount = 0;
 
 		}
 
