@@ -23,6 +23,8 @@ export default class CameraControls extends EventDispatcher {
   public maxAzimuthAngle: number;
   public dampingFactor: number;
   public draggingDampingFactor: number;
+  public phiSpeed: number;
+  public thetaSpeed: number;
   public dollySpeed: number;
   public truckSpeed: number;
   public dollyToCursor: boolean;

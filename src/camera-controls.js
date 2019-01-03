@@ -74,7 +74,7 @@ export default class CameraControls extends EventDispatcher {
 		// rotation
 		this._spherical = new THREE.Spherical();
 		this._spherical.setFromVector3( this.object.position );
-		this._sphericalEnd = new THREE.Spherical().copy( this._spherical );
+		this._sphericalEnd = this._spherical.clone();
 
 		// reset
 		this._target0 = this._target.clone();
@@ -243,8 +243,8 @@ export default class CameraControls extends EventDispatcher {
 				if ( scope.dollyToCursor ) {
 
 					elementRect = scope.domElement.getBoundingClientRect();
-					x = ( event.clientX - elementRect.left ) / elementRect.width *   2 - 1;
-					y = ( event.clientY - elementRect.top ) / elementRect.height * - 2 + 1;
+					x = ( event.clientX - elementRect.left ) / elementRect.width  *   2 - 1;
+					y = ( event.clientY - elementRect.top )  / elementRect.height * - 2 + 1;
 
 				}
 
@@ -321,7 +321,7 @@ export default class CameraControls extends EventDispatcher {
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
 
-						const rotX = 2 * Math.PI * scope.phiSpeed * deltaX / elementRect.width;
+						const rotX = 2 * Math.PI * scope.phiSpeed   * deltaX / elementRect.width;
 						const rotY = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
 						scope.rotate( rotX, rotY, true );
 						break;
@@ -375,7 +375,7 @@ export default class CameraControls extends EventDispatcher {
 
 				document.removeEventListener( 'mousemove', dragging );
 				document.removeEventListener( 'touchmove', dragging );
-				document.removeEventListener( 'mouseup', endDragging );
+				document.removeEventListener( 'mouseup',  endDragging );
 				document.removeEventListener( 'touchend', endDragging );
 
 				scope.dispatchEvent( {
@@ -594,23 +594,23 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		const paddingLeft = options.paddingLeft || 0;
-		const paddingRight = options.paddingRight || 0;
+		const paddingLeft   = options.paddingLeft   || 0;
+		const paddingRight  = options.paddingRight  || 0;
 		const paddingBottom = options.paddingBottom || 0;
-		const paddingTop = options.paddingTop || 0;
+		const paddingTop    = options.paddingTop    || 0;
 
 		const boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject( objectOrBox3 );
 		const size = boundingBox.getSize( _v3A );
 		const boundingWidth  = size.x + paddingLeft + paddingRight;
-		const boundingHeight = size.y + paddingTop + paddingBottom;
-		const boundingDepth = size.z;
+		const boundingHeight = size.y + paddingTop  + paddingBottom;
+		const boundingDepth  = size.z;
 
 		const distance = this.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
 		this.dollyTo( distance, enableTransition );
 
 		const boundingBoxCenter = boundingBox.getCenter( _v3A );
-		const cx = boundingBoxCenter.x - ( paddingLeft * 0.5 - paddingRight * 0.5 );
-		const cy = boundingBoxCenter.y + ( paddingTop * 0.5 - paddingBottom * 0.5 );
+		const cx = boundingBoxCenter.x - ( paddingLeft * 0.5 - paddingRight  * 0.5 );
+		const cy = boundingBoxCenter.y + ( paddingTop  * 0.5 - paddingBottom * 0.5 );
 		const cz = boundingBoxCenter.z;
 		this.moveTo( cx, cy, cz, enableTransition );
 
