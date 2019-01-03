@@ -28,6 +28,7 @@ export default class CameraControls extends EventDispatcher {
 		_v2 = new THREE.Vector2();
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
+		_v3C = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
