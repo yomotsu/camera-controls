@@ -58,6 +58,8 @@ export default class CameraControls extends EventDispatcher {
 		this.maxAzimuthAngle = Infinity; // radians
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
+		this.phiSpeed = 1.0;
+		this.thetaSpeed = 1.0;
 		this.dollySpeed = 1.0;
 		this.truckSpeed = 2.0;
 		this.dollyToCursor = false;
@@ -317,8 +319,8 @@ export default class CameraControls extends EventDispatcher {
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
 
-						const rotX = 2 * Math.PI * deltaX / elementRect.width;
-						const rotY = 2 * Math.PI * deltaY / elementRect.height;
+						const rotX = 2 * Math.PI * scope.phiSpeed * deltaX / elementRect.width;
+						const rotY = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
 						scope.rotate( rotX, rotY, true );
 						break;
 
