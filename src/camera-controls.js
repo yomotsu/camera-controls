@@ -792,7 +792,7 @@ export default class CameraControls extends EventDispatcher {
  				const direction = _v3A.setFromSpherical( this._sphericalEnd ).normalize().negate();
 				const planeX = new THREE.Vector3().copy( direction ).cross( _v3B.set( 0.0, 1.0, 0.0 ) ).normalize();
 				const planeY = _v3B.crossVectors( planeX, direction );
-				const worldToScreen = this._sphericalEnd.radius * Math.tan( this.object.fov / 360.0 * Math.PI );
+ 				const worldToScreen = this._sphericalEnd.radius * Math.tan( this.object.fov * THREE.Math.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const cursor = this._targetEnd.clone()
