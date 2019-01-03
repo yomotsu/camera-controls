@@ -1,13 +1,16 @@
-export type Event = any;
-export type EventListener = (event: Event) => void;
+export interface Event {
+  type: string;
+  target?: any;
+  [attachment: string]: any;
+}
 
 export class EventDispatcher {
   // private members
-  private _listeners: { [type: string]: EventListener[] };
+  private _listeners: { [type: string]: Array<(event: Event) => void> };
 
   // public methods
-  public addEventListener: (type: string, listener: EventListener) => void;
-  public hasEventListener: (type: string, listener: EventListener) => boolean;
-  public removeEventListener: (type: string, listener: EventListener) => void;
-  public dispatchEvent: (event: Event) => void;
+  public addEventListener(type: string, listener: (event: Event) => void): void;
+  public hasEventListener(type: string, listener: (event: Event) => void): boolean;
+  public removeEventListener(type: string, listener: (event: Event) => void): void;
+  public dispatchEvent(event: { type: string; [attachment: string]: any; }): void;
 }
