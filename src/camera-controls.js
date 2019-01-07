@@ -72,8 +72,7 @@ export default class CameraControls extends EventDispatcher {
 		this._targetEnd = new THREE.Vector3();
 
 		// rotation
-		this._spherical = new THREE.Spherical();
-		this._spherical.setFromVector3( this.object.position );
+		this._spherical = new THREE.Spherical().setFromVector3( this.object.position );
 		this._sphericalEnd = this._spherical.clone();
 
 		// reset
@@ -84,7 +83,7 @@ export default class CameraControls extends EventDispatcher {
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
 		this._needsUpdate = true;
-		this.update();
+		this.update( 0 );
 
 		if ( ! this.domElement || options.ignoreDOMEventListeners ) {
 
@@ -320,10 +319,9 @@ export default class CameraControls extends EventDispatcher {
 
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
-
-						const rotX = 2 * Math.PI * scope.phiSpeed   * deltaX / elementRect.width;
-						const rotY = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
-						scope.rotate( rotX, rotY, true );
+						const phi   = 2 * Math.PI * scope.phiSpeed   * deltaX / elementRect.width;
+						const theta = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
+						scope.rotate( phi, theta, true );
 						break;
 
 					case STATE.DOLLY:
@@ -452,24 +450,24 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
-	// rotX in radian
-	// rotY in radian
-	rotate( rotX, rotY, enableTransition ) {
+	// azimuthAngle in radian
+	// polarAngle in radian
+	rotate( azimuthAngle, polarAngle, enableTransition ) {
 
 		this.rotateTo(
-			this._sphericalEnd.theta + rotX,
-			this._sphericalEnd.phi   + rotY,
+			this._sphericalEnd.theta + azimuthAngle,
+			this._sphericalEnd.phi   + polarAngle,
 			enableTransition
 		);
 
 	}
 
-	// rotX in radian
-	// rotY in radian
-	rotateTo( rotX, rotY, enableTransition ) {
+	// azimuthAngle in radian
+	// polarAngle in radian
+	rotateTo( azimuthAngle, polarAngle, enableTransition ) {
 
-		const theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, rotX ) );
-		const phi   = Math.max( this.minPolarAngle,   Math.min( this.maxPolarAngle,   rotY ) );
+		const theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, azimuthAngle ) );
+		const phi   = Math.max( this.minPolarAngle,   Math.min( this.maxPolarAngle,   polarAngle ) );
 
 		this._sphericalEnd.theta = theta;
 		this._sphericalEnd.phi   = phi;

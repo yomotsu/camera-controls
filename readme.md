@@ -59,7 +59,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 CameraControls uses Spherical Coordinates for orbit rotations. `theta` for azimuthal and `phi` for polar angle.
 
-If your camera is Y-up, `theta` will be x-rotation and `phi` is y-rotation. (So far, CameraControls supports only Y-up though)
+If your camera is Y-up, `theta` will be the angle for y-axis rotation and `phi` will be the angle for vertiacal position. (So far, CameraControls supports only Y-up though)
 
 ![](https://yomotsu.github.io/camera-controls/examples/fig1.png)
 
@@ -83,20 +83,23 @@ If your camera is Y-up, `theta` will be x-rotation and `phi` is y-rotation. (So 
 
 ## Events
 
-Using `addEventListener( eventname, function )` you can subscribe to these events.
+CameraControls instance emits the following events.
+To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
 
-- `controlstart`: Fired when the user starts to control the camera via mouse / touches.
-- `control`: Fired when the user controls the camera (dragging).
-- `controlend`: Fired when the user ends to control the camera.
-- `update`: Fired when camera position is updated.
+| event name     | timing |
+| ---            | ---    |
+| `controlstart` | When the user starts to control the camera via mouse / touches. |
+| `control`      | When the user controls the camera (dragging). |
+| `controlend`   | When the user ends to control the camera. |
+| `update`       | When camera position is updated. |
 
 ## Methods
 
-#### `rotate( theta, phi, enableTransition )`
+#### `rotate( azimuthAngle, polarAngle, enableTransition )`
 
-Rotate azimuthal angle(theta) and polar angle(phi). `theta` and `phi` are in radian. `enableTransition` is in a boolean.
+Rotate azimuthal angle(theta) and polar angle(phi). `azimuthAngle` and `polarAngle` are in radian. `enableTransition` is in a boolean.
 
-#### `rotateTo( rotX, rotY, enableTransition )`
+#### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(theta) and polar angle(phi) to a given point.
 
@@ -106,7 +109,7 @@ Dolly in/out camera position. `distance` is in a number. `enableTransition` is i
 
 #### `dollyTo( distance, enableTransition )`
 
-Dolly in/out camera position to given distance
+Dolly in/out camera position to given distance.
 
 #### `truck( x, y, enableTransition )`
 
