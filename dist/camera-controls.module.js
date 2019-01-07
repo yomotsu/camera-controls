@@ -155,8 +155,7 @@ var CameraControls = function (_EventDispatcher) {
 		_this._targetEnd = new THREE.Vector3();
 
 		// rotation
-		_this._spherical = new THREE.Spherical();
-		_this._spherical.setFromVector3(_this.object.position);
+		_this._spherical = new THREE.Spherical().setFromVector3(_this.object.position);
 		_this._sphericalEnd = _this._spherical.clone();
 
 		// reset
@@ -167,7 +166,7 @@ var CameraControls = function (_EventDispatcher) {
 		_this._dollyControlAmount = 0;
 		_this._dollyControlCoord = new THREE.Vector2();
 		_this._needsUpdate = true;
-		_this.update();
+		_this.update(0);
 
 		if (!_this.domElement || options.ignoreDOMEventListeners) {
 
@@ -365,10 +364,9 @@ var CameraControls = function (_EventDispatcher) {
 
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
-
-						var rotX = 2 * Math.PI * scope.phiSpeed * deltaX / elementRect.width;
-						var rotY = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
-						scope.rotate(rotX, rotY, true);
+						var phi = 2 * Math.PI * scope.phiSpeed * deltaX / elementRect.width;
+						var theta = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
+						scope.rotate(phi, theta, true);
 						break;
 
 					case STATE.DOLLY:
@@ -506,23 +504,23 @@ var CameraControls = function (_EventDispatcher) {
 		return _this;
 	}
 
-	// rotX in radian
-	// rotY in radian
+	// azimuthAngle in radian
+	// polarAngle in radian
 
 
-	CameraControls.prototype.rotate = function rotate(rotX, rotY, enableTransition) {
+	CameraControls.prototype.rotate = function rotate(azimuthAngle, polarAngle, enableTransition) {
 
-		this.rotateTo(this._sphericalEnd.theta + rotX, this._sphericalEnd.phi + rotY, enableTransition);
+		this.rotateTo(this._sphericalEnd.theta + azimuthAngle, this._sphericalEnd.phi + polarAngle, enableTransition);
 	};
 
-	// rotX in radian
-	// rotY in radian
+	// azimuthAngle in radian
+	// polarAngle in radian
 
 
-	CameraControls.prototype.rotateTo = function rotateTo(rotX, rotY, enableTransition) {
+	CameraControls.prototype.rotateTo = function rotateTo(azimuthAngle, polarAngle, enableTransition) {
 
-		var theta = Math.max(this.minAzimuthAngle, Math.min(this.maxAzimuthAngle, rotX));
-		var phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, rotY));
+		var theta = Math.max(this.minAzimuthAngle, Math.min(this.maxAzimuthAngle, azimuthAngle));
+		var phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, polarAngle));
 
 		this._sphericalEnd.theta = theta;
 		this._sphericalEnd.phi = phi;

@@ -88,10 +88,10 @@ To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
 
 | event name     | timing |
 | ---            | ---    |
-| `controlstart` | When the user starts to control the camera via mouse / touches. |
-| `control`      | When the user controls the camera (dragging). |
-| `controlend`   | When the user ends to control the camera. |
-| `update`       | When camera position is updated. |
+| `'controlstart'` | When the user starts to control the camera via mouse / touches. |
+| `'control'`      | When the user controls the camera (dragging). |
+| `'controlend'`   | When the user ends to control the camera. |
+| `'update'`       | When camera position is updated. |
 
 ## Methods
 
