@@ -90,9 +90,9 @@
 	var _v2 = void 0;
 	var _v3A = void 0;
 	var _v3B = void 0;
+	var _v3C = void 0;
 	var _xColumn = void 0;
 	var _yColumn = void 0;
-	var _raycaster = void 0;
 	var _sphericalA = void 0;
 	var _sphericalB = void 0;
 	var EPSILON = 0.001;
@@ -115,9 +115,9 @@
 			_v2 = new THREE.Vector2();
 			_v3A = new THREE.Vector3();
 			_v3B = new THREE.Vector3();
+			_v3C = new THREE.Vector3();
 			_xColumn = new THREE.Vector3();
 			_yColumn = new THREE.Vector3();
-			_raycaster = new THREE.Raycaster();
 			_sphericalA = new THREE.Spherical();
 			_sphericalB = new THREE.Spherical();
 		};
@@ -147,6 +147,8 @@
 			_this.maxAzimuthAngle = Infinity; // radians
 			_this.dampingFactor = 0.05;
 			_this.draggingDampingFactor = 0.25;
+			_this.phiSpeed = 1.0;
+			_this.thetaSpeed = 1.0;
 			_this.dollySpeed = 1.0;
 			_this.truckSpeed = 2.0;
 			_this.dollyToCursor = false;
@@ -161,13 +163,15 @@
 			// rotation
 			_this._spherical = new THREE.Spherical();
 			_this._spherical.setFromVector3(_this.object.position);
-			_this._sphericalEnd = new THREE.Spherical().copy(_this._spherical);
+			_this._sphericalEnd = _this._spherical.clone();
 
 			// reset
 			_this._target0 = _this._target.clone();
 			_this._position0 = _this.object.position.clone();
 			_this._zoom0 = _this.object.zoom;
 
+			_this._dollyControlAmount = 0;
+			_this._dollyControlCoord = new THREE.Vector2();
 			_this._needsUpdate = true;
 			_this.update();
 
@@ -368,8 +372,8 @@
 						case STATE.ROTATE:
 						case STATE.TOUCH_ROTATE:
 
-							var rotX = 2 * Math.PI * deltaX / elementRect.width;
-							var rotY = 2 * Math.PI * deltaY / elementRect.height;
+							var rotX = 2 * Math.PI * scope.phiSpeed * deltaX / elementRect.width;
+							var rotY = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
 							scope.rotate(rotX, rotY, true);
 							break;
 
@@ -469,17 +473,10 @@
 
 						scope.dolly(distance);
 
-						if (scope.dollyToCursor && scope.object.isCamera) {
+						if (scope.dollyToCursor) {
 
-							var actualDistance = scope._sphericalEnd.radius - prevRadius;
-
-							_v2.set(x, y);
-							_raycaster.setFromCamera(_v2, scope.object);
-							var angle = _raycaster.ray.direction.angleTo(_v3A.setFromSpherical(scope._sphericalEnd));
-							var dist = prevRadius / -Math.cos(angle);
-							_raycaster.ray.at(dist, _v3A);
-							scope._targetEnd.lerp(_v3A, -actualDistance / scope._sphericalEnd.radius);
-							scope._target.copy(scope._targetEnd);
+							scope._dollyControlAmount += scope._sphericalEnd.radius - prevRadius;
+							scope._dollyControlCoord.set(x, y);
 						}
 					} else if (scope.object.isOrthographicCamera) {
 
@@ -775,11 +772,30 @@
 				this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
 
 				this._target.add(deltaTarget.multiplyScalar(lerpRatio));
+
 				this._needsUpdate = true;
 			} else {
 
 				this._spherical.copy(this._sphericalEnd);
 				this._target.copy(this._targetEnd);
+			}
+
+			if (this._dollyControlAmount !== 0) {
+
+				if (this.object.isPerspectiveCamera) {
+
+					var direction = _v3A.copy(_v3A.setFromSpherical(this._sphericalEnd)).normalize().negate();
+					var planeX = _v3B.copy(direction).cross(_v3C.set(0.0, 1.0, 0.0)).normalize();
+					var planeY = _v3C.crossVectors(planeX, direction);
+					var worldToScreen = this._sphericalEnd.radius * Math.tan(this.object.fov * THREE.Math.DEG2RAD * 0.5);
+					var prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
+					var _lerpRatio = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
+					var cursor = _v3A.copy(this._targetEnd).add(planeX.multiplyScalar(this._dollyControlCoord.x * worldToScreen * this.object.aspect)).add(planeY.multiplyScalar(this._dollyControlCoord.y * worldToScreen));
+					this._targetEnd.lerp(cursor, _lerpRatio);
+					this._target.copy(this._targetEnd);
+				}
+
+				this._dollyControlAmount = 0;
 			}
 
 			this._spherical.makeSafe();
