@@ -5,7 +5,7 @@ export { EventDispatcher, Event } from './event-dispatcher';
 
 export default class CameraControls extends EventDispatcher {
   // static methods
-  static install(libs: {THREE}): void;
+  static install(libs: {THREE: any}): void;
 
   // constructor
   constructor(object: THREE.Object3D, domElement?: HTMLElement, options?: { ignoreDOMEventListeners?: boolean });
