@@ -4,24 +4,37 @@
   "author": "Yomotsu",
   "license": "MIT",
   "main": "dist/camera-controls.js",
-  "repository": "yomotsu/camera-controls",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
   "types": "types/camera-controls.d.ts",
+  "repository": "yomotsu/camera-controls",
   "devDependencies": {
-    "@types/three": "^0.93.14",
-    "babel-preset-env": "1.6.0",
-    "rollup": "^0.45.2",
-    "rollup-plugin-babel": "2.7.1",
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "@types/three": "^0.93.18",
+    "rollup": "^1.1.2",
+    "rollup-plugin-babel": "4.3.2",
     "rollup-watch": "^4.3.1",
-    "uglify-js": "^3.0.25"
+    "terser": "^3.14.1"
   },
   "scripts": {
-    "dev": "npm run watch",
-    "watch": "rollup --config --watch",
-    "build": "rollup --config",
-    "release": "rollup --config && uglifyjs dist/camera-controls.js -cm --preamble \"/*!\n * camera-controls\n * https://github.com/yomotsu/camera-controls\n * (c) 2017 @yomotsu\n * Released under the MIT License.\n */\" > dist/camera-controls.min.js"
+    "dev": "rollup --config --watch",
+    "build": "rollup --config && terser 'dist/camera-controls.js' -o 'dist/camera-controls.min.js' --comments '/^!/'"
   },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "useBuiltIns": "usage"
+        }
+      ]
+    ]
+  },
+  "browserslist": [
+    "last 2 versions",
+    "ie >= 11"
+  ],
   "keywords": [
     "three",
     "three.js",

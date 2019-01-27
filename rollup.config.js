@@ -1,4 +1,5 @@
 import babel from 'rollup-plugin-babel'
+import pkg from './package.json';
 
 const license = `/*!
  * camera-controls
@@ -8,37 +9,21 @@ const license = `/*!
  */`
 
 export default {
-	entry: 'src/camera-controls.js',
-	indent: '\t',
-	sourceMap: false,
-	plugins: [
-		babel( {
-			exclude: 'node_modules/**',
-			presets: [
-				[ 'env', {
-					targets: {
-						browsers: [
-							'last 2 versions',
-							'ie >= 11'
-						]
-					},
-					loose: true,
-					modules: false
-				} ]
-			]
-		} )
-	],
-	targets: [
+	input: 'src/camera-controls.js',
+	output: [
 		{
 			format: 'umd',
-			moduleName: 'CameraControls',
-			dest: 'dist/camera-controls.js',
-			banner: license
+			name: 'CameraControls',
+			file: pkg.main,
+			banner: license,
+			indent: '\t',
 		},
 		{
 			format: 'es',
-			dest: 'dist/camera-controls.module.js',
-			banner: license
+			file: pkg.module,
+			banner: license,
+			indent: '\t',
 		}
-	]
+	],
+	plugins: [ babel() ],
 };
