@@ -4,9 +4,6 @@
  * (c) 2017 @yomotsu
  * Released under the MIT License.
  */
-import 'core-js/modules/es6.number.constructor';
-import 'core-js/modules/es6.string.sub';
-
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");

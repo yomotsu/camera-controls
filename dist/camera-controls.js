@@ -5,8 +5,8 @@
  * Released under the MIT License.
  */
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('core-js/modules/es6.number.constructor'), require('core-js/modules/es6.string.sub')) :
-	typeof define === 'function' && define.amd ? define(['core-js/modules/es6.number.constructor', 'core-js/modules/es6.string.sub'], factory) :
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
 	(global = global || self, global.CameraControls = factory());
 }(this, function () { 'use strict';
 
