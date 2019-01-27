@@ -5,13 +5,17 @@ export { EventDispatcher, Event } from './event-dispatcher';
 
 export default class CameraControls extends EventDispatcher {
   // static methods
-  static install(libs: {THREE: any}): void;
+  static install( libs: { THREE: any } ): void;
 
   // constructor
-  constructor(object: THREE.Object3D, domElement?: HTMLElement, options?: { ignoreDOMEventListeners?: boolean });
+  constructor(
+    object: THREE.PerspectiveCamera | THREE.OrthographicCamera,
+    domElement?: HTMLElement,
+    options?: { ignoreDOMEventListeners?: boolean }
+  );
 
   // public members
-  public object: THREE.Object3D;
+  public object: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   public enabled: boolean;
   public minDistance: number;
   public maxDistance: number;
@@ -31,20 +35,20 @@ export default class CameraControls extends EventDispatcher {
   public verticalDragToForward: boolean;
 
   // public methods
-  public rotate(rotX: number, rotY: number, enableTransition?: boolean): void;
-  public rotateTo(rotX: number, rotY: number, enableTransition?: boolean): void;
-  public dolly(distance: number, enableTransition?: boolean): void;
-  public dollyTo(distance: number, enableTransition?: boolean): void;
-  public pan(x: number, y: number, enableTransition?: boolean): void;
-  public truck(x: number, y: number, enableTransition?: boolean): void;
-  public forward(distance: number, enableTransition?: boolean): void;
-  public moveTo(x: number, y: number, z: number, enableTransition?: boolean): void;
-  public fitTo(objectOrBox3: THREE.Object3D | THREE.Box3, enableTransition?: boolean, options?: {
+  public rotate( azimuthAngle: number, polarAngle: number, enableTransition?: boolean ): void;
+  public rotateTo( azimuthAngle: number, polarAngle: number, enableTransition?: boolean ): void;
+  public dolly( distance: number, enableTransition?: boolean ): void;
+  public dollyTo( distance: number, enableTransition?: boolean ): void;
+  public pan( x: number, y: number, enableTransition?: boolean ): void;
+  public truck( x: number, y: number, enableTransition?: boolean ): void;
+  public forward( distance: number, enableTransition?: boolean ): void;
+  public moveTo( x: number, y: number, z: number, enableTransition?: boolean ): void;
+  public fitTo( objectOrBox3: THREE.Object3D | THREE.Box3, enableTransition?: boolean, options?: {
     paddingLeft?: number,
     paddingRight?: number,
     paddingBottom?: number,
     paddingTop?: number
-  }): void;
+  } ): void;
   public setLookAt(
     positionX: number, positionY: number, positionZ: number,
     targetX: number, targetY: number, targetZ: number,
@@ -57,31 +61,42 @@ export default class CameraControls extends EventDispatcher {
     targetBX: number, targetBY: number, targetBZ: number,
     x: number, enableTransition?: boolean
   ): void;
-  public setPosition(positionX: number, positionY: number, positionZ: number, enableTransition?: boolean): void;
-  public setTarget(targetX: number, targetY: number, targetZ: number, enableTransition?: boolean): void;
-  public getDistanceToFit(width: number, height: number, depth: number): number;
-  public getTarget(out?: THREE.Vector3): THREE.Vector3;
-  public getPosition(out?: THREE.Vector3): THREE.Vector3;
-  public reset(enableTransition?: boolean): void;
+  public setPosition( positionX: number, positionY: number, positionZ: number, enableTransition?: boolean ): void;
+  public setTarget( targetX: number, targetY: number, targetZ: number, enableTransition?: boolean ): void;
+  public getDistanceToFit( width: number, height: number, depth: number ): number;
+  public getTarget( out?: THREE.Vector3 ): THREE.Vector3;
+  public getPosition( out?: THREE.Vector3 ): THREE.Vector3;
+  public reset( enableTransition?: boolean ): void;
   public saveState(): void;
-  public update(delta: number): boolean;
+  public update( delta: number ): boolean;
   public toJSON(): string;
-  public fromJSON(json: string, enableTransition?: boolean): void;
+  public fromJSON( json: string, enableTransition?: boolean ): void;
   public dispose(): void;
 
   // private members
-  private _state: STATE;
-
+  protected _state: STATE;
+	protected _target: THREE.Vector3;
+	protected _targetEnd: THREE.Vector3;
+	protected _spherical: THREE.Spherical;
+	protected _sphericalEnd: THREE.Spherical;
+	protected _target0: THREE.Vector3;
+	protected _position0: THREE.Vector3;
+	protected _zoom0: number;
+	protected _dollyControlAmount: number;
+	protected _dollyControlCoord: THREE.Vector2;
+	protected _hasUpdated: boolean;
+  
   // private methods
-  private _sanitizeSphericals(): void;
+	protected _removeAllEventListeners: () => void;
+  protected _sanitizeSphericals(): void;
 }
 
 export enum STATE {
-  NONE = -1,
-  ROTATE = 0,
-  DOLLY = 1,
-  TRUCK = 2,
-  TOUCH_ROTATE = 3,
+  NONE              = - 1,
+  ROTATE            = 0,
+  DOLLY             = 1,
+  TRUCK             = 2,
+  TOUCH_ROTATE      = 3,
   TOUCH_DOLLY_TRUCK = 4,
-  TOUCH_TRUCK = 5
+  TOUCH_TRUCK       = 5
 }

@@ -82,7 +82,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 		this.update( 0 );
 
 		if ( ! this.domElement || options.ignoreDOMEventListeners ) {
@@ -118,7 +118,7 @@ export default class CameraControls extends EventDispatcher {
 
 				out.set( 0, 0 );
 
-				if ( event.touches ) {
+				if ( isTouchEvent( event ) ) {
 
 					for ( let i = 0; i < event.touches.length; i ++ ) {
 
@@ -294,9 +294,6 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'controlstart',
-					// x: _v2.x,
-					// y: _v2.y,
-					// state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -355,11 +352,6 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'control',
-					// x: _v2.x,
-					// y: _v2.y,
-					// deltaX,
-					// deltaY,
-					// state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -378,7 +370,6 @@ export default class CameraControls extends EventDispatcher {
 
 				scope.dispatchEvent( {
 					type: 'controlend',
-					// state: scope._state,
 					originalEvent: event,
 				} );
 
@@ -440,7 +431,7 @@ export default class CameraControls extends EventDispatcher {
 
 					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
 					scope.object.updateProjectionMatrix();
-					scope._needsUpdate = true;
+					scope._hasUpdated = true;
 
 				}
 
@@ -480,7 +471,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -518,7 +509,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -547,7 +538,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -565,7 +556,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -579,7 +570,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -637,7 +628,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -678,7 +669,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -778,7 +769,7 @@ export default class CameraControls extends EventDispatcher {
 
 			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
 
-			this._needsUpdate = true;
+			this._hasUpdated = true;
 
 		} else {
 
@@ -813,8 +804,8 @@ export default class CameraControls extends EventDispatcher {
 		this.object.position.setFromSpherical( this._spherical ).add( this._target );
 		this.object.lookAt( this._target );
 
-		const updated = this._needsUpdate;
-		this._needsUpdate = false;
+		const updated = this._hasUpdated;
+		this._hasUpdated = false;
 
 		if ( updated ) this.dispatchEvent( { type: 'update' } );
 		return updated;
@@ -881,7 +872,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._needsUpdate = true;
+		this._hasUpdated = true;
 
 	}
 
@@ -899,6 +890,12 @@ export default class CameraControls extends EventDispatcher {
 		);
 
 	}
+
+}
+
+function isTouchEvent( event ) {
+
+	return 'TouchEvent' in window && event instanceof TouchEvent;
 
 }
 
