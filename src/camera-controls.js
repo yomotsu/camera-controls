@@ -538,28 +538,7 @@ export default class CameraControls extends EventDispatcher {
 		_yColumn.multiplyScalar( - y );
 
 		const offset = _v3A.copy( _xColumn ).add( _yColumn );
-
-		const t1 = _v3B.copy( offset ).add( this._targetEnd ); // target
-		const tc = this.boundary.clampPoint( t1, _v3C ); // clamped target
-		const dtc = tc.sub( t1 ); // t1 -> tc
-		const dtcl = dtc.length(); // length of dtc
-
-		if ( dtcl !== 0.0 ) {
-
-			if ( this.boundaryFriction === 0.0 ) {
-
-				offset.add( dtc );
-
-			} else { // https://twitter.com/FMS_Cat/status/1106508958640988161
-
-				offset.multiplyScalar( 1.0 + this.boundaryFriction * dtcl * dtcl / offset.dot( dtc ) );
-				offset.add( dtc.multiplyScalar( 1.0 - this.boundaryFriction ) );
-
-			}
-
-		}
-
-		this._targetEnd.add( offset );
+		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
 
 		if ( ! enableTransition ) {
 
@@ -908,6 +887,45 @@ export default class CameraControls extends EventDispatcher {
 	dispose() {
 
 		this._removeAllEventListeners();
+
+	}
+
+	_encloseToBoundary( position, offset, friction ) {
+
+		const offsetLength = offset.length();
+
+		if ( offsetLength === 0.0 ) { // sanity check
+
+			return position;
+
+		}
+
+		const t1 = _v3B.copy( offset ).add( position ); // target
+		const tc = this.boundary.clampPoint( t1, _v3C ); // clamped target
+		const dtc = tc.sub( t1 ); // t1 -> tc
+		const dtcl = dtc.length(); // length of dtc
+
+		if ( dtcl === 0.0 ) { // when the position doesn't have to be clamped
+
+			return position.add( offset );
+
+		} else if ( dtcl === offsetLength ) { // when the position is completely stuck
+
+			return position;
+
+		} else if ( friction === 0.0 ) {
+
+			return position.add( offset ).add( dtc );
+
+		} else { // https://twitter.com/FMS_Cat/status/1106508958640988161
+
+			const offsetFactor = 1.0 + friction * dtcl * dtcl / offset.dot( dtc );
+
+			return position
+				.add( _v3B.copy( offset ).multiplyScalar( offsetFactor ) )
+				.add( dtc.multiplyScalar( 1.0 - friction ) );
+
+		}
 
 	}
 
