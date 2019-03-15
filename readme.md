@@ -72,6 +72,9 @@ If your camera is Y-up, `theta` will be the angle for y-axis rotation and `phi` 
 - `.maxPolarAngle`: Default is `Math.PI`, in radians.
 - `.minAzimuthAngle`: Default is `-Infinity`, in radians.
 - `.maxAzimuthAngle`: Default is `Infinity`, in radians.
+- `.boundary`: Default is `THREE.Box3` of from `-Infinity` to `Infinity`, encloses camera target into the boundary box.
+- `.boundaryFriction`: Default is `0.0`, friction ratio of the boundary.
+- `.boundaryEnclosesCamera`: Default is `false`, whether camera position should be enclosed in the boundary or not.
 - `.dampingFactor`: Default is `0.05`.
 - `.draggingDampingFactor`: Default is `0.25`.
 - `.phiSpeed`: Default is `1.0`. speed of phi rotation.
