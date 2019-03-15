@@ -59,10 +59,11 @@ export default class CameraControls extends EventDispatcher {
 
 		// Target cannot move outside of this box
 		this.boundary = new THREE.Box3(
-			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
-			new THREE.Vector3(   Infinity,   Infinity,   Infinity )
+			new THREE.Vector3( - 5.0, - 5.0, - 5.0 ),
+			new THREE.Vector3(   5.0,   5.0,   5.0 )
 		);
 		this.boundaryFriction = 0.0;
+		this.boundaryEnclosesCamera = true;
 
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
@@ -811,6 +812,17 @@ export default class CameraControls extends EventDispatcher {
 		this._spherical.makeSafe();
 		this.object.position.setFromSpherical( this._spherical ).add( this._target );
 		this.object.lookAt( this._target );
+
+		if ( this.boundaryEnclosesCamera ) {
+
+			this._encloseToBoundary(
+				this.object.position.copy( this._target ),
+				_v3A.setFromSpherical( this._spherical ),
+				1.0
+			);
+
+		}
+
 
 		const updated = this._hasUpdated;
 		this._hasUpdated = false;
