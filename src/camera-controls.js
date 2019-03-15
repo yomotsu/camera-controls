@@ -58,12 +58,9 @@ export default class CameraControls extends EventDispatcher {
 		this.maxAzimuthAngle = Infinity; // radians
 
 		// Target cannot move outside of this box
-		this.boundary = new THREE.Box3(
-			new THREE.Vector3( - 5.0, - 5.0, - 5.0 ),
-			new THREE.Vector3(   5.0,   5.0,   5.0 )
-		);
+		this.boundary = new THREE.Box3(); // -Infinity to Infinity by default
 		this.boundaryFriction = 0.0;
-		this.boundaryEnclosesCamera = true;
+		this.boundaryEnclosesCamera = false;
 
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
