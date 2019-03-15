@@ -56,6 +56,14 @@ export default class CameraControls extends EventDispatcher {
 		this.maxPolarAngle = Math.PI; // radians
 		this.minAzimuthAngle = - Infinity; // radians
 		this.maxAzimuthAngle = Infinity; // radians
+
+		// Target cannot move outside of this box
+		this.boundary = new THREE.Box3(
+			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
+			new THREE.Vector3(   Infinity,   Infinity,   Infinity )
+		);
+		this.boundaryFriction = 0.0;
+
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
 		this.phiSpeed = 1.0;
@@ -530,6 +538,27 @@ export default class CameraControls extends EventDispatcher {
 		_yColumn.multiplyScalar( - y );
 
 		const offset = _v3A.copy( _xColumn ).add( _yColumn );
+
+		const t1 = _v3B.copy( offset ).add( this._targetEnd ); // target
+		const tc = this.boundary.clampPoint( t1, _v3C ); // clamped target
+		const dtc = tc.sub( t1 ); // t1 -> tc
+		const dtcl = dtc.length(); // length of dtc
+
+		if ( dtcl !== 0.0 ) {
+
+			if ( this.boundaryFriction === 0.0 ) {
+
+				offset.add( dtc );
+
+			} else { // https://twitter.com/FMS_Cat/status/1106508958640988161
+
+				offset.multiplyScalar( 1.0 + this.boundaryFriction * dtcl * dtcl / offset.dot( dtc ) );
+				offset.add( dtc.multiplyScalar( 1.0 - this.boundaryFriction ) );
+
+			}
+
+		}
+
 		this._targetEnd.add( offset );
 
 		if ( ! enableTransition ) {
