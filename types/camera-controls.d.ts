@@ -25,6 +25,9 @@ export default class CameraControls extends EventDispatcher {
   public maxPolarAngle: number;
   public minAzimuthAngle: number;
   public maxAzimuthAngle: number;
+  public boundary: THREE.Box3;
+  public boundaryFriction: number;
+  public boundaryEnclosesCamera: boolean;
   public dampingFactor: number;
   public draggingDampingFactor: number;
   public phiSpeed: number;
