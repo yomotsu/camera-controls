@@ -58,7 +58,7 @@ export default class CameraControls extends EventDispatcher {
 		this.maxAzimuthAngle = Infinity; // radians
 
 		// Target cannot move outside of this box
-		this.boundary = new THREE.Box3(
+		this._boundary = new THREE.Box3(
 			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
 			new THREE.Vector3(   Infinity,   Infinity,   Infinity )
 		);
@@ -540,6 +540,7 @@ export default class CameraControls extends EventDispatcher {
 
 		const offset = _v3A.copy( _xColumn ).add( _yColumn );
 		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
+		
 
 		if ( ! enableTransition ) {
 
@@ -564,7 +565,6 @@ export default class CameraControls extends EventDispatcher {
 			this._target.copy( this._targetEnd );
 
 		}
-
 		this._hasUpdated = true;
 
 	}
@@ -700,6 +700,14 @@ export default class CameraControls extends EventDispatcher {
 			targetX, targetY, targetZ,
 			enableTransition
 		);
+
+	}
+
+	setBoundary( box3 ) {
+
+		this._boundary.copy( box3 );
+		this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+		this._hasUpdated = true;
 
 	}
 
@@ -913,7 +921,7 @@ export default class CameraControls extends EventDispatcher {
 		}
 
 		const t1 = _v3B.copy( offset ).add( position ); // target
-		const tc = this.boundary.clampPoint( t1, _v3C ); // clamped target
+		const tc = this._boundary.clampPoint( t1, _v3C ); // clamped target
 		const dtc = tc.sub( t1 ); // t1 -> tc
 		const dtcl = dtc.length(); // length of dtc
 
