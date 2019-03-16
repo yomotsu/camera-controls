@@ -540,7 +540,6 @@ export default class CameraControls extends EventDispatcher {
 
 		const offset = _v3A.copy( _xColumn ).add( _yColumn );
 		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
-		
 
 		if ( ! enableTransition ) {
 
@@ -565,6 +564,7 @@ export default class CameraControls extends EventDispatcher {
 			this._target.copy( this._targetEnd );
 
 		}
+
 		this._hasUpdated = true;
 
 	}
