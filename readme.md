@@ -72,7 +72,6 @@ If your camera is Y-up, `theta` will be the angle for y-axis rotation and `phi` 
 - `.maxPolarAngle`: Default is `Math.PI`, in radians.
 - `.minAzimuthAngle`: Default is `-Infinity`, in radians.
 - `.maxAzimuthAngle`: Default is `Infinity`, in radians.
-- `.boundary`: Default is `THREE.Box3` of from `-Infinity` to `Infinity`, encloses camera target into the boundary box.
 - `.boundaryFriction`: Default is `0.0`, friction ratio of the boundary.
 - `.boundaryEnclosesCamera`: Default is `false`, whether camera position should be enclosed in the boundary or not.
 - `.dampingFactor`: Default is `0.05`.
@@ -145,6 +144,10 @@ Similar to `setLookAt`, but it interpolates between two states.
 #### `setTarget( targetX, targetY, targetZ, enableTransition )`
 
 `setLookAt` without position, Stay still at the position.
+
+#### `setBoundary( box )`
+
+Set the boundary box that encloses the target of the camera.
 
 #### `getPosition( out )`
 
