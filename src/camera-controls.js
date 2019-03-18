@@ -904,9 +904,9 @@ export default class CameraControls extends EventDispatcher {
 
 	_encloseToBoundary( position, offset, friction ) {
 
-		const offsetLength = offset.length();
+		const offsetLength2 = offset.lengthSq();
 
-		if ( offsetLength === 0.0 ) { // sanity check
+		if ( offsetLength2 === 0.0 ) { // sanity check
 
 			return position;
 
@@ -917,13 +917,13 @@ export default class CameraControls extends EventDispatcher {
 		const newTarget = _v3B.copy( offset ).add( position ); // target
 		const clampedTarget = this.boundary.clampPoint( newTarget, _v3C ); // clamped target
 		const deltaClampedTarget = clampedTarget.sub( newTarget ); // newTarget -> clampedTarget
-		const deltaClampedTargetLength = deltaClampedTarget.length(); // length of deltaClampedTarget
+		const deltaClampedTargetLength2 = deltaClampedTarget.lengthSq(); // squared length of deltaClampedTarget
 
-		if ( deltaClampedTargetLength === 0.0 ) { // when the position doesn't have to be clamped
+		if ( deltaClampedTargetLength2 === 0.0 ) { // when the position doesn't have to be clamped
 
 			return position.add( offset );
 
-		} else if ( deltaClampedTargetLength === offsetLength ) { // when the position is completely stuck
+		} else if ( deltaClampedTargetLength2 === offsetLength2 ) { // when the position is completely stuck
 
 			return position;
 
@@ -933,7 +933,7 @@ export default class CameraControls extends EventDispatcher {
 
 		} else {
 
-			const offsetFactor = 1.0 + friction * deltaClampedTargetLength * deltaClampedTargetLength / offset.dot( deltaClampedTarget );
+			const offsetFactor = 1.0 + friction * deltaClampedTargetLength2 / offset.dot( deltaClampedTarget );
 
 			return position
 				.add( _v3B.copy( offset ).multiplyScalar( offsetFactor ) )
