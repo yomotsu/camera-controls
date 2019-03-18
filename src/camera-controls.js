@@ -914,30 +914,30 @@ export default class CameraControls extends EventDispatcher {
 
 		 // See: https://twitter.com/FMS_Cat/status/1106508958640988161
 
-		const t1 = _v3B.copy( offset ).add( position ); // target
-		const tc = this.boundary.clampPoint( t1, _v3C ); // clamped target
-		const dtc = tc.sub( t1 ); // t1 -> tc
-		const dtcl = dtc.length(); // length of dtc
+		const newTarget = _v3B.copy( offset ).add( position ); // target
+		const clampedTarget = this.boundary.clampPoint( newTarget, _v3C ); // clamped target
+		const deltaClampedTarget = clampedTarget.sub( newTarget ); // newTarget -> clampedTarget
+		const deltaClampedTargetLength = deltaClampedTarget.length(); // length of deltaClampedTarget
 
-		if ( dtcl === 0.0 ) { // when the position doesn't have to be clamped
+		if ( deltaClampedTargetLength === 0.0 ) { // when the position doesn't have to be clamped
 
 			return position.add( offset );
 
-		} else if ( dtcl === offsetLength ) { // when the position is completely stuck
+		} else if ( deltaClampedTargetLength === offsetLength ) { // when the position is completely stuck
 
 			return position;
 
 		} else if ( friction === 0.0 ) {
 
-			return position.add( offset ).add( dtc );
+			return position.add( offset ).add( deltaClampedTarget );
 
 		} else {
 
-			const offsetFactor = 1.0 + friction * dtcl * dtcl / offset.dot( dtc );
+			const offsetFactor = 1.0 + friction * deltaClampedTargetLength * deltaClampedTargetLength / offset.dot( deltaClampedTarget );
 
 			return position
 				.add( _v3B.copy( offset ).multiplyScalar( offsetFactor ) )
-				.add( dtc.multiplyScalar( 1.0 - friction ) );
+				.add( deltaClampedTarget.multiplyScalar( 1.0 - friction ) );
 
 		}
 
