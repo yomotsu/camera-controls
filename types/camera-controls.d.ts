@@ -25,7 +25,6 @@ export default class CameraControls extends EventDispatcher {
   public maxPolarAngle: number;
   public minAzimuthAngle: number;
   public maxAzimuthAngle: number;
-  public boundary: THREE.Box3;
   public boundaryFriction: number;
   public boundaryEnclosesCamera: boolean;
   public dampingFactor: number;
@@ -66,6 +65,7 @@ export default class CameraControls extends EventDispatcher {
   ): void;
   public setPosition( positionX: number, positionY: number, positionZ: number, enableTransition?: boolean ): void;
   public setTarget( targetX: number, targetY: number, targetZ: number, enableTransition?: boolean ): void;
+  public setBoundary( box3: THREE.Box3 ): void;
   public getDistanceToFit( width: number, height: number, depth: number ): number;
   public getTarget( out?: THREE.Vector3 ): THREE.Vector3;
   public getPosition( out?: THREE.Vector3 ): THREE.Vector3;
@@ -87,6 +87,7 @@ export default class CameraControls extends EventDispatcher {
 	protected _zoom0: number;
 	protected _dollyControlAmount: number;
 	protected _dollyControlCoord: THREE.Vector2;
+	protected _boundary: THREE.Box3;
 	protected _hasUpdated: boolean;
   
   // private methods
