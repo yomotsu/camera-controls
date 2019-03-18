@@ -927,7 +927,7 @@ export default class CameraControls extends EventDispatcher {
 		 // See: https://twitter.com/FMS_Cat/status/1106508958640988161
 
 		const newTarget = _v3B.copy( offset ).add( position ); // target
-		const clampedTarget = this.boundary.clampPoint( newTarget, _v3C ); // clamped target
+		const clampedTarget = this._boundary.clampPoint( newTarget, _v3C ); // clamped target
 		const deltaClampedTarget = clampedTarget.sub( newTarget ); // newTarget -> clampedTarget
 		const deltaClampedTargetLength2 = deltaClampedTarget.lengthSq(); // squared length of deltaClampedTarget
 
