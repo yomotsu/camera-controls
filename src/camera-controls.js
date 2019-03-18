@@ -912,6 +912,8 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
+		 // See: https://twitter.com/FMS_Cat/status/1106508958640988161
+
 		const t1 = _v3B.copy( offset ).add( position ); // target
 		const tc = this.boundary.clampPoint( t1, _v3C ); // clamped target
 		const dtc = tc.sub( t1 ); // t1 -> tc
@@ -929,7 +931,7 @@ export default class CameraControls extends EventDispatcher {
 
 			return position.add( offset ).add( dtc );
 
-		} else { // https://twitter.com/FMS_Cat/status/1106508958640988161
+		} else {
 
 			const offsetFactor = 1.0 + friction * dtcl * dtcl / offset.dot( dtc );
 
