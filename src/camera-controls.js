@@ -709,7 +709,10 @@ export default class CameraControls extends EventDispatcher {
 
 	setBoundary( box3 ) {
 
-		this._boundary.copy( box3 );
+		this._boundary.copy( box3 || new THREE.Box3(
+			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
+			new THREE.Vector3( Infinity, Infinity, Infinity )
+		) );
 		this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 		this._hasUpdated = true;
 
