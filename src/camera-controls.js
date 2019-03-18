@@ -557,7 +557,11 @@ export default class CameraControls extends EventDispatcher {
 		_v3A.crossVectors( this.object.up, _v3A );
 		_v3A.multiplyScalar( distance );
 
-		this._targetEnd.add( _v3A );
+		this._encloseToBoundary(
+			this._targetEnd,
+			_v3A,
+			this.boundaryFriction
+		);
 
 		if ( ! enableTransition ) {
 
