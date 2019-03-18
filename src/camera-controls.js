@@ -58,7 +58,7 @@ export default class CameraControls extends EventDispatcher {
 		this.maxAzimuthAngle = Infinity; // radians
 
 		// Target cannot move outside of this box
-		this.boundary = new THREE.Box3(
+		this._boundary = new THREE.Box3(
 			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
 			new THREE.Vector3(   Infinity,   Infinity,   Infinity )
 		);
@@ -557,7 +557,11 @@ export default class CameraControls extends EventDispatcher {
 		_v3A.crossVectors( this.object.up, _v3A );
 		_v3A.multiplyScalar( distance );
 
-		this._targetEnd.add( _v3A );
+		this._encloseToBoundary(
+			this._targetEnd,
+			_v3A,
+			this.boundaryFriction
+		);
 
 		if ( ! enableTransition ) {
 
@@ -700,6 +704,14 @@ export default class CameraControls extends EventDispatcher {
 			targetX, targetY, targetZ,
 			enableTransition
 		);
+
+	}
+
+	setBoundary( box3 ) {
+
+		this._boundary.copy( box3 );
+		this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+		this._hasUpdated = true;
 
 	}
 
