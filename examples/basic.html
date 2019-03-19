@@ -30,6 +30,10 @@ label{
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 	<br>
+	<label><input type="checkbox" onchange="cameraControls.setBoundary( this.checked ? new THREE.Box3( new THREE.Vector3( -5.0, -5.0, -5.0 ), new THREE.Vector3( 5.0, 5.0, 5.0 ) ) : null )">Enable a boundary box against target position</label>
+	<br>
+	<label><input type="checkbox" onchange="cameraControls.boundaryEnclosesCamera = this.checked">Enclose also the camera into the boundary</label>
+	<br>
 	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
 	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
 	<button onclick="cameraControls.rotate( 360 * THREE.Math.DEG2RAD, 0, true )">rotate theta 360deg</button>

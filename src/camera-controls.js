@@ -56,6 +56,15 @@ export default class CameraControls extends EventDispatcher {
 		this.maxPolarAngle = Math.PI; // radians
 		this.minAzimuthAngle = - Infinity; // radians
 		this.maxAzimuthAngle = Infinity; // radians
+
+		// Target cannot move outside of this box
+		this._boundary = new THREE.Box3(
+			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
+			new THREE.Vector3(   Infinity,   Infinity,   Infinity )
+		);
+		this.boundaryFriction = 0.0;
+		this.boundaryEnclosesCamera = false;
+
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
 		this.phiSpeed = 1.0;
@@ -530,7 +539,7 @@ export default class CameraControls extends EventDispatcher {
 		_yColumn.multiplyScalar( - y );
 
 		const offset = _v3A.copy( _xColumn ).add( _yColumn );
-		this._targetEnd.add( offset );
+		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
 
 		if ( ! enableTransition ) {
 
@@ -548,7 +557,11 @@ export default class CameraControls extends EventDispatcher {
 		_v3A.crossVectors( this.object.up, _v3A );
 		_v3A.multiplyScalar( distance );
 
-		this._targetEnd.add( _v3A );
+		this._encloseToBoundary(
+			this._targetEnd,
+			_v3A,
+			this.boundaryFriction
+		);
 
 		if ( ! enableTransition ) {
 
@@ -694,6 +707,17 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
+	setBoundary( box3 ) {
+
+		this._boundary.copy( box3 || new THREE.Box3(
+			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
+			new THREE.Vector3( Infinity, Infinity, Infinity )
+		) );
+		this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+		this._hasUpdated = true;
+
+	}
+
 	getDistanceToFit( width, height, depth ) {
 
 		const camera = this.object;
@@ -804,6 +828,17 @@ export default class CameraControls extends EventDispatcher {
 		this.object.position.setFromSpherical( this._spherical ).add( this._target );
 		this.object.lookAt( this._target );
 
+		if ( this.boundaryEnclosesCamera ) {
+
+			this._encloseToBoundary(
+				this.object.position.copy( this._target ),
+				_v3A.setFromSpherical( this._spherical ),
+				1.0
+			);
+
+		}
+
+
 		const updated = this._hasUpdated;
 		this._hasUpdated = false;
 
@@ -879,6 +914,47 @@ export default class CameraControls extends EventDispatcher {
 	dispose() {
 
 		this._removeAllEventListeners();
+
+	}
+
+	_encloseToBoundary( position, offset, friction ) {
+
+		const offsetLength2 = offset.lengthSq();
+
+		if ( offsetLength2 === 0.0 ) { // sanity check
+
+			return position;
+
+		}
+
+		 // See: https://twitter.com/FMS_Cat/status/1106508958640988161
+
+		const newTarget = _v3B.copy( offset ).add( position ); // target
+		const clampedTarget = this._boundary.clampPoint( newTarget, _v3C ); // clamped target
+		const deltaClampedTarget = clampedTarget.sub( newTarget ); // newTarget -> clampedTarget
+		const deltaClampedTargetLength2 = deltaClampedTarget.lengthSq(); // squared length of deltaClampedTarget
+
+		if ( deltaClampedTargetLength2 === 0.0 ) { // when the position doesn't have to be clamped
+
+			return position.add( offset );
+
+		} else if ( deltaClampedTargetLength2 === offsetLength2 ) { // when the position is completely stuck
+
+			return position;
+
+		} else if ( friction === 0.0 ) {
+
+			return position.add( offset ).add( deltaClampedTarget );
+
+		} else {
+
+			const offsetFactor = 1.0 + friction * deltaClampedTargetLength2 / offset.dot( deltaClampedTarget );
+
+			return position
+				.add( _v3B.copy( offset ).multiplyScalar( offsetFactor ) )
+				.add( deltaClampedTarget.multiplyScalar( 1.0 - friction ) );
+
+		}
 
 	}
 
