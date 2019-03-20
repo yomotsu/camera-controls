@@ -63,7 +63,7 @@ export default class CameraControls extends EventDispatcher {
 			new THREE.Vector3(   Infinity,   Infinity,   Infinity )
 		);
 		this.boundaryFriction = 0.0;
-		this.boundaryEnclosesCamera = false;
+		this._boundaryEnclosesCamera = false;
 
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
@@ -450,6 +450,19 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
+	get boundaryEnclosesCamera() {
+
+		return this._boundaryEnclosesCamera;
+
+	}
+
+	set boundaryEnclosesCamera( boundaryEnclosesCamera ) {
+
+		this._boundaryEnclosesCamera = boundaryEnclosesCamera;
+		this._hasUpdated = true;
+
+	}
+
 	// azimuthAngle in radian
 	// polarAngle in radian
 	rotate( azimuthAngle, polarAngle, enableTransition ) {
@@ -828,7 +841,7 @@ export default class CameraControls extends EventDispatcher {
 		this.object.position.setFromSpherical( this._spherical ).add( this._target );
 		this.object.lookAt( this._target );
 
-		if ( this.boundaryEnclosesCamera ) {
+		if ( this._boundaryEnclosesCamera ) {
 
 			this._encloseToBoundary(
 				this.object.position.copy( this._target ),
