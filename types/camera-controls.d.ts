@@ -9,13 +9,12 @@ export default class CameraControls extends EventDispatcher {
 
   // constructor
   constructor(
-    object: THREE.PerspectiveCamera | THREE.OrthographicCamera,
+    camera: THREE.PerspectiveCamera | THREE.OrthographicCamera,
     domElement?: HTMLElement,
     options?: { ignoreDOMEventListeners?: boolean }
   );
 
   // public members
-  public object: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   public enabled: boolean;
   public minDistance: number;
   public maxDistance: number;
@@ -77,7 +76,9 @@ export default class CameraControls extends EventDispatcher {
   public dispose(): void;
 
   // private members
+  protected _camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   protected _state: STATE;
+  protected _domElement: HTMLElement;
 	protected _target: THREE.Vector3;
 	protected _targetEnd: THREE.Vector3;
 	protected _spherical: THREE.Spherical;

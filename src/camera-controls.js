@@ -10,6 +10,7 @@ let _yColumn;
 let _sphericalA;
 let _sphericalB;
 const EPSILON = 0.001;
+const PI_2 = Math.PI * 2;
 const STATE = {
 	NONE              : - 1,
 	ROTATE            :   0,
@@ -36,13 +37,13 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
-	constructor( object, domElement, options = {} ) {
+	constructor( camera, domElement, options = {} ) {
 
 		super();
 
-		this.object = object;
-		this.enabled = true;
+		this._camera = camera;
 		this._state = STATE.NONE;
+		this.enabled = true;
 
 		// How far you can dolly in and out ( PerspectiveCamera only )
 		this.minDistance = 0;
@@ -74,27 +75,27 @@ export default class CameraControls extends EventDispatcher {
 		this.dollyToCursor = false;
 		this.verticalDragToForward = false;
 
-		this.domElement = domElement;
+		this._domElement = domElement;
 
 		// the location of focus, where the object orbits around
 		this._target = new THREE.Vector3();
 		this._targetEnd = new THREE.Vector3();
 
 		// rotation
-		this._spherical = new THREE.Spherical().setFromVector3( this.object.position );
+		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position );
 		this._sphericalEnd = this._spherical.clone();
 
 		// reset
 		this._target0 = this._target.clone();
-		this._position0 = this.object.position.clone();
-		this._zoom0 = this.object.zoom;
+		this._position0 = this._camera.position.clone();
+		this._zoom0 = this._camera.zoom;
 
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
 		this._hasUpdated = true;
 		this.update( 0 );
 
-		if ( ! this.domElement || options.ignoreDOMEventListeners ) {
+		if ( ! this._domElement || options.ignoreDOMEventListeners ) {
 
 			this._removeAllEventListeners = () => {};
 
@@ -105,17 +106,17 @@ export default class CameraControls extends EventDispatcher {
 			const dollyStart = new THREE.Vector2();
 			let elementRect;
 
-			this.domElement.addEventListener( 'mousedown', onMouseDown );
-			this.domElement.addEventListener( 'touchstart', onTouchStart );
-			this.domElement.addEventListener( 'wheel', onMouseWheel );
-			this.domElement.addEventListener( 'contextmenu', onContextMenu );
+			this._domElement.addEventListener( 'mousedown', onMouseDown );
+			this._domElement.addEventListener( 'touchstart', onTouchStart );
+			this._domElement.addEventListener( 'wheel', onMouseWheel );
+			this._domElement.addEventListener( 'contextmenu', onContextMenu );
 
 			this._removeAllEventListeners = () => {
 
-				scope.domElement.removeEventListener( 'mousedown', onMouseDown );
-				scope.domElement.removeEventListener( 'touchstart', onTouchStart );
-				scope.domElement.removeEventListener( 'wheel', onMouseWheel );
-				scope.domElement.removeEventListener( 'contextmenu', onContextMenu );
+				scope._domElement.removeEventListener( 'mousedown', onMouseDown );
+				scope._domElement.removeEventListener( 'touchstart', onTouchStart );
+				scope._domElement.removeEventListener( 'wheel', onMouseWheel );
+				scope._domElement.removeEventListener( 'contextmenu', onContextMenu );
 				document.removeEventListener( 'mousemove', dragging );
 				document.removeEventListener( 'touchmove', dragging );
 				document.removeEventListener( 'mouseup', endDragging );
@@ -219,7 +220,6 @@ export default class CameraControls extends EventDispatcher {
 
 			}
 
-
 			function onMouseWheel( event ) {
 
 				if ( ! scope.enabled ) return;
@@ -250,7 +250,7 @@ export default class CameraControls extends EventDispatcher {
 
 				if ( scope.dollyToCursor ) {
 
-					elementRect = scope.domElement.getBoundingClientRect();
+					elementRect = scope._domElement.getBoundingClientRect();
 					x = ( event.clientX - elementRect.left ) / elementRect.width  *   2 - 1;
 					y = ( event.clientY - elementRect.top )  / elementRect.height * - 2 + 1;
 
@@ -276,7 +276,7 @@ export default class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( event, _v2 );
 
-				elementRect = scope.domElement.getBoundingClientRect();
+				elementRect = scope._domElement.getBoundingClientRect();
 				dragStart.copy( _v2 );
 
 				if ( scope._state === STATE.TOUCH_DOLLY_TRUCK ) {
@@ -325,8 +325,8 @@ export default class CameraControls extends EventDispatcher {
 
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
-						const phi   = 2 * Math.PI * scope.phiSpeed   * deltaX / elementRect.width;
-						const theta = 2 * Math.PI * scope.thetaSpeed * deltaY / elementRect.height;
+						const phi   = PI_2 * scope.phiSpeed   * deltaX / elementRect.width;
+						const theta = PI_2 * scope.thetaSpeed * deltaY / elementRect.height;
 						scope.rotate( phi, theta, true );
 						break;
 
@@ -386,11 +386,11 @@ export default class CameraControls extends EventDispatcher {
 
 			function truckInternal( deltaX, deltaY ) {
 
-				if ( scope.object.isPerspectiveCamera ) {
+				if ( scope._camera.isPerspectiveCamera ) {
 
-					const offset = _v3A.copy( scope.object.position ).sub( scope._target );
+					const offset = _v3A.copy( scope._camera.position ).sub( scope._target );
 					// half of the fov is center to top of screen
-					const fovInRad = scope.object.fov * THREE.Math.DEG2RAD;
+					const fovInRad = scope._camera.fov * THREE.Math.DEG2RAD;
 					const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
 					const truckX    = ( scope.truckSpeed * deltaX * targetDistance / elementRect.height );
 					const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.height );
@@ -405,11 +405,11 @@ export default class CameraControls extends EventDispatcher {
 
 					}
 
-				} else if ( scope.object.isOrthographicCamera ) {
+				} else if ( scope._camera.isOrthographicCamera ) {
 
 					// orthographic
-					const truckX    = deltaX * ( scope.object.right - scope.object.left   ) / scope.object.zoom / elementRect.width;
-					const pedestalY = deltaY * ( scope.object.top   - scope.object.bottom ) / scope.object.zoom / elementRect.height;
+					const truckX    = deltaX * ( scope._camera.right - scope._camera.left   ) / scope._camera.zoom / elementRect.width;
+					const pedestalY = deltaY * ( scope._camera.top   - scope._camera.bottom ) / scope._camera.zoom / elementRect.height;
 					scope.truck( truckX, pedestalY, true );
 
 				}
@@ -420,7 +420,7 @@ export default class CameraControls extends EventDispatcher {
 
 				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 
-				if ( scope.object.isPerspectiveCamera ) {
+				if ( scope._camera.isPerspectiveCamera ) {
 
 					const distance = scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius;
 					const prevRadius = scope._sphericalEnd.radius;
@@ -436,10 +436,10 @@ export default class CameraControls extends EventDispatcher {
 
 
 
-				} else if ( scope.object.isOrthographicCamera ) {
+				} else if ( scope._camera.isOrthographicCamera ) {
 
-					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
-					scope.object.updateProjectionMatrix();
+					scope._camera.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope._camera.zoom * dollyScale ) );
+					scope._camera.updateProjectionMatrix();
 					scope._hasUpdated = true;
 
 				}
@@ -499,7 +499,7 @@ export default class CameraControls extends EventDispatcher {
 
 	dolly( distance, enableTransition ) {
 
-		if ( this.object.isOrthographicCamera ) {
+		if ( this._camera.isOrthographicCamera ) {
 
 			console.warn( 'dolly is not available for OrthographicCamera' );
 			return;
@@ -512,7 +512,7 @@ export default class CameraControls extends EventDispatcher {
 
 	dollyTo( distance, enableTransition ) {
 
-		if ( this.object.isOrthographicCamera ) {
+		if ( this._camera.isOrthographicCamera ) {
 
 			console.warn( 'dolly is not available for OrthographicCamera' );
 			return;
@@ -544,10 +544,10 @@ export default class CameraControls extends EventDispatcher {
 
 	truck( x, y, enableTransition ) {
 
-		this.object.updateMatrix();
+		this._camera.updateMatrix();
 
-		_xColumn.setFromMatrixColumn( this.object.matrix, 0 );
-		_yColumn.setFromMatrixColumn( this.object.matrix, 1 );
+		_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
+		_yColumn.setFromMatrixColumn( this._camera.matrix, 1 );
 		_xColumn.multiplyScalar(   x );
 		_yColumn.multiplyScalar( - y );
 
@@ -566,15 +566,11 @@ export default class CameraControls extends EventDispatcher {
 
 	forward( distance, enableTransition ) {
 
-		_v3A.setFromMatrixColumn( this.object.matrix, 0 );
-		_v3A.crossVectors( this.object.up, _v3A );
+		_v3A.setFromMatrixColumn( this._camera.matrix, 0 );
+		_v3A.crossVectors( this._camera.up, _v3A );
 		_v3A.multiplyScalar( distance );
 
-		this._encloseToBoundary(
-			this._targetEnd,
-			_v3A,
-			this.boundaryFriction
-		);
+		this._encloseToBoundary( this._targetEnd, _v3A, this.boundaryFriction );
 
 		if ( ! enableTransition ) {
 
@@ -602,7 +598,7 @@ export default class CameraControls extends EventDispatcher {
 
 	fitTo( objectOrBox3, enableTransition, options = {} ) {
 
-		if ( this.object.isOrthographicCamera ) {
+		if ( this._camera.isOrthographicCamera ) {
 
 			console.warn( 'fitTo is not supported for OrthographicCamera' );
 			return;
@@ -722,10 +718,17 @@ export default class CameraControls extends EventDispatcher {
 
 	setBoundary( box3 ) {
 
-		this._boundary.copy( box3 || new THREE.Box3(
-			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
-			new THREE.Vector3( Infinity, Infinity, Infinity )
-		) );
+		if ( ! box3 ) {
+
+			this._boundary.min.set( - Infinity, - Infinity, - Infinity );
+			this._boundary.max.set(   Infinity,   Infinity,   Infinity );
+			this._hasUpdated = true;
+
+			return;
+
+		}
+
+		this._boundary.copy( box3 );
 		this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 		this._hasUpdated = true;
 
@@ -733,7 +736,7 @@ export default class CameraControls extends EventDispatcher {
 
 	getDistanceToFit( width, height, depth ) {
 
-		const camera = this.object;
+		const camera = this._camera;
 		const boundingRectAspect = width / height;
 		const fov = camera.fov * THREE.Math.DEG2RAD;
 		const aspect = camera.aspect;
@@ -770,15 +773,15 @@ export default class CameraControls extends EventDispatcher {
 	saveState() {
 
 		this._target0.copy( this._target );
-		this._position0.copy( this.object.position );
-		this._zoom0 = this.object.zoom;
+		this._position0.copy( this._camera.position );
+		this._zoom0 = this._camera.zoom;
 
 	}
 
 	update( delta ) {
 
 		// var offset = new THREE.Vector3();
-		// var quat = new THREE.Quaternion().setFromUnitVectors( this.object.up, new THREE.Vector3( 0, 1, 0 ) );
+		// var quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
 		// var quatInverse = quat.clone().inverse();
 
 		const currentDampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
@@ -817,16 +820,16 @@ export default class CameraControls extends EventDispatcher {
 
 		if ( this._dollyControlAmount !== 0 ) {
 
-			if ( this.object.isPerspectiveCamera ) {
+			if ( this._camera.isPerspectiveCamera ) {
 
 				const direction = _v3A.copy( _v3A.setFromSpherical( this._sphericalEnd ) ).normalize().negate();
 				const planeX = _v3B.copy( direction ).cross( _v3C.set( 0.0, 1.0, 0.0 ) ).normalize();
 				const planeY = _v3C.crossVectors( planeX, direction );
-				const worldToScreen = this._sphericalEnd.radius * Math.tan( this.object.fov * THREE.Math.DEG2RAD * 0.5 );
+				const worldToScreen = this._sphericalEnd.radius * Math.tan( this._camera.fov * THREE.Math.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const cursor = _v3A.copy( this._targetEnd )
-					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * this.object.aspect ) )
+					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * this._camera.aspect ) )
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
 				this._targetEnd.lerp( cursor, lerpRatio );
 				this._target.copy( this._targetEnd );
@@ -838,19 +841,18 @@ export default class CameraControls extends EventDispatcher {
 		}
 
 		this._spherical.makeSafe();
-		this.object.position.setFromSpherical( this._spherical ).add( this._target );
-		this.object.lookAt( this._target );
+		this._camera.position.setFromSpherical( this._spherical ).add( this._target );
+		this._camera.lookAt( this._target );
 
 		if ( this._boundaryEnclosesCamera ) {
 
 			this._encloseToBoundary(
-				this.object.position.copy( this._target ),
+				this._camera.position.copy( this._target ),
 				_v3A.setFromSpherical( this._spherical ),
 				1.0
 			);
 
 		}
-
 
 		const updated = this._hasUpdated;
 		this._hasUpdated = false;
@@ -879,7 +881,7 @@ export default class CameraControls extends EventDispatcher {
 			verticalDragToForward: this.verticalDragToForward,
 
 			target               : this._targetEnd.toArray(),
-			position             : this.object.position.toArray(),
+			position             : this._camera.position.toArray(),
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),
@@ -940,7 +942,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		 // See: https://twitter.com/FMS_Cat/status/1106508958640988161
+		// See: https://twitter.com/FMS_Cat/status/1106508958640988161
 
 		const newTarget = _v3B.copy( offset ).add( position ); // target
 		const clampedTarget = this._boundary.clampPoint( newTarget, _v3C ); // clamped target
@@ -973,9 +975,9 @@ export default class CameraControls extends EventDispatcher {
 
 	_sanitizeSphericals() {
 
-		this._sphericalEnd.theta = this._sphericalEnd.theta % ( 2 * Math.PI );
-		this._spherical.theta += 2 * Math.PI * Math.round(
-			( this._sphericalEnd.theta - this._spherical.theta ) / ( 2 * Math.PI )
+		this._sphericalEnd.theta = this._sphericalEnd.theta % ( PI_2 );
+		this._spherical.theta += PI_2 * Math.round(
+			( this._sphericalEnd.theta - this._spherical.theta ) / ( PI_2 )
 		);
 
 	}
