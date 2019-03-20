@@ -9,15 +9,15 @@
   "types": "types/camera-controls.d.ts",
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
-    "@babel/core": "^7.2.2",
-    "@babel/plugin-transform-runtime": "^7.2.0",
-    "@babel/preset-env": "^7.3.1",
-    "@babel/runtime": "^7.3.1",
-    "@types/three": "^0.93.18",
-    "rollup": "^1.1.2",
+    "@babel/core": "^7.4.0",
+    "@babel/plugin-transform-runtime": "^7.4.0",
+    "@babel/preset-env": "^7.4.1",
+    "@babel/runtime": "^7.4.0",
+    "@types/three": "^0.93.27",
+    "rollup": "^1.7.0",
     "rollup-plugin-babel": "4.3.2",
     "rollup-watch": "^4.3.1",
-    "terser": "^3.14.1"
+    "terser": "^3.17.0"
   },
   "scripts": {
     "dev": "rollup --config --watch",
