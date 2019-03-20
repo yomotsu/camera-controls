@@ -4,7 +4,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 
 [![Latest NPM release](https://img.shields.io/npm/v/camera-controls.svg)](https://www.npmjs.com/package/camera-controls)
 
-## Demos
+## Working examples
 
 | camera move    | user input |
 | ---            | ---        |
@@ -13,8 +13,9 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 | Truck (Pan)    | right mouse drag / touch: two-finger move or three-finger move |
 
 - [basic](https://yomotsu.github.io/camera-controls/examples/basic.html)
-- [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [fit-and-padding](https://yomotsu.github.io/camera-controls/examples/fit-and-padding.html)
+- [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
+- [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 
 ## Usage
 

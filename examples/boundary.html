@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<style>
+body{
+	margin: 0;
+}
+canvas{
+	display: block;
+}
+.info{
+	color: #FFF;
+	position: absolute;
+}
+a{
+	color: inherit;
+}
+label{
+	cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<br>
+	<button type="button" onclick="setBoundary1()">boundary: -5, -5, xz-5 / 5 ,5, 5</button>
+	<button type="button" onclick="setBoundary2()">boundary: -20, 0, -20 / -10, 10, -10</button>
+	<button type="button" onclick="setBoundary3()">boundary: -1, -1, -1 / 1 ,1, 1</button>
+	<button type="button" onclick="setBoundary0()">remove boundary</button>
+	<br>
+	<label><input type="checkbox" onchange="cameraControls.boundaryEnclosesCamera = this.checked">Enclose also the camera into the boundary</label>
+	<br>
+	<br>
+	<label><input type="checkbox" onchange="cameraControls.verticalDragToForward = this.checked">vertical drag to move forward</label>
+	<br>
+	<button type="button" onclick="cameraControls.truck( -1, 0, true)">truck( -1, 0 )</button>
+	<button type="button" onclick="cameraControls.truck(  1, 0, true)">truck( +1, 0 )</button>
+	<button type="button" onclick="cameraControls.forward(  1, true )">forward( +1 )</button>
+	<button type="button" onclick="cameraControls.forward( -1, true )">forward( -1 )</button>
+	<br>
+	<button type="button" onclick="cameraControls.reset( true )">reset</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/96/three.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer( { antialias: true, stencil: false } );
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const bbHelper = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } )
+);
+scene.add( bbHelper );
+bbHelper.visible = false;
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+
+
+function setBoundary0 () {
+
+	cameraControls.setBoundary( null );
+
+	bbHelper.visible = false;
+	
+}
+
+function setBoundary1 () {
+
+	const bb = new THREE.Box3(
+		new THREE.Vector3( -5.0, -5.0, -5.0 ),
+		new THREE.Vector3( 5.0, 5.0, 5.0 )
+	);
+	cameraControls.setBoundary( bb );
+
+	bbHelper.position.set( 0, 0, 0 );
+	bbHelper.scale.set( 10, 10, 10 );
+	bbHelper.visible = true;
+
+}
+
+function setBoundary2 () {
+
+	const bb = new THREE.Box3(
+		new THREE.Vector3( -20, 0, -20 ),
+		new THREE.Vector3( -10, 10, -10 )
+	);
+	cameraControls.setBoundary( bb );
+
+	bbHelper.position.set( -15, 5, -15 );
+	bbHelper.scale.set( 10, 10, 10 );
+	bbHelper.visible = true;
+
+}
+
+function setBoundary3 () {
+
+	const bb = new THREE.Box3(
+		new THREE.Vector3( -1, -1, -1 ),
+		new THREE.Vector3( 1, 1, 1 )
+	);
+	cameraControls.setBoundary( bb );
+
+	bbHelper.position.set( 0, 0, 0 );
+	bbHelper.scale.set( 2, 2, 2 );
+	bbHelper.visible = true;
+
+}
+</script>
+
+</body>
+</html>
