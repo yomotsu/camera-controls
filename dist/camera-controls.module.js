@@ -209,7 +209,11 @@ function (_EventDispatcher) {
     _this.minAzimuthAngle = -Infinity; // radians
 
     _this.maxAzimuthAngle = Infinity; // radians
+    // Target cannot move outside of this box
 
+    _this._boundary = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
+    _this.boundaryFriction = 0.0;
+    _this._boundaryEnclosesCamera = false;
     _this.dampingFactor = 0.05;
     _this.draggingDampingFactor = 0.25;
     _this.phiSpeed = 1.0;
@@ -503,12 +507,12 @@ function (_EventDispatcher) {
     }
 
     return _this;
-  } // azimuthAngle in radian
-  // polarAngle in radian
-
+  }
 
   _createClass(CameraControls, [{
     key: "rotate",
+    // azimuthAngle in radian
+    // polarAngle in radian
     value: function rotate(azimuthAngle, polarAngle, enableTransition) {
       this.rotateTo(this._sphericalEnd.theta + azimuthAngle, this._sphericalEnd.phi + polarAngle, enableTransition);
     } // azimuthAngle in radian
@@ -578,7 +582,7 @@ function (_EventDispatcher) {
 
       var offset = _v3A.copy(_xColumn).add(_yColumn);
 
-      this._targetEnd.add(offset);
+      this._encloseToBoundary(this._targetEnd, offset, this.boundaryFriction);
 
       if (!enableTransition) {
         this._target.copy(this._targetEnd);
@@ -595,7 +599,7 @@ function (_EventDispatcher) {
 
       _v3A.multiplyScalar(distance);
 
-      this._targetEnd.add(_v3A);
+      this._encloseToBoundary(this._targetEnd, _v3A, this.boundaryFriction);
 
       if (!enableTransition) {
         this._target.copy(this._targetEnd);
@@ -712,6 +716,15 @@ function (_EventDispatcher) {
       this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
     }
   }, {
+    key: "setBoundary",
+    value: function setBoundary(box3) {
+      this._boundary.copy(box3 || new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity)));
+
+      this._boundary.clampPoint(this._targetEnd, this._targetEnd);
+
+      this._hasUpdated = true;
+    }
+  }, {
     key: "getDistanceToFit",
     value: function getDistanceToFit(width, height, depth) {
       var camera = this.object;
@@ -802,6 +815,11 @@ function (_EventDispatcher) {
 
       this.object.position.setFromSpherical(this._spherical).add(this._target);
       this.object.lookAt(this._target);
+
+      if (this._boundaryEnclosesCamera) {
+        this._encloseToBoundary(this.object.position.copy(this._target), _v3A.setFromSpherical(this._spherical), 1.0);
+      }
+
       var updated = this._hasUpdated;
       this._hasUpdated = false;
       if (updated) this.dispatchEvent({
@@ -873,10 +891,53 @@ function (_EventDispatcher) {
       this._removeAllEventListeners();
     }
   }, {
+    key: "_encloseToBoundary",
+    value: function _encloseToBoundary(position, offset, friction) {
+      var offsetLength2 = offset.lengthSq();
+
+      if (offsetLength2 === 0.0) {
+        // sanity check
+        return position;
+      } // See: https://twitter.com/FMS_Cat/status/1106508958640988161
+
+
+      var newTarget = _v3B.copy(offset).add(position); // target
+
+
+      var clampedTarget = this._boundary.clampPoint(newTarget, _v3C); // clamped target
+
+
+      var deltaClampedTarget = clampedTarget.sub(newTarget); // newTarget -> clampedTarget
+
+      var deltaClampedTargetLength2 = deltaClampedTarget.lengthSq(); // squared length of deltaClampedTarget
+
+      if (deltaClampedTargetLength2 === 0.0) {
+        // when the position doesn't have to be clamped
+        return position.add(offset);
+      } else if (deltaClampedTargetLength2 === offsetLength2) {
+        // when the position is completely stuck
+        return position;
+      } else if (friction === 0.0) {
+        return position.add(offset).add(deltaClampedTarget);
+      } else {
+        var offsetFactor = 1.0 + friction * deltaClampedTargetLength2 / offset.dot(deltaClampedTarget);
+        return position.add(_v3B.copy(offset).multiplyScalar(offsetFactor)).add(deltaClampedTarget.multiplyScalar(1.0 - friction));
+      }
+    }
+  }, {
     key: "_sanitizeSphericals",
     value: function _sanitizeSphericals() {
       this._sphericalEnd.theta = this._sphericalEnd.theta % (2 * Math.PI);
       this._spherical.theta += 2 * Math.PI * Math.round((this._sphericalEnd.theta - this._spherical.theta) / (2 * Math.PI));
+    }
+  }, {
+    key: "boundaryEnclosesCamera",
+    get: function get() {
+      return this._boundaryEnclosesCamera;
+    },
+    set: function set(boundaryEnclosesCamera) {
+      this._boundaryEnclosesCamera = boundaryEnclosesCamera;
+      this._hasUpdated = true;
     }
   }]);
 
