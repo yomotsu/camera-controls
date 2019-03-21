@@ -659,7 +659,7 @@ export default class CameraControls extends EventDispatcher {
 		targetAX, targetAY, targetAZ,
 		positionBX, positionBY, positionBZ,
 		targetBX, targetBY, targetBZ,
-		x, enableTransition
+		t, enableTransition
 	) {
 
 		const positionA = _v3A.set( positionAX, positionAY, positionAZ );
@@ -667,7 +667,7 @@ export default class CameraControls extends EventDispatcher {
 		_sphericalA.setFromVector3( positionA.sub( targetA ) );
 
 		const targetB = _v3A.set( targetBX, targetBY, targetBZ );
-		this._targetEnd.copy( targetA ).lerp( targetB, x ); // tricky
+		this._targetEnd.copy( targetA ).lerp( targetB, t ); // tricky
 
 		const positionB = _v3B.set( positionBX, positionBY, positionBZ );
 		_sphericalB.setFromVector3( positionB.sub( targetB ) );
@@ -677,9 +677,9 @@ export default class CameraControls extends EventDispatcher {
 		const deltaRadius = _sphericalB.radius - _sphericalA.radius;
 
 		this._sphericalEnd.set(
-			_sphericalA.radius + deltaRadius * x,
-			_sphericalA.phi    + deltaPhi    * x,
-			_sphericalA.theta  + deltaTheta  * x
+			_sphericalA.radius + deltaRadius * t,
+			_sphericalA.phi    + deltaPhi    * t,
+			_sphericalA.theta  + deltaTheta  * t
 		);
 
 		this._sanitizeSphericals();
