@@ -111,6 +111,8 @@ Rotate azimuthal angle(theta) and polar angle(phi).
 | `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
+
 #### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(theta) and polar angle(phi) to a given point.
@@ -121,6 +123,8 @@ Rotate azimuthal angle(theta) and polar angle(phi) to a given point.
 | `polarAngle`       | `number`  | Polar rotate angle to. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
+
 #### `dolly( distance, enableTransition )`
 
 Dolly in/out camera position.
@@ -130,6 +134,8 @@ Dolly in/out camera position.
 | `distance`         | `number`  | Distance to dolly |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
+
 #### `dollyTo( distance, enableTransition )`
 
 Dolly in/out camera position to given distance.
@@ -138,6 +144,8 @@ Dolly in/out camera position to given distance.
 | ------------------ | --------- | ----------- |
 | `distance`         | `number`  | Distance to dolly |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
 
 #### `truck( x, y, enableTransition )`
 
@@ -149,6 +157,8 @@ Truck and pedestal camera using current azimuthal angle.
 | `y`                | `number`  | Vertical translate amount |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
+
 #### `forward( distance, enableTransition )`
 
 Move forward / backward.
@@ -157,6 +167,8 @@ Move forward / backward.
 | ------------------ | --------- | ----------- |
 | `distance`         | `number`  | Amount to move forward / backward. Negative value to move backward |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
 
 #### `moveTo( x, y, z, enableTransition )`
 
@@ -168,6 +180,8 @@ Move `target` position to given point.
 | `y`                | `number`  | y coord to move center position |
 | `z`                | `number`  | z coord to move center position |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
 
 #### `fitTo( meshOrBox3, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
 
@@ -183,6 +197,8 @@ Fit the viewport to the object bounding box or the bounding box itself. paddings
 | `options.paddingBottom` | `number`                     | Padding bottom. Default is `0` |
 | `options.paddingLeft`   | `number`                     | Padding left. Default is `0` |
 
+---
+
 #### `setLookAt( positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition )`
 
 It moves the camera into `position`, and make it look at `target`.
@@ -196,6 +212,8 @@ It moves the camera into `position`, and make it look at `target`.
 | `targetY`          | `number`  | Position y of look at. |
 | `targetZ`          | `number`  | Position z of look at. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
 
 #### `lerpLookAt( positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, t, enableTransition )`
 
@@ -218,6 +236,7 @@ Similar to `setLookAt`, but it interpolates between two states.
 | `t`                | `number`  | Interpolation factor in the closed interval [0, 1]. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
 
 #### `setPosition( positionX, positionY, positionZ, enableTransition )`
 
@@ -230,6 +249,8 @@ Similar to `setLookAt`, but it interpolates between two states.
 | `positionZ`        | `number`  | Position z of look at from. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
+
 #### `setTarget( targetX, targetY, targetZ, enableTransition )`
 
 `setLookAt` without position, Stay still at the position.
@@ -241,6 +262,8 @@ Similar to `setLookAt`, but it interpolates between two states.
 | `targetZ`          | `number`  | Position z of look at. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
+
 #### `setBoundary( box3 )`
 
 Set the boundary box that encloses the target of the camera. `box3` is in `THREE.Box3`
@@ -251,6 +274,8 @@ Return its current position.
 | ------ | ------------- | ----------- |
 | `box3` | `THREE.Box3?` | Boundary area. No argument to remove the boundary. |
 
+---
+
 #### `getPosition( out )`
 
 Return its current position.
@@ -259,6 +284,8 @@ Return its current position.
 | ----- | --------------- | ----------- |
 | `out` | `THREE.Vector3` | The receiving vector |
 
+---
+
 #### `getTarget( out )`
 
 Return its current gazing target which is the center position of the orbit.
@@ -266,6 +293,8 @@ Return its current gazing target which is the center position of the orbit.
 | Name  | Type            | Description |
 | ----- | --------------- | ----------- |
 | `out` | `THREE.Vector3` | The receiving vector |
+
+---
 
 #### `saveState()`
 
@@ -279,6 +308,8 @@ Reset all rotation and position to default.
 | ------------------ | --------- | ----------- |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+---
+
 #### `update( delta ): boolean`
 
 Update camera position and directions. This should be called in your tick loop and returns `true` if re-rendering is needed.
@@ -287,14 +318,20 @@ Update camera position and directions. This should be called in your tick loop a
 | ------- | -------- | ----------- |
 | `delta` | `number` | Delta time between previous update call |
 
+---
+
 #### `toJSON()`
 
 Get all state in JSON string
+
+---
 
 #### `fromJSON( json, enableTransition )`
 
 Reproduce the control state with JSON. `enableTransition` is where anim or not in a boolean.
 
+
+---
 #### `dispose()`
 
 Dispose the cameraControls instance itself, remove all eventListeners.
