@@ -78,10 +78,10 @@ If your camera is Y-up, `theta` will be the angle for y-axis rotation and `phi` 
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
-| `.dampingFactor`          | `number`  | `0.05`      | |
-| `.draggingDampingFactor`  | `number`  | `0.25`      | |
-| `.phiSpeed`               | `number`  | `1.0`       | Speed of phi rotation. |
-| `.thetaSpeed`             | `number`  | `1.0`       | Speed of theta rotation. |
+| `.dampingFactor`          | `number`  | `0.05`      | The damping inertia |
+| `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging |
+| `.polarRotationSpeed`     | `number`  | `1.0`       | Speed of polar rotation. |
+| `.azimuthRotationSpeed`   | `number`  | `1.0`       | Speed of azimuth rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
@@ -300,6 +300,8 @@ Return its current gazing target which is the center position of the orbit.
 
 Set current camera position as the default position
 
+---
+
 #### `reset( enableTransition )`
 
 Reset all rotation and position to default.
@@ -330,8 +332,8 @@ Get all state in JSON string
 
 Reproduce the control state with JSON. `enableTransition` is where anim or not in a boolean.
 
-
 ---
+
 #### `dispose()`
 
 Dispose the cameraControls instance itself, remove all eventListeners.

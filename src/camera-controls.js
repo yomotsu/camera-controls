@@ -68,8 +68,8 @@ export default class CameraControls extends EventDispatcher {
 
 		this.dampingFactor = 0.05;
 		this.draggingDampingFactor = 0.25;
-		this.phiSpeed = 1.0;
-		this.thetaSpeed = 1.0;
+		this.azimuthRotationSpeed = 1.0;
+		this.polarRotationSpeed = 1.0;
 		this.dollySpeed = 1.0;
 		this.truckSpeed = 2.0;
 		this.dollyToCursor = false;
@@ -325,9 +325,9 @@ export default class CameraControls extends EventDispatcher {
 
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
-						const phi   = PI_2 * scope.phiSpeed   * deltaX / elementRect.width;
-						const theta = PI_2 * scope.thetaSpeed * deltaY / elementRect.height;
-						scope.rotate( phi, theta, true );
+						const theta = PI_2 * scope.azimuthRotationSpeed * deltaX / elementRect.width;
+						const phi   = PI_2 * scope.polarRotationSpeed   * deltaY / elementRect.height;
+						scope.rotate( theta, phi, true );
 						break;
 
 					case STATE.DOLLY:
@@ -447,6 +447,22 @@ export default class CameraControls extends EventDispatcher {
 			}
 
 		}
+
+	}
+
+	// wrong. phi should be map to polar, but backward compatibility.
+	set phiSpeed( speed ) {
+
+		console.warn( 'phiSpeed was renamed. use azimuthRotationSpeed instead' );
+		this.azimuthRotationSpeed = speed;
+
+	}
+
+	// wrong. theta should be map to azimuth, but backward compatibility.
+	set thetaSpeed( speed ) {
+
+		console.warn( 'thetaSpeed was renamed. use polarRotationSpeed instead' );
+		this.polarRotationSpeed = speed;
 
 	}
 
