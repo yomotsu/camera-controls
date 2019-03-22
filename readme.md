@@ -80,8 +80,8 @@ If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation an
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
 | `.dampingFactor`          | `number`  | `0.05`      | The damping inertia |
 | `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging |
-| `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
 | `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
+| `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
@@ -183,13 +183,13 @@ Move `target` position to given point.
 
 ---
 
-#### `fitTo( meshOrBox3, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
+#### `fitTo( box3OrMesh, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
 
 Fit the viewport to the object bounding box or the bounding box itself. paddings are in unit.
 
 | Name                    | Type                         | Description |
 | ----------------------- | ---------------------------- | ----------- |
-| `meshOrBox3`            | `THREE.Mesh` \| `THREE.Box3` | Object to fit the view |
+| `box3OrMesh`            | `THREE.Box3` \| `THREE.Mesh` | Axis aligned bounding box to fit the view. |
 | `enableTransition`      | `boolean`                    | Whether to move smoothly or immediately |
 | `options`               | `object`                     | Options |
 | `options.paddingTop`    | `number`                     | Padding top. Default is `0` |

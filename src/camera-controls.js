@@ -45,13 +45,19 @@ export default class CameraControls extends EventDispatcher {
 		this._state = STATE.NONE;
 		this.enabled = true;
 
-		// How far you can dolly in and out ( PerspectiveCamera only )
-		this.minDistance = 0;
-		this.maxDistance = Infinity;
+		if ( this._camera.isPerspectiveCamera ) {
 
-		// How far you can zoom in and out ( OrthographicCamera only )
-		this.minZoom = 0;
-		this.maxZoom = Infinity;
+			// How far you can dolly in and out ( PerspectiveCamera only )
+			this.minDistance = 0;
+			this.maxDistance = Infinity;
+
+		} else if ( this._camera.isOrthographicCamera ) {
+
+			// How far you can zoom in and out ( OrthographicCamera only )
+			this.minZoom = 0;
+			this.maxZoom = Infinity;
+
+		}
 
 		this.minPolarAngle = 0; // radians
 		this.maxPolarAngle = Math.PI; // radians
@@ -612,7 +618,7 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
-	fitTo( objectOrBox3, enableTransition, options = {} ) {
+	fitTo( box3OrObject, enableTransition, options = {} ) {
 
 		if ( this._camera.isOrthographicCamera ) {
 
@@ -626,7 +632,7 @@ export default class CameraControls extends EventDispatcher {
 		const paddingBottom = options.paddingBottom || 0;
 		const paddingTop    = options.paddingTop    || 0;
 
-		const boundingBox = objectOrBox3.isBox3 ? objectOrBox3.clone() : new THREE.Box3().setFromObject( objectOrBox3 );
+		const boundingBox = box3OrObject.isBox3 ? box3OrObject.clone() : new THREE.Box3().setFromObject( box3OrObject );
 		const size = boundingBox.getSize( _v3A );
 		const boundingWidth  = size.x + paddingLeft + paddingRight;
 		const boundingHeight = size.y + paddingTop  + paddingBottom;

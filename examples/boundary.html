@@ -75,6 +75,12 @@ const bbHelper = new THREE.Mesh(
 scene.add( bbHelper );
 bbHelper.visible = false;
 
+const centerHelper = new THREE.Mesh(
+	new THREE.SphereGeometry( .05, .05, .05 ),
+	new THREE.MeshBasicMaterial( { color: 0xffff00 } )
+)
+scene.add( centerHelper );
+
 const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.position.y = - 1;
 scene.add( gridHelper );
@@ -91,6 +97,7 @@ renderer.render( scene, camera );
 
 	if ( updated ) {
 
+		cameraControls.getTarget( centerHelper.position );
 		renderer.render( scene, camera );
 		console.log( 'rendered' );
 
