@@ -58,9 +58,9 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ## Terms
 
-CameraControls uses Spherical Coordinates for orbit rotations. `theta` for azimuthal and `phi` for polar angle.
+CameraControls uses Spherical Coordinates for orbit rotations.
 
-If your camera is Y-up, `theta` will be the angle for y-axis rotation and `phi` will be the angle for vertiacal position. (So far, CameraControls supports only Y-up though)
+If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation and Polar angle will be the angle for vertiacal position. (So far, CameraControls supports only Y-up though)
 
 ![](https://yomotsu.github.io/camera-controls/examples/fig1.png)
 
@@ -80,8 +80,8 @@ If your camera is Y-up, `theta` will be the angle for y-axis rotation and `phi` 
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
 | `.dampingFactor`          | `number`  | `0.05`      | The damping inertia |
 | `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging |
-| `.polarRotationSpeed`     | `number`  | `1.0`       | Speed of polar rotation. |
-| `.azimuthRotationSpeed`   | `number`  | `1.0`       | Speed of azimuth rotation. |
+| `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
+| `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
@@ -103,7 +103,7 @@ To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
 
 #### `rotate( azimuthAngle, polarAngle, enableTransition )`
 
-Rotate azimuthal angle(theta) and polar angle(phi).
+Rotate azimuthal angle(horizontal) and polar angle(vertical).
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -115,7 +115,7 @@ Rotate azimuthal angle(theta) and polar angle(phi).
 
 #### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
-Rotate azimuthal angle(theta) and polar angle(phi) to a given point.
+Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
