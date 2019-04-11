@@ -276,6 +276,31 @@ Return its current position.
 
 ---
 
+#### `setViewport( vector4? )`
+
+Set (or unset) the current viewport.
+
+Set this when you want to use renderer viewport and [`.dollyToCursor`](#properties) feature at the same time.
+
+See: [THREE.WebGLRenderer.setViewport()](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setViewport)
+
+| Name      | Type             | Description |
+| --------- | ---------------- | ----------- |
+| `vector4` | `THREE.Vector4?` | Vector4 that represents the viewport, or `undefined` for unsetting this. |
+
+#### `setViewport( x, y, width, height )`
+
+Same as [`setViewport( vector4 )`](#setviewport-vector4-|-null-) , but you can give it four numbers that represents a viewport instead:
+
+| Name     | Type     | Description |
+| -------- | -------- | ----------- |
+| `x`      | `number` | Leftmost of the viewport. |
+| `y`      | `number` | Bottommost of the viewport. |
+| `width`  | `number` | Width of the viewport. |
+| `height` | `number` | Height of the viewport. |
+
+---
+
 #### `getPosition( out )`
 
 Return its current position.
