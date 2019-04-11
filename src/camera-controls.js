@@ -81,10 +81,10 @@ export default class CameraControls extends EventDispatcher {
 		this.dollySpeed = 1.0;
 		this.truckSpeed = 2.0;
 		this.dollyToCursor = false;
-		this.viewport = null;
 		this.verticalDragToForward = false;
 
 		this._domElement = domElement;
+		this._viewport = null;
 
 		// the location of focus, where the object orbits around
 		this._target = new THREE.Vector3();
@@ -465,12 +465,12 @@ export default class CameraControls extends EventDispatcher {
 				target.x = rect.left;
 				target.y = rect.top;
 
-				if ( scope.viewport ) {
+				if ( scope._viewport ) {
 
-					target.x += scope.viewport.x;
-					target.y += ( scope.viewport.w - scope.viewport.y );
-					target.z = scope.viewport.z;
-					target.w = scope.viewport.w;
+					target.x += scope._viewport.x;
+					target.y += ( scope._viewport.w - scope._viewport.y );
+					target.z = scope._viewport.z;
+					target.w = scope._viewport.w;
 
 				} else {
 
@@ -784,6 +784,30 @@ export default class CameraControls extends EventDispatcher {
 		this._boundary.copy( box3 );
 		this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 		this._hasUpdated = true;
+
+	}
+
+	setViewport( viewportOrX, y, width, height ) {
+
+		if ( ! viewportOrX ) { // null
+
+			this._viewport = null;
+
+			return;
+
+		}
+
+		this._viewport = this._viewport || new THREE.Vector4();
+
+		if ( typeof viewportOrX === 'number' ) { // number
+
+			this._viewport.set( viewportOrX, y, width, height );
+
+		} else { // Vector4
+
+			this._viewport.copy( viewportOrX );
+
+		}
 
 	}
 
