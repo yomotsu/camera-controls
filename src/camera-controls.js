@@ -5,6 +5,7 @@ let _v2;
 let _v3A;
 let _v3B;
 let _v3C;
+let _v4;
 let _xColumn;
 let _yColumn;
 let _sphericalA;
@@ -30,6 +31,7 @@ export default class CameraControls extends EventDispatcher {
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
+		_v4 = new THREE.Vector4();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
@@ -79,6 +81,7 @@ export default class CameraControls extends EventDispatcher {
 		this.dollySpeed = 1.0;
 		this.truckSpeed = 2.0;
 		this.dollyToCursor = false;
+		this.viewport = null;
 		this.verticalDragToForward = false;
 
 		this._domElement = domElement;
@@ -256,9 +259,9 @@ export default class CameraControls extends EventDispatcher {
 
 				if ( scope.dollyToCursor ) {
 
-					elementRect = scope._domElement.getBoundingClientRect();
-					x = ( event.clientX - elementRect.left ) / elementRect.width  *   2 - 1;
-					y = ( event.clientY - elementRect.top )  / elementRect.height * - 2 + 1;
+					elementRect = getClientRect( _v4 );
+					x = ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1;
+					y = ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1;
 
 				}
 
@@ -282,7 +285,7 @@ export default class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( event, _v2 );
 
-				elementRect = scope._domElement.getBoundingClientRect();
+				elementRect = getClientRect( _v4 );
 				dragStart.copy( _v2 );
 
 				if ( scope._state === STATE.TOUCH_DOLLY_TRUCK ) {
@@ -331,8 +334,8 @@ export default class CameraControls extends EventDispatcher {
 
 					case STATE.ROTATE:
 					case STATE.TOUCH_ROTATE:
-						const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.width;
-						const phi   = PI_2 * scope.polarRotateSpeed   * deltaY / elementRect.height;
+						const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
+						const phi   = PI_2 * scope.polarRotateSpeed   * deltaY / elementRect.w;
 						scope.rotate( theta, phi, true );
 						break;
 
@@ -349,8 +352,8 @@ export default class CameraControls extends EventDispatcher {
 
 						const touchDollyFactor = 8;
 
-						const dollyX = scope.dollyToCursor ? ( dragStart.x - elementRect.left ) / elementRect.width  *   2 - 1 : 0;
-						const dollyY = scope.dollyToCursor ? ( dragStart.y - elementRect.top  ) / elementRect.height * - 2 + 1 : 0;
+						const dollyX = scope.dollyToCursor ? ( dragStart.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const dollyY = scope.dollyToCursor ? ( dragStart.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 						dollyInternal( dollyDelta / touchDollyFactor, dollyX, dollyY );
 
 						dollyStart.set( 0, distance );
@@ -398,8 +401,8 @@ export default class CameraControls extends EventDispatcher {
 					// half of the fov is center to top of screen
 					const fovInRad = scope._camera.fov * THREE.Math.DEG2RAD;
 					const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
-					const truckX    = ( scope.truckSpeed * deltaX * targetDistance / elementRect.height );
-					const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.height );
+					const truckX    = ( scope.truckSpeed * deltaX * targetDistance / elementRect.w );
+					const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.w );
 					if ( scope.verticalDragToForward ) {
 
 						scope.truck( truckX, 0, true );
@@ -414,8 +417,8 @@ export default class CameraControls extends EventDispatcher {
 				} else if ( scope._camera.isOrthographicCamera ) {
 
 					// orthographic
-					const truckX    = deltaX * ( scope._camera.right - scope._camera.left   ) / scope._camera.zoom / elementRect.width;
-					const pedestalY = deltaY * ( scope._camera.top   - scope._camera.bottom ) / scope._camera.zoom / elementRect.height;
+					const truckX    = deltaX * ( scope._camera.right - scope._camera.left   ) / scope._camera.zoom / elementRect.z;
+					const pedestalY = deltaY * ( scope._camera.top   - scope._camera.bottom ) / scope._camera.zoom / elementRect.w;
 					scope.truck( truckX, pedestalY, true );
 
 				}
@@ -449,6 +452,34 @@ export default class CameraControls extends EventDispatcher {
 					scope._hasUpdated = true;
 
 				}
+
+			}
+
+			/**
+			 * Get its client rect and package into given `THREE.Vector4` .
+			 */
+			function getClientRect( target ) {
+
+				const rect = scope._domElement.getBoundingClientRect();
+
+				target.x = rect.left;
+				target.y = rect.top;
+
+				if ( scope.viewport ) {
+
+					target.x += scope.viewport.x;
+					target.y += ( scope.viewport.w - scope.viewport.y );
+					target.z = scope.viewport.z;
+					target.w = scope.viewport.w;
+
+				} else {
+
+					target.z = rect.width;
+					target.w = rect.height;
+
+				}
+
+				return target;
 
 			}
 
