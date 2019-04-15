@@ -761,7 +761,7 @@ export default class CameraControls extends EventDispatcher {
 
 	setViewport( viewportOrX, y, width, height ) {
 
-		if ( ! viewportOrX ) { // null
+		if ( viewportOrX === null ) { // null
 
 			this._viewport = null;
 
