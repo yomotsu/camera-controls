@@ -259,7 +259,7 @@ export default class CameraControls extends EventDispatcher {
 
 				if ( scope.dollyToCursor ) {
 
-					elementRect = getClientRect( _v4 );
+					elementRect = scope._getClientRect( _v4 );
 					x = ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1;
 					y = ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1;
 
@@ -285,7 +285,7 @@ export default class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( event, _v2 );
 
-				elementRect = getClientRect( _v4 );
+				elementRect = scope._getClientRect( _v4 );
 				dragStart.copy( _v2 );
 
 				if ( scope._state === STATE.TOUCH_DOLLY_TRUCK ) {
@@ -452,34 +452,6 @@ export default class CameraControls extends EventDispatcher {
 					scope._hasUpdated = true;
 
 				}
-
-			}
-
-			/**
-			 * Get its client rect and package into given `THREE.Vector4` .
-			 */
-			function getClientRect( target ) {
-
-				const rect = scope._domElement.getBoundingClientRect();
-
-				target.x = rect.left;
-				target.y = rect.top;
-
-				if ( scope._viewport ) {
-
-					target.x += scope._viewport.x;
-					target.y += ( scope._viewport.w - scope._viewport.y );
-					target.z = scope._viewport.z;
-					target.w = scope._viewport.w;
-
-				} else {
-
-					target.z = rect.width;
-					target.w = rect.height;
-
-				}
-
-				return target;
 
 			}
 
@@ -1056,6 +1028,34 @@ export default class CameraControls extends EventDispatcher {
 		this._spherical.theta += PI_2 * Math.round(
 			( this._sphericalEnd.theta - this._spherical.theta ) / ( PI_2 )
 		);
+
+	}
+
+	/**
+	 * Get its client rect and package into given `THREE.Vector4` .
+	 */
+	_getClientRect( target ) {
+
+		const rect = this._domElement.getBoundingClientRect();
+
+		target.x = rect.left;
+		target.y = rect.top;
+
+		if ( this._viewport ) {
+
+			target.x += this._viewport.x;
+			target.y += ( this._viewport.w - this._viewport.y );
+			target.z = this._viewport.z;
+			target.w = this._viewport.w;
+
+		} else {
+
+			target.z = rect.width;
+			target.w = rect.height;
+
+		}
+
+		return target;
 
 	}
 

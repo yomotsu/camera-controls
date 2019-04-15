@@ -97,6 +97,11 @@ export default class CameraControls extends EventDispatcher {
   // private methods
 	protected _removeAllEventListeners: () => void;
   protected _sanitizeSphericals(): void;
+
+  /**
+   * Get its client rect and package into given `THREE.Vector4` .
+   */
+  protected _getClientRect( target: THREE.Vector4 ): THREE.Vector4;
 }
 
 export enum STATE {
