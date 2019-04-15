@@ -1044,7 +1044,7 @@ export default class CameraControls extends EventDispatcher {
 		if ( this._viewport ) {
 
 			target.x += this._viewport.x;
-			target.y += ( this._viewport.w - this._viewport.y );
+			target.y += rect.height - this._viewport.w - this._viewport.y;
 			target.z = this._viewport.z;
 			target.w = this._viewport.w;
 
