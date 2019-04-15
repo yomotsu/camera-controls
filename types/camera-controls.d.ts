@@ -91,7 +91,8 @@ export default class CameraControls extends EventDispatcher {
 	protected _dollyControlAmount: number;
 	protected _dollyControlCoord: THREE.Vector2;
 	protected _boundary: THREE.Box3;
-	protected _hasUpdated: boolean;
+  protected _viewport: THREE.Vector4;
+  protected _hasUpdated: boolean;
 
   // private methods
 	protected _removeAllEventListeners: () => void;
