@@ -65,6 +65,8 @@ export default class CameraControls extends EventDispatcher {
   public setPosition( positionX: number, positionY: number, positionZ: number, enableTransition?: boolean ): void;
   public setTarget( targetX: number, targetY: number, targetZ: number, enableTransition?: boolean ): void;
   public setBoundary( box3: THREE.Box3 ): void;
+  public setViewport( viewport: THREE.Vector4 | null ): void;
+  public setViewport( x: number, y: number, width: number, height: number ): void;
   public getDistanceToFit( width: number, height: number, depth: number ): number;
   public getTarget( out?: THREE.Vector3 ): THREE.Vector3;
   public getPosition( out?: THREE.Vector3 ): THREE.Vector3;
@@ -89,11 +91,17 @@ export default class CameraControls extends EventDispatcher {
 	protected _dollyControlAmount: number;
 	protected _dollyControlCoord: THREE.Vector2;
 	protected _boundary: THREE.Box3;
-	protected _hasUpdated: boolean;
-  
+  protected _viewport: THREE.Vector4;
+  protected _hasUpdated: boolean;
+
   // private methods
 	protected _removeAllEventListeners: () => void;
   protected _sanitizeSphericals(): void;
+
+  /**
+   * Get its client rect and package into given `THREE.Vector4` .
+   */
+  protected _getClientRect( target: THREE.Vector4 ): THREE.Vector4;
 }
 
 export enum STATE {
