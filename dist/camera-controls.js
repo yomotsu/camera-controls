@@ -152,6 +152,8 @@
 
 	var _v3C;
 
+	var _v4;
+
 	var _xColumn;
 
 	var _yColumn;
@@ -185,6 +187,7 @@
 	      _v3A = new THREE.Vector3();
 	      _v3B = new THREE.Vector3();
 	      _v3C = new THREE.Vector3();
+	      _v4 = new THREE.Vector4();
 	      _xColumn = new THREE.Vector3();
 	      _yColumn = new THREE.Vector3();
 	      _sphericalA = new THREE.Spherical();
@@ -234,7 +237,8 @@
 	    _this.truckSpeed = 2.0;
 	    _this.dollyToCursor = false;
 	    _this.verticalDragToForward = false;
-	    _this._domElement = domElement; // the location of focus, where the object orbits around
+	    _this._domElement = domElement;
+	    _this._viewport = null; // the location of focus, where the object orbits around
 
 	    _this._target = new THREE.Vector3();
 	    _this._targetEnd = new THREE.Vector3(); // rotation
@@ -342,9 +346,9 @@
 	        var x, y;
 
 	        if (scope.dollyToCursor) {
-	          elementRect = scope._domElement.getBoundingClientRect();
-	          x = (event.clientX - elementRect.left) / elementRect.width * 2 - 1;
-	          y = (event.clientY - elementRect.top) / elementRect.height * -2 + 1;
+	          elementRect = scope._getClientRect(_v4);
+	          x = (event.clientX - elementRect.x) / elementRect.z * 2 - 1;
+	          y = (event.clientY - elementRect.y) / elementRect.w * -2 + 1;
 	        }
 
 	        dollyInternal(-delta, x, y);
@@ -359,7 +363,7 @@
 	        if (!scope.enabled) return;
 	        event.preventDefault();
 	        extractClientCoordFromEvent(event, _v2);
-	        elementRect = scope._domElement.getBoundingClientRect();
+	        elementRect = scope._getClientRect(_v4);
 	        dragStart.copy(_v2);
 
 	        if (scope._state === STATE.TOUCH_DOLLY_TRUCK) {
@@ -399,8 +403,8 @@
 	        switch (scope._state) {
 	          case STATE.ROTATE:
 	          case STATE.TOUCH_ROTATE:
-	            var theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.width;
-	            var phi = PI_2 * scope.polarRotateSpeed * deltaY / elementRect.height;
+	            var theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
+	            var phi = PI_2 * scope.polarRotateSpeed * deltaY / elementRect.w;
 	            scope.rotate(theta, phi, true);
 	            break;
 
@@ -414,8 +418,8 @@
 	            var distance = Math.sqrt(dx * dx + dy * dy);
 	            var dollyDelta = dollyStart.y - distance;
 	            var touchDollyFactor = 8;
-	            var dollyX = scope.dollyToCursor ? (dragStart.x - elementRect.left) / elementRect.width * 2 - 1 : 0;
-	            var dollyY = scope.dollyToCursor ? (dragStart.y - elementRect.top) / elementRect.height * -2 + 1 : 0;
+	            var dollyX = scope.dollyToCursor ? (dragStart.x - elementRect.x) / elementRect.z * 2 - 1 : 0;
+	            var dollyY = scope.dollyToCursor ? (dragStart.y - elementRect.y) / elementRect.w * -2 + 1 : 0;
 	            dollyInternal(dollyDelta / touchDollyFactor, dollyX, dollyY);
 	            dollyStart.set(0, distance);
 	            truckInternal(deltaX, deltaY);
@@ -453,8 +457,8 @@
 
 	          var fovInRad = scope._camera.fov * THREE.Math.DEG2RAD;
 	          var targetDistance = offset.length() * Math.tan(fovInRad / 2);
-	          var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.height;
-	          var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.height;
+	          var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.w;
+	          var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.w;
 
 	          if (scope.verticalDragToForward) {
 	            scope.truck(truckX, 0, true);
@@ -464,9 +468,9 @@
 	          }
 	        } else if (scope._camera.isOrthographicCamera) {
 	          // orthographic
-	          var _truckX = deltaX * (scope._camera.right - scope._camera.left) / scope._camera.zoom / elementRect.width;
+	          var _truckX = deltaX * (scope._camera.right - scope._camera.left) / scope._camera.zoom / elementRect.z;
 
-	          var _pedestalY = deltaY * (scope._camera.top - scope._camera.bottom) / scope._camera.zoom / elementRect.height;
+	          var _pedestalY = deltaY * (scope._camera.top - scope._camera.bottom) / scope._camera.zoom / elementRect.w;
 
 	          scope.truck(_truckX, _pedestalY, true);
 	        }
@@ -753,6 +757,25 @@
 	      this._hasUpdated = true;
 	    }
 	  }, {
+	    key: "setViewport",
+	    value: function setViewport(viewportOrX, y, width, height) {
+	      if (viewportOrX === null) {
+	        // null
+	        this._viewport = null;
+	        return;
+	      }
+
+	      this._viewport = this._viewport || new THREE.Vector4();
+
+	      if (typeof viewportOrX === 'number') {
+	        // number
+	        this._viewport.set(viewportOrX, y, width, height);
+	      } else {
+	        // Vector4
+	        this._viewport.copy(viewportOrX);
+	      }
+	    }
+	  }, {
 	    key: "getDistanceToFit",
 	    value: function getDistanceToFit(width, height, depth) {
 	      var camera = this._camera;
@@ -958,6 +981,30 @@
 	    value: function _sanitizeSphericals() {
 	      this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
 	      this._spherical.theta += PI_2 * Math.round((this._sphericalEnd.theta - this._spherical.theta) / PI_2);
+	    }
+	    /**
+	     * Get its client rect and package into given `THREE.Vector4` .
+	     */
+
+	  }, {
+	    key: "_getClientRect",
+	    value: function _getClientRect(target) {
+	      var rect = this._domElement.getBoundingClientRect();
+
+	      target.x = rect.left;
+	      target.y = rect.top;
+
+	      if (this._viewport) {
+	        target.x += this._viewport.x;
+	        target.y += rect.height - this._viewport.w - this._viewport.y;
+	        target.z = this._viewport.z;
+	        target.w = this._viewport.w;
+	      } else {
+	        target.z = rect.width;
+	        target.w = rect.height;
+	      }
+
+	      return target;
 	    }
 	  }, {
 	    key: "phiSpeed",
