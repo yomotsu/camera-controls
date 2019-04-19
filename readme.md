@@ -15,6 +15,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [basic](https://yomotsu.github.io/camera-controls/examples/basic.html)
 - [fit-and-padding](https://yomotsu.github.io/camera-controls/examples/fit-and-padding.html)
 - [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
+- [`viewport` within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 
 ## Usage
@@ -264,7 +265,7 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 ---
 
-#### `setBoundary( box3 )`
+#### `setBoundary( box3? )`
 
 Set the boundary box that encloses the target of the camera. `box3` is in `THREE.Box3`
 
