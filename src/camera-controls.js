@@ -291,15 +291,15 @@ export default class CameraControls extends EventDispatcher {
 				if ( scope._state === STATE.TOUCH_DOLLY_TRUCK ) {
 
 					// 2 finger pinch
-					const dx = _v2.x - event.touches[ 1 ].pageX;
-					const dy = _v2.y - event.touches[ 1 ].pageY;
+					const dx = _v2.x - event.touches[ 1 ].clientX;
+					const dy = _v2.y - event.touches[ 1 ].clientY;
 					const distance = Math.sqrt( dx * dx + dy * dy );
 
 					dollyStart.set( 0, distance );
 
 					// center coords of 2 finger truck
-					const x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) * 0.5;
-					const y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) * 0.5;
+					const x = ( event.touches[ 0 ].clientX + event.touches[ 1 ].clientX ) * 0.5;
+					const y = ( event.touches[ 0 ].clientY + event.touches[ 1 ].clientY ) * 0.5;
 
 					dragStart.set( x, y );
 
@@ -345,8 +345,8 @@ export default class CameraControls extends EventDispatcher {
 
 					case STATE.TOUCH_DOLLY_TRUCK:
 
-						const dx = _v2.x - event.touches[ 1 ].pageX;
-						const dy = _v2.y - event.touches[ 1 ].pageY;
+						const dx = _v2.x - event.touches[ 1 ].clientX;
+						const dy = _v2.y - event.touches[ 1 ].clientY;
 						const distance = Math.sqrt( dx * dx + dy * dy );
 						const dollyDelta = dollyStart.y - distance;
 
