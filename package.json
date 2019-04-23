@@ -21,7 +21,7 @@
   },
   "scripts": {
     "dev": "rollup --config --watch",
-    "build": "rollup --config && terser 'dist/camera-controls.js' -o 'dist/camera-controls.min.js' --comments '/^!/'"
+    "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'"
   },
   "babel": {
     "presets": [
