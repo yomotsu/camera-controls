@@ -368,13 +368,13 @@
 
 	        if (scope._state === STATE.TOUCH_DOLLY_TRUCK) {
 	          // 2 finger pinch
-	          var dx = _v2.x - event.touches[1].pageX;
-	          var dy = _v2.y - event.touches[1].pageY;
+	          var dx = _v2.x - event.touches[1].clientX;
+	          var dy = _v2.y - event.touches[1].clientY;
 	          var distance = Math.sqrt(dx * dx + dy * dy);
 	          dollyStart.set(0, distance); // center coords of 2 finger truck
 
-	          var x = (event.touches[0].pageX + event.touches[1].pageX) * 0.5;
-	          var y = (event.touches[0].pageY + event.touches[1].pageY) * 0.5;
+	          var x = (event.touches[0].clientX + event.touches[1].clientX) * 0.5;
+	          var y = (event.touches[0].clientY + event.touches[1].clientY) * 0.5;
 	          dragStart.set(x, y);
 	        }
 
@@ -413,8 +413,8 @@
 	            break;
 
 	          case STATE.TOUCH_DOLLY_TRUCK:
-	            var dx = _v2.x - event.touches[1].pageX;
-	            var dy = _v2.y - event.touches[1].pageY;
+	            var dx = _v2.x - event.touches[1].clientX;
+	            var dy = _v2.y - event.touches[1].clientY;
 	            var distance = Math.sqrt(dx * dx + dy * dy);
 	            var dollyDelta = dollyStart.y - distance;
 	            var touchDollyFactor = 8;
