@@ -28,8 +28,10 @@ export default class CameraControls extends EventDispatcher {
   public boundaryEnclosesCamera: boolean;
   public dampingFactor: number;
   public draggingDampingFactor: number;
-  public phiSpeed: number;
-  public thetaSpeed: number;
+  public phiSpeed: number; // deprecated. will be removed.
+  public azimuthRotateSpeed: number;
+  public thetaSpeed: number; // deprecated. will be removed.
+  public polarRotateSpeed: number;
   public dollySpeed: number;
   public truckSpeed: number;
   public dollyToCursor: boolean;
