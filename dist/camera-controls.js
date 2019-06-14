@@ -440,8 +440,12 @@
 	      var endDragging = function endDragging(event) {
 	        if (!scope.enabled) return;
 	        scope._state = STATE.NONE;
-	        document.removeEventListener('mousemove', dragging);
-	        document.removeEventListener('touchmove', dragging);
+	        document.removeEventListener('mousemove', dragging, {
+	          passive: false
+	        });
+	        document.removeEventListener('touchmove', dragging, {
+	          passive: false
+	        });
 	        document.removeEventListener('mouseup', endDragging);
 	        document.removeEventListener('touchend', endDragging);
 	        scope.dispatchEvent({
