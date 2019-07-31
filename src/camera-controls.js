@@ -878,6 +878,7 @@ export default class CameraControls extends EventDispatcher {
 
 				const direction = _v3A.copy( _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( quatInverse ) ).normalize().negate();
 				const planeX = _v3B.copy( direction ).cross( _v3C.copy( this._camera.up ) ).normalize();
+				if (planeX.lengthSq() === 0) planeX.x = 1.0; 
 				const planeY = _v3C.crossVectors( planeX, direction );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( this._camera.fov * THREE.Math.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
