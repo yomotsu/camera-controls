@@ -16,6 +16,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [fit-and-padding](https://yomotsu.github.io/camera-controls/examples/fit-and-padding.html)
 - [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
 - [`viewport` within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
+- [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 
 ## Usage
