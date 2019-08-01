@@ -61,7 +61,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 CameraControls uses Spherical Coordinates for orbit rotations.
 
-If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation and Polar angle will be the angle for vertiacal position. (So far, CameraControls supports only Y-up though)
+If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation and Polar angle will be the angle for vertiacal position.
 
 ![](https://yomotsu.github.io/camera-controls/examples/fig1.png)
 
@@ -345,6 +345,12 @@ Update camera position and directions. This should be called in your tick loop a
 | Name    | Type     | Description |
 | ------- | -------- | ----------- |
 | `delta` | `number` | Delta time between previous update call |
+
+---
+
+#### `updateCameraUp()`
+
+When you change camera-up vector, run `.updateCameraUp()` to sync.
 
 ---
 
