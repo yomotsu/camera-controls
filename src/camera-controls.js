@@ -91,7 +91,8 @@ export default class CameraControls extends EventDispatcher {
 		this._targetEnd = new THREE.Vector3();
 
 		// rotation
-		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position );
+		const quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
+		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.applyQuaternion( quat ) );
 		this._sphericalEnd = this._spherical.clone();
 
 		// reset
@@ -663,9 +664,10 @@ export default class CameraControls extends EventDispatcher {
 
 		const position = _v3A.set( positionX, positionY, positionZ );
 		const target = _v3B.set( targetX, targetY, targetZ );
+		const quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
 
 		this._targetEnd.copy( target );
-		this._sphericalEnd.setFromVector3( position.sub( target ) );
+		this._sphericalEnd.setFromVector3( position.sub( target ).applyQuaternion( quat ) );
 		this._sanitizeSphericals();
 
 		if ( ! enableTransition ) {
@@ -687,15 +689,16 @@ export default class CameraControls extends EventDispatcher {
 		t, enableTransition
 	) {
 
+		const quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
 		const positionA = _v3A.set( positionAX, positionAY, positionAZ );
 		const targetA = _v3B.set( targetAX, targetAY, targetAZ );
-		_sphericalA.setFromVector3( positionA.sub( targetA ) );
+		_sphericalA.setFromVector3( positionA.sub( targetA ).applyQuaternion( quat ) );
 
 		const targetB = _v3A.set( targetBX, targetBY, targetBZ );
 		this._targetEnd.copy( targetA ).lerp( targetB, t ); // tricky
 
 		const positionB = _v3B.set( positionBX, positionBY, positionBZ );
-		_sphericalB.setFromVector3( positionB.sub( targetB ) );
+		_sphericalB.setFromVector3( positionB.sub( targetB ).applyQuaternion( quat ) );
 
 		const deltaTheta  = _sphericalB.theta  - _sphericalA.theta;
 		const deltaPhi    = _sphericalB.phi    - _sphericalA.phi;
@@ -804,8 +807,10 @@ export default class CameraControls extends EventDispatcher {
 
 	getPosition( out ) {
 
+		const quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
+		const quatInverse = quat.clone().inverse();
 		const _out = !! out && out.isVector3 ? out : new THREE.Vector3();
-		return _out.setFromSpherical( this._sphericalEnd ).add( this._targetEnd );
+		return _out.setFromSpherical( this._sphericalEnd ).applyQuaternion( quatInverse ).add( this._targetEnd );
 
 	}
 
@@ -830,8 +835,8 @@ export default class CameraControls extends EventDispatcher {
 	update( delta ) {
 
 		// var offset = new THREE.Vector3();
-		// var quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
-		// var quatInverse = quat.clone().inverse();
+		const quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
+		const quatInverse = quat.clone().inverse();
 
 		const currentDampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
 		const lerpRatio = 1.0 - Math.exp( - currentDampingFactor * delta / 0.016 );
@@ -871,8 +876,9 @@ export default class CameraControls extends EventDispatcher {
 
 			if ( this._camera.isPerspectiveCamera ) {
 
-				const direction = _v3A.copy( _v3A.setFromSpherical( this._sphericalEnd ) ).normalize().negate();
-				const planeX = _v3B.copy( direction ).cross( _v3C.set( 0.0, 1.0, 0.0 ) ).normalize();
+				const direction = _v3A.copy( _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( quatInverse ) ).normalize().negate();
+				const planeX = _v3B.copy( direction ).cross( _v3C.copy( this._camera.up ) ).normalize();
+				if (planeX.lengthSq() === 0) planeX.x = 1.0; 
 				const planeY = _v3C.crossVectors( planeX, direction );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( this._camera.fov * THREE.Math.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
@@ -890,14 +896,14 @@ export default class CameraControls extends EventDispatcher {
 		}
 
 		this._spherical.makeSafe();
-		this._camera.position.setFromSpherical( this._spherical ).add( this._target );
+		this._camera.position.setFromSpherical( this._spherical ).applyQuaternion( quatInverse ).add( this._target );
 		this._camera.lookAt( this._target );
 
 		if ( this._boundaryEnclosesCamera ) {
 
 			this._encloseToBoundary(
 				this._camera.position.copy( this._target ),
-				_v3A.setFromSpherical( this._spherical ),
+				_v3A.setFromSpherical( this._spherical ).applyQuaternion( quatInverse ),
 				1.0
 			);
 
@@ -942,6 +948,7 @@ export default class CameraControls extends EventDispatcher {
 
 		const obj = JSON.parse( json );
 		const position = new THREE.Vector3().fromArray( obj.position );
+		const quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
 
 		this.enabled               = obj.enabled;
 
@@ -962,7 +969,7 @@ export default class CameraControls extends EventDispatcher {
 		this._position0.fromArray( obj.position0 );
 
 		this._targetEnd.fromArray( obj.target );
-		this._sphericalEnd.setFromVector3( position.sub( this._target0 ) );
+		this._sphericalEnd.setFromVector3( position.sub( this._target0 ).applyQuaternion( quat ) );
 
 		if ( ! enableTransition ) {
 
