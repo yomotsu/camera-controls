@@ -144,6 +144,8 @@
 
 	var THREE;
 
+	var _AXIS_Y;
+
 	var _v2;
 
 	var _v3A;
@@ -183,6 +185,7 @@
 	    key: "install",
 	    value: function install(libs) {
 	      THREE = libs.THREE;
+	      _AXIS_Y = new THREE.Vector3(0, 1, 0);
 	      _v2 = new THREE.Vector2();
 	      _v3A = new THREE.Vector3();
 	      _v3B = new THREE.Vector3();
@@ -204,6 +207,8 @@
 
 	    _this = _possibleConstructorReturn(this, _getPrototypeOf(CameraControls).call(this));
 	    _this._camera = camera;
+	    _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
+	    _this._yAxisUpSpaceInverse = _this._yAxisUpSpace.clone().inverse();
 	    _this._state = STATE.NONE;
 	    _this.enabled = true;
 
@@ -243,7 +248,7 @@
 	    _this._target = new THREE.Vector3();
 	    _this._targetEnd = new THREE.Vector3(); // rotation
 
-	    _this._spherical = new THREE.Spherical().setFromVector3(_this._camera.position);
+	    _this._spherical = new THREE.Spherical().setFromVector3(_this._camera.position.applyQuaternion(_this._yAxisUpSpace));
 	    _this._sphericalEnd = _this._spherical.clone(); // reset
 
 	    _this._target0 = _this._target.clone();
@@ -704,7 +709,7 @@
 
 	      var targetA = _v3B.set(targetAX, targetAY, targetAZ);
 
-	      _sphericalA.setFromVector3(positionA.sub(targetA));
+	      _sphericalA.setFromVector3(positionA.sub(targetA).applyQuaternion(this._yAxisUpSpace));
 
 	      var targetB = _v3A.set(targetBX, targetBY, targetBZ);
 
@@ -713,7 +718,7 @@
 
 	      var positionB = _v3B.set(positionBX, positionBY, positionBZ);
 
-	      _sphericalB.setFromVector3(positionB.sub(targetB));
+	      _sphericalB.setFromVector3(positionB.sub(targetB).applyQuaternion(this._yAxisUpSpace));
 
 	      var deltaTheta = _sphericalB.theta - _sphericalA.theta;
 	      var deltaPhi = _sphericalB.phi - _sphericalA.phi;
@@ -801,7 +806,7 @@
 	    value: function getPosition(out) {
 	      var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 
-	      return _out.setFromSpherical(this._sphericalEnd).add(this._targetEnd);
+	      return _out.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).add(this._targetEnd);
 	    }
 	  }, {
 	    key: "reset",
@@ -818,11 +823,15 @@
 	      this._zoom0 = this._camera.zoom;
 	    }
 	  }, {
+	    key: "updateCameraUp",
+	    value: function updateCameraUp() {
+	      this._yAxisUpSpace.setFromUnitVectors(this._camera.up, _AXIS_Y);
+
+	      this._yAxisUpSpaceInverse.copy(this._yAxisUpSpace).inverse();
+	    }
+	  }, {
 	    key: "update",
 	    value: function update(delta) {
-	      // var offset = new THREE.Vector3();
-	      // var quat = new THREE.Quaternion().setFromUnitVectors( this._camera.up, new THREE.Vector3( 0, 1, 0 ) );
-	      // var quatInverse = quat.clone().inverse();
 	      var currentDampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
 	      var lerpRatio = 1.0 - Math.exp(-currentDampingFactor * delta / 0.016);
 	      var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
@@ -845,9 +854,11 @@
 
 	      if (this._dollyControlAmount !== 0) {
 	        if (this._camera.isPerspectiveCamera) {
-	          var direction = _v3A.copy(_v3A.setFromSpherical(this._sphericalEnd)).normalize().negate();
+	          var direction = _v3A.copy(_v3A.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse)).normalize().negate();
 
-	          var planeX = _v3B.copy(direction).cross(_v3C.set(0.0, 1.0, 0.0)).normalize();
+	          var planeX = _v3B.copy(direction).cross(_v3C.copy(this._camera.up)).normalize();
+
+	          if (planeX.lengthSq() === 0) planeX.x = 1.0;
 
 	          var planeY = _v3C.crossVectors(planeX, direction);
 
@@ -868,12 +879,12 @@
 
 	      this._spherical.makeSafe();
 
-	      this._camera.position.setFromSpherical(this._spherical).add(this._target);
+	      this._camera.position.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).add(this._target);
 
 	      this._camera.lookAt(this._target);
 
 	      if (this._boundaryEnclosesCamera) {
-	        this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical), 1.0);
+	        this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse), 1.0);
 	      }
 
 	      var updated = this._hasUpdated;
@@ -931,7 +942,7 @@
 
 	      this._targetEnd.fromArray(obj.target);
 
-	      this._sphericalEnd.setFromVector3(position.sub(this._target0));
+	      this._sphericalEnd.setFromVector3(position.sub(this._target0).applyQuaternion(this._yAxisUpSpace));
 
 	      if (!enableTransition) {
 	        this._target.copy(this._targetEnd);
