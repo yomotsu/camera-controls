@@ -669,7 +669,7 @@ export default class CameraControls extends EventDispatcher {
 		const target = _v3B.set( targetX, targetY, targetZ );
 
 		this._targetEnd.copy( target );
-		this._sphericalEnd.setFromVector3( position.sub( target ) );
+		this._sphericalEnd.setFromVector3( position.sub( target ).applyQuaternion( this._yAxisUpSpace ) );
 		this._sanitizeSphericals();
 
 		if ( ! enableTransition ) {
