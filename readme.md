@@ -62,7 +62,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 CameraControls uses Spherical Coordinates for orbit rotations.
 
-If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation and Polar angle will be the angle for vertiacal position.
+If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation and Polar angle will be the angle for vertical position.
 
 ![](https://yomotsu.github.io/camera-controls/examples/fig1.png)
 
