@@ -54,12 +54,12 @@ const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 
 camera.up.set( 0, 0, 1 );
+camera.position.set( 0, 5, 0 );
 const renderer = new THREE.WebGLRenderer( { antialias: true, stencil: false } );
 renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-cameraControls.setLookAt( 0, 5, 0, 0, 0, 0, true );
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),
