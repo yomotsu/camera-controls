@@ -95,7 +95,7 @@ export default class CameraControls extends EventDispatcher {
 		this._targetEnd = new THREE.Vector3();
 
 		// rotation
-		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.applyQuaternion( this._yAxisUpSpace ) );
+		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.clone().applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
 
 		// reset
