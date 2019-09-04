@@ -242,7 +242,7 @@ function (_EventDispatcher) {
     _this._target = new THREE.Vector3();
     _this._targetEnd = new THREE.Vector3(); // rotation
 
-    _this._spherical = new THREE.Spherical().setFromVector3(_this._camera.position.applyQuaternion(_this._yAxisUpSpace));
+    _this._spherical = new THREE.Spherical().setFromVector3(_this._camera.position.clone().applyQuaternion(_this._yAxisUpSpace));
     _this._sphericalEnd = _this._spherical.clone(); // reset
 
     _this._target0 = _this._target.clone();
@@ -684,7 +684,7 @@ function (_EventDispatcher) {
 
       this._targetEnd.copy(target);
 
-      this._sphericalEnd.setFromVector3(position.sub(target));
+      this._sphericalEnd.setFromVector3(position.sub(target).applyQuaternion(this._yAxisUpSpace));
 
       this._sanitizeSphericals();
 
