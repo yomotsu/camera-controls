@@ -271,6 +271,11 @@ export default class CameraControls extends EventDispatcher {
 
 				dollyInternal( - delta, x, y );
 
+				scope.dispatchEvent( {
+					type: 'control',
+					originalEvent: event,
+				} );
+
 			}
 
 			function onContextMenu( event ) {
