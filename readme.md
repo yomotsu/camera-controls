@@ -329,6 +329,12 @@ Set current camera position as the default position
 
 ---
 
+##### `normalizeRotations()`
+
+Normalize camera azimuth angle rotation between 0 and 360 degrees.
+
+---
+
 #### `reset( enableTransition )`
 
 Reset all rotation and position to default.

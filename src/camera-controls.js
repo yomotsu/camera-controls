@@ -659,7 +659,7 @@ export default class CameraControls extends EventDispatcher {
 		const cz = boundingBoxCenter.z;
 		this.moveTo( cx, cy, cz, enableTransition );
 
-		this._sanitizeSphericals();
+		this.normalizeRotations();
 		this.rotateTo( 0, 90 * THREE.Math.DEG2RAD, enableTransition );
 
 	}
@@ -675,7 +675,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this._targetEnd.copy( target );
 		this._sphericalEnd.setFromVector3( position.sub( target ).applyQuaternion( this._yAxisUpSpace ) );
-		this._sanitizeSphericals();
+		this.normalizeRotations();
 
 		if ( ! enableTransition ) {
 
@@ -716,7 +716,7 @@ export default class CameraControls extends EventDispatcher {
 			_sphericalA.theta  + deltaTheta  * t
 		);
 
-		this._sanitizeSphericals();
+		this.normalizeRotations();
 
 		if ( ! enableTransition ) {
 
@@ -815,6 +815,15 @@ export default class CameraControls extends EventDispatcher {
 
 		const _out = !! out && out.isVector3 ? out : new THREE.Vector3();
 		return _out.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._targetEnd );
+
+	}
+
+	normalizeRotations() {
+
+		this._sphericalEnd.theta = this._sphericalEnd.theta % ( PI_2 );
+		this._spherical.theta += PI_2 * Math.round(
+			( this._sphericalEnd.theta - this._spherical.theta ) / ( PI_2 )
+		);
 
 	}
 
@@ -1032,15 +1041,6 @@ export default class CameraControls extends EventDispatcher {
 				.add( deltaClampedTarget.multiplyScalar( 1.0 - friction ) );
 
 		}
-
-	}
-
-	_sanitizeSphericals() {
-
-		this._sphericalEnd.theta = this._sphericalEnd.theta % ( PI_2 );
-		this._spherical.theta += PI_2 * Math.round(
-			( this._sphericalEnd.theta - this._spherical.theta ) / ( PI_2 )
-		);
 
 	}
 

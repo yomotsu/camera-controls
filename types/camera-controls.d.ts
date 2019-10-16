@@ -72,6 +72,7 @@ export default class CameraControls extends EventDispatcher {
   public getDistanceToFit( width: number, height: number, depth: number ): number;
   public getTarget( out?: THREE.Vector3 ): THREE.Vector3;
   public getPosition( out?: THREE.Vector3 ): THREE.Vector3;
+  public normalizeRotations(): void;
   public reset( enableTransition?: boolean ): void;
   public saveState(): void;
   public update( delta: number ): boolean;
