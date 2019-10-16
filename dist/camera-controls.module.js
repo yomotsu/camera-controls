@@ -351,6 +351,10 @@ function (_EventDispatcher) {
         }
 
         dollyInternal(-delta, x, y);
+        scope.dispatchEvent({
+          type: 'control',
+          originalEvent: event
+        });
       };
 
       var onContextMenu = function onContextMenu(event) {
@@ -670,9 +674,7 @@ function (_EventDispatcher) {
       var cy = boundingBoxCenter.y + (paddingTop * 0.5 - paddingBottom * 0.5);
       var cz = boundingBoxCenter.z;
       this.moveTo(cx, cy, cz, enableTransition);
-
-      this._sanitizeSphericals();
-
+      this.normalizeRotations();
       this.rotateTo(0, 90 * THREE.Math.DEG2RAD, enableTransition);
     }
   }, {
@@ -686,7 +688,7 @@ function (_EventDispatcher) {
 
       this._sphericalEnd.setFromVector3(position.sub(target).applyQuaternion(this._yAxisUpSpace));
 
-      this._sanitizeSphericals();
+      this.normalizeRotations();
 
       if (!enableTransition) {
         this._target.copy(this._targetEnd);
@@ -720,7 +722,7 @@ function (_EventDispatcher) {
 
       this._sphericalEnd.set(_sphericalA.radius + deltaRadius * t, _sphericalA.phi + deltaPhi * t, _sphericalA.theta + deltaTheta * t);
 
-      this._sanitizeSphericals();
+      this.normalizeRotations();
 
       if (!enableTransition) {
         this._target.copy(this._targetEnd);
@@ -801,6 +803,12 @@ function (_EventDispatcher) {
       var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 
       return _out.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).add(this._targetEnd);
+    }
+  }, {
+    key: "normalizeRotations",
+    value: function normalizeRotations() {
+      this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
+      this._spherical.theta += PI_2 * Math.round((this._sphericalEnd.theta - this._spherical.theta) / PI_2);
     }
   }, {
     key: "reset",
@@ -984,12 +992,6 @@ function (_EventDispatcher) {
         var offsetFactor = 1.0 + friction * deltaClampedTargetLength2 / offset.dot(deltaClampedTarget);
         return position.add(_v3B.copy(offset).multiplyScalar(offsetFactor)).add(deltaClampedTarget.multiplyScalar(1.0 - friction));
       }
-    }
-  }, {
-    key: "_sanitizeSphericals",
-    value: function _sanitizeSphericals() {
-      this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
-      this._spherical.theta += PI_2 * Math.round((this._sphericalEnd.theta - this._spherical.theta) / PI_2);
     }
     /**
      * Get its client rect and package into given `THREE.Vector4` .
