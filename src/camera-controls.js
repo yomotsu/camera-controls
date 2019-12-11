@@ -433,9 +433,10 @@ export default class CameraControls extends EventDispatcher {
 
 			function dollyInternal( delta, x, y ) {
 
+				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
+
 				if ( scope._camera.isPerspectiveCamera && scope.unstable_useDolly ) {
 
-					const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 					const distance = scope._sphericalEnd.radius * dollyScale;
 					const prevRadius = scope._sphericalEnd.radius;
 
@@ -453,7 +454,7 @@ export default class CameraControls extends EventDispatcher {
 				} else if ( ! scope.unstable_useDolly ) {
 
 					// for both PerspectiveCamera and OrthographicCamera
-					const dollyScale = Math.pow( 0.95, delta * scope.dollySpeed );
+					// const dollyScale = Math.pow( 0.95, delta * scope.dollySpeed );
 					scope.zoomTo( scope._fovOrZoom * dollyScale );
 					return;
 
@@ -861,7 +862,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this._target0.copy( this._target );
 		this._position0.copy( this._camera.position );
-		this._zoom0 = this._fovOrZoom;
+		this._fovOrZoom0 = this._fovOrZoom;
 
 	}
 
@@ -874,9 +875,7 @@ export default class CameraControls extends EventDispatcher {
 
 	update( delta ) {
 
-		const dampingFactor = this._state === STATE.NONE ?
-			this.dampingFactor :
-			this.draggingDampingFactor;
+		const dampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
 		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta / 0.016 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
@@ -953,8 +952,10 @@ export default class CameraControls extends EventDispatcher {
 
 		if (
 			this._camera.isPerspectiveCamera &&
-			Math.abs( this._camera.fov - this._fovOrZoom ) > EPSILON
+			this._camera.fov !== this._fovOrZoom
 		) {
+
+			if ( Math.abs( this._camera.fov - this._fovOrZoom ) > EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
 
 			this._camera.fov = this._fovOrZoom;
 			this._camera.updateProjectionMatrix();
@@ -963,8 +964,10 @@ export default class CameraControls extends EventDispatcher {
 
 		} else if (
 			this._camera.isOrthographicCamera &&
-			Math.abs( this._camera.zoom - this._fovOrZoom ) > EPSILON
+			this._camera.zoom !== this._fovOrZoom
 		) {
+
+			if ( Math.abs( this._camera.zoom - this._fovOrZoom ) > EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
 
 			this._camera.zoom = this._fovOrZoom;
 			this._camera.updateProjectionMatrix();
