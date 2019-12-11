@@ -11,7 +11,9 @@ let _xColumn;
 let _yColumn;
 let _sphericalA;
 let _sphericalB;
-const EPSILON = 0.001;
+
+const isMac = /Mac/.test( navigator.platform );
+const EPSILON = 1e-3;
 const PI_2 = Math.PI * 2;
 const STATE = {
 	NONE              : - 1,
@@ -56,11 +58,14 @@ export default class CameraControls extends EventDispatcher {
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			this.minDistance = 0;
 			this.maxDistance = Infinity;
+			this.unstable_useDolly = !true; // this may be changed the name
+			this.minFov = 1;
+			this.maxFov = 180;
 
 		} else if ( this._camera.isOrthographicCamera ) {
 
 			// How far you can zoom in and out ( OrthographicCamera only )
-			this.minZoom = 0;
+			this.minZoom = 0.01;
 			this.maxZoom = Infinity;
 
 		}
@@ -92,16 +97,28 @@ export default class CameraControls extends EventDispatcher {
 
 		// the location of focus, where the object orbits around
 		this._target = new THREE.Vector3();
-		this._targetEnd = new THREE.Vector3();
+		this._targetEnd = this._target.clone();
 
 		// rotation
 		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.clone().applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
 
+		this._zoomLevel =
+			this._camera.isOrthographicCamera ?
+				this._camera.zoom :
+				THREE.Math.mapLinear(
+					this._camera.fov,
+					this.minFov,
+					this.maxFov,
+					0,
+					1,
+				);
+		this._zoomLevelEnd = this._zoomLevel;
+
 		// reset
 		this._target0 = this._target.clone();
 		this._position0 = this._camera.position.clone();
-		this._zoom0 = this._camera.zoom;
+		this._zoom0 = this._zoomLevel;
 
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
@@ -241,23 +258,12 @@ export default class CameraControls extends EventDispatcher {
 
 				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 				const mouseDeltaFactor = 120;
-				const deltaYFactor = navigator.platform.indexOf( 'Mac' ) === 0 ? - 1 : - 3;
+				const deltaYFactor = isMac ? - 1 : - 3;
 
-				let delta;
-
-				if ( event.wheelDelta !== undefined ) {
-
-					delta = event.wheelDelta / mouseDeltaFactor;
-
-				} else if ( event.deltaMode === 1 ) {
-
-					delta = event.deltaY / deltaYFactor;
-
-				} else {
-
-					delta = event.deltaY / ( 10 * deltaYFactor );
-
-				}
+				const delta =
+					( event.wheelDelta !== undefined ) ? event.wheelDelta / mouseDeltaFactor :
+					( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor :
+					event.deltaY / ( deltaYFactor * 10 );
 
 				let x, y;
 
@@ -354,18 +360,18 @@ export default class CameraControls extends EventDispatcher {
 
 					case STATE.TOUCH_DOLLY_TRUCK:
 
+						const TOUCH_DOLLY_FACTOR = 8;
 						const dx = _v2.x - event.touches[ 1 ].clientX;
 						const dy = _v2.y - event.touches[ 1 ].clientY;
 						const distance = Math.sqrt( dx * dx + dy * dy );
 						const dollyDelta = dollyStart.y - distance;
-
-						const touchDollyFactor = 8;
+						dollyStart.set( 0, distance );
 
 						const dollyX = scope.dollyToCursor ? ( dragStart.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
 						const dollyY = scope.dollyToCursor ? ( dragStart.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
-						dollyInternal( dollyDelta / touchDollyFactor, dollyX, dollyY );
 
-						dollyStart.set( 0, distance );
+						dollyInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+
 						truckInternal( deltaX, deltaY );
 						break;
 
@@ -438,12 +444,12 @@ export default class CameraControls extends EventDispatcher {
 
 				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 
-				if ( scope._camera.isPerspectiveCamera ) {
+				if ( scope._camera.isPerspectiveCamera && scope.unstable_useDolly ) {
 
-					const distance = scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius;
+					const distance = scope._sphericalEnd.radius * dollyScale;
 					const prevRadius = scope._sphericalEnd.radius;
 
-					scope.dolly( distance );
+					scope.dollyTo( distance );
 
 					if ( scope.dollyToCursor ) {
 
@@ -452,13 +458,13 @@ export default class CameraControls extends EventDispatcher {
 
 					}
 
+					return;
 
+				} else if ( ! scope.unstable_useDolly ) {
 
-				} else if ( scope._camera.isOrthographicCamera ) {
-
-					scope._camera.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope._camera.zoom * dollyScale ) );
-					scope._camera.updateProjectionMatrix();
-					scope._hasUpdated = true;
+					// for both PerspectiveCamera and OrthographicCamera
+					scope.zoomTo( scope._zoomLevel * dollyScale );
+					return;
 
 				}
 
@@ -533,13 +539,6 @@ export default class CameraControls extends EventDispatcher {
 
 	dolly( distance, enableTransition ) {
 
-		if ( this._camera.isOrthographicCamera ) {
-
-			console.warn( 'dolly is not available for OrthographicCamera' );
-			return;
-
-		}
-
 		this.dollyTo( this._sphericalEnd.radius + distance, enableTransition );
 
 	}
@@ -562,6 +561,28 @@ export default class CameraControls extends EventDispatcher {
 		if ( ! enableTransition ) {
 
 			this._spherical.radius = this._sphericalEnd.radius;
+
+		}
+
+		this._hasUpdated = true;
+
+	}
+
+	zoom( zoomStep, enableTransition ) {
+
+		this.zoomTo( this._zoomLevelEnd + zoomStep, enableTransition );
+
+	}
+
+	zoomTo( level, enableTransition ) {
+
+		this._zoomLevelEnd = this._camera.isPerspectiveCamera ?
+			THREE.Math.clamp( level, 0, 1 ) :
+			THREE.Math.clamp( level, this.minZoom, this.maxZoom );
+
+		if ( ! enableTransition ) {
+
+			this._zoomLevel = this._zoomLevelEnd;
 
 		}
 
@@ -834,6 +855,7 @@ export default class CameraControls extends EventDispatcher {
 			this._target0.x, this._target0.y, this._target0.z,
 			enableTransition
 		);
+		this.zoomTo( this._zoom0, enableTransition );
 
 	}
 
@@ -841,7 +863,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this._target0.copy( this._target );
 		this._position0.copy( this._camera.position );
-		this._zoom0 = this._camera.zoom;
+		this._zoom0 = this._zoomLevel;
 
 	}
 
@@ -854,8 +876,10 @@ export default class CameraControls extends EventDispatcher {
 
 	update( delta ) {
 
-		const currentDampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		const lerpRatio = 1.0 - Math.exp( - currentDampingFactor * delta / 0.016 );
+		const dampingFactor = this._state === STATE.NONE ?
+			this.dampingFactor :
+			this.draggingDampingFactor;
+		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta / 0.016 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
@@ -922,6 +946,38 @@ export default class CameraControls extends EventDispatcher {
 				_v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ),
 				1.0
 			);
+
+		}
+
+		// zoom
+		const zoomLevelDelta = this._zoomLevelEnd - this._zoomLevel;
+		this._zoomLevel += zoomLevelDelta * lerpRatio;
+		console.log(this._zoomLevel);
+		
+
+		if ( this._camera.isPerspectiveCamera ) {
+
+			const newFov = THREE.Math.lerp( this.minFov, this.maxFov, this._zoomLevel );
+
+			if ( Math.abs( this._camera.fov - newFov ) > EPSILON ) {
+
+				this._camera.fov = newFov;
+				this._camera.updateProjectionMatrix();
+
+				this._hasUpdated = true;
+
+			}
+
+		} else if ( this._camera.isOrthographicCamera ) {
+
+			if ( Math.abs( this._camera.zoom - this._zoomLevel ) > EPSILON ) {
+
+				this._camera.zoom = this._zoomLevel;
+				this._camera.updateProjectionMatrix();
+
+				this._hasUpdated = true;
+
+			}
 
 		}
 
