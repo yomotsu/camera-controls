@@ -30,6 +30,8 @@ label{
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 	<br>
+	<label><input type="checkbox" onchange="cameraControls.unstable_useDolly = ! this.checked">wheel(pinch) to zoom (disable wheel(pinch) dolly)</label>
+	<br>
 	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
 	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
 	<button onclick="cameraControls.rotate( 360 * THREE.Math.DEG2RAD, 0, true )">rotate theta 360deg</button>
