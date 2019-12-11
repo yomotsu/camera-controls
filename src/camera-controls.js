@@ -58,7 +58,7 @@ export default class CameraControls extends EventDispatcher {
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			this.minDistance = 0;
 			this.maxDistance = Infinity;
-			this.unstable_useDolly = !true; // this may be changed the name
+			this.unstable_useDolly = true; // this may be changed the name
 			this.minFov = 1;
 			this.maxFov = 180;
 
@@ -103,22 +103,13 @@ export default class CameraControls extends EventDispatcher {
 		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.clone().applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
 
-		this._zoomLevel =
-			this._camera.isOrthographicCamera ?
-				this._camera.zoom :
-				THREE.Math.mapLinear(
-					this._camera.fov,
-					this.minFov,
-					this.maxFov,
-					0,
-					1,
-				);
-		this._zoomLevelEnd = this._zoomLevel;
+		this._fovOrZoom = this._camera.isPerspectiveCamera ? this._camera.fov : this._camera.zoom;
+		this._fovOrZoomEnd = this._fovOrZoom;
 
 		// reset
 		this._target0 = this._target.clone();
 		this._position0 = this._camera.position.clone();
-		this._zoom0 = this._zoomLevel;
+		this._fovOrZoom0 = this._fovOrZoom;
 
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
@@ -442,10 +433,9 @@ export default class CameraControls extends EventDispatcher {
 
 			function dollyInternal( delta, x, y ) {
 
-				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
-
 				if ( scope._camera.isPerspectiveCamera && scope.unstable_useDolly ) {
 
+					const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 					const distance = scope._sphericalEnd.radius * dollyScale;
 					const prevRadius = scope._sphericalEnd.radius;
 
@@ -463,7 +453,8 @@ export default class CameraControls extends EventDispatcher {
 				} else if ( ! scope.unstable_useDolly ) {
 
 					// for both PerspectiveCamera and OrthographicCamera
-					scope.zoomTo( scope._zoomLevel * dollyScale );
+					const dollyScale = Math.pow( 0.95, delta * scope.dollySpeed );
+					scope.zoomTo( scope._fovOrZoom * dollyScale );
 					return;
 
 				}
@@ -568,21 +559,28 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
-	zoom( zoomStep, enableTransition ) {
+	// `fovOrZoomStep` is:
+	// FOV angle in degrees for PerspectiveCamera
+	// zoom level for OrthographicCamera
+	zoom( fovOrZoomStep, enableTransition ) {
 
-		this.zoomTo( this._zoomLevelEnd + zoomStep, enableTransition );
+		const fovOrZoom = this._camera.isPerspectiveCamera ?
+			this._fovOrZoomEnd - fovOrZoomStep :
+			this._fovOrZoomEnd + fovOrZoomStep;
+
+		this.zoomTo( fovOrZoom, enableTransition );
 
 	}
 
-	zoomTo( level, enableTransition ) {
+	zoomTo( fovOrZoom, enableTransition ) {
 
-		this._zoomLevelEnd = this._camera.isPerspectiveCamera ?
-			THREE.Math.clamp( level, 0, 1 ) :
-			THREE.Math.clamp( level, this.minZoom, this.maxZoom );
+		this._fovOrZoomEnd = this._camera.isPerspectiveCamera ?
+			THREE.Math.clamp( fovOrZoom, this.minFov, this.maxFov ) :
+			THREE.Math.clamp( fovOrZoom, this.minZoom, this.maxZoom );
 
 		if ( ! enableTransition ) {
 
-			this._zoomLevel = this._zoomLevelEnd;
+			this._fovOrZoom = this._fovOrZoomEnd;
 
 		}
 
@@ -855,7 +853,7 @@ export default class CameraControls extends EventDispatcher {
 			this._target0.x, this._target0.y, this._target0.z,
 			enableTransition
 		);
-		this.zoomTo( this._zoom0, enableTransition );
+		this.zoomTo( this._fovOrZoom0, enableTransition );
 
 	}
 
@@ -863,7 +861,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this._target0.copy( this._target );
 		this._position0.copy( this._camera.position );
-		this._zoom0 = this._zoomLevel;
+		this._zoom0 = this._fovOrZoom;
 
 	}
 
@@ -950,34 +948,28 @@ export default class CameraControls extends EventDispatcher {
 		}
 
 		// zoom
-		const zoomLevelDelta = this._zoomLevelEnd - this._zoomLevel;
-		this._zoomLevel += zoomLevelDelta * lerpRatio;
-		console.log(this._zoomLevel);
-		
+		const zoomDelta = this._fovOrZoomEnd - this._fovOrZoom;
+		this._fovOrZoom += zoomDelta * lerpRatio;
 
-		if ( this._camera.isPerspectiveCamera ) {
+		if (
+			this._camera.isPerspectiveCamera &&
+			Math.abs( this._camera.fov - this._fovOrZoom ) > EPSILON
+		) {
 
-			const newFov = THREE.Math.lerp( this.minFov, this.maxFov, this._zoomLevel );
+			this._camera.fov = this._fovOrZoom;
+			this._camera.updateProjectionMatrix();
 
-			if ( Math.abs( this._camera.fov - newFov ) > EPSILON ) {
+			this._hasUpdated = true;
 
-				this._camera.fov = newFov;
-				this._camera.updateProjectionMatrix();
+		} else if (
+			this._camera.isOrthographicCamera &&
+			Math.abs( this._camera.zoom - this._fovOrZoom ) > EPSILON
+		) {
 
-				this._hasUpdated = true;
+			this._camera.zoom = this._fovOrZoom;
+			this._camera.updateProjectionMatrix();
 
-			}
-
-		} else if ( this._camera.isOrthographicCamera ) {
-
-			if ( Math.abs( this._camera.zoom - this._zoomLevel ) > EPSILON ) {
-
-				this._camera.zoom = this._zoomLevel;
-				this._camera.updateProjectionMatrix();
-
-				this._hasUpdated = true;
-
-			}
+			this._hasUpdated = true;
 
 		}
 
