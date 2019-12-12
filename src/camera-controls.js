@@ -13,7 +13,7 @@ let _sphericalA;
 let _sphericalB;
 
 const isMac = /Mac/.test( navigator.platform );
-const EPSILON = 1e-3;
+const EPSILON = 1e-5;
 const PI_2 = Math.PI * 2;
 const STATE = {
 	NONE              : - 1,
@@ -144,32 +144,6 @@ export default class CameraControls extends EventDispatcher {
 				document.removeEventListener( 'touchend', endDragging );
 
 			};
-
-			function extractClientCoordFromEvent( event, out ) {
-
-				out.set( 0, 0 );
-
-				if ( isTouchEvent( event ) ) {
-
-					for ( let i = 0; i < event.touches.length; i ++ ) {
-
-						out.x += event.touches[ i ].clientX;
-						out.y += event.touches[ i ].clientY;
-
-					}
-
-					out.x /= event.touches.length;
-					out.y /= event.touches.length;
-					return out;
-
-				} else {
-
-					out.set( event.clientX, event.clientY );
-					return out;
-
-				}
-
-			}
 
 			function onMouseDown( event ) {
 
@@ -955,7 +929,7 @@ export default class CameraControls extends EventDispatcher {
 			this._camera.fov !== this._fovOrZoom
 		) {
 
-			if ( Math.abs( this._camera.fov - this._fovOrZoom ) > EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
+			if ( Math.abs( this._camera.fov - this._fovOrZoom ) < EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
 
 			this._camera.fov = this._fovOrZoom;
 			this._camera.updateProjectionMatrix();
@@ -967,7 +941,7 @@ export default class CameraControls extends EventDispatcher {
 			this._camera.zoom !== this._fovOrZoom
 		) {
 
-			if ( Math.abs( this._camera.zoom - this._fovOrZoom ) > EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
+			if ( Math.abs( this._camera.zoom - this._fovOrZoom ) < EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
 
 			this._camera.zoom = this._fovOrZoom;
 			this._camera.updateProjectionMatrix();
@@ -1120,6 +1094,32 @@ export default class CameraControls extends EventDispatcher {
 		}
 
 		return target;
+
+	}
+
+}
+
+function extractClientCoordFromEvent( event, out ) {
+
+	out.set( 0, 0 );
+
+	if ( isTouchEvent( event ) ) {
+
+		for ( let i = 0; i < event.touches.length; i ++ ) {
+
+			out.x += event.touches[ i ].clientX;
+			out.y += event.touches[ i ].clientY;
+
+		}
+
+		out.x /= event.touches.length;
+		out.y /= event.touches.length;
+		return out;
+
+	} else {
+
+		out.set( event.clientX, event.clientY );
+		return out;
 
 	}
 

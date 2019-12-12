@@ -18,8 +18,11 @@ export default class CameraControls extends EventDispatcher {
   public enabled: boolean;
   public minDistance: number;
   public maxDistance: number;
-  public minZoom: number;
-  public maxZoom: number;
+  public unstable_useDolly?: boolean;
+  public minFav?: number;
+  public maxFav?: number;
+  public minZoom?: number;
+  public maxZoom?: number;
   public minPolarAngle: number;
   public maxPolarAngle: number;
   public minAzimuthAngle: number;
@@ -42,6 +45,8 @@ export default class CameraControls extends EventDispatcher {
   public rotateTo( azimuthAngle: number, polarAngle: number, enableTransition?: boolean ): void;
   public dolly( distance: number, enableTransition?: boolean ): void;
   public dollyTo( distance: number, enableTransition?: boolean ): void;
+  public zoom( fovOrZoomStep: number, enableTransition?: boolean ): void;
+  public zoomTo( fovOrZoomStep: number, enableTransition?: boolean ): void;
   public pan( x: number, y: number, enableTransition?: boolean ): void;
   public truck( x: number, y: number, enableTransition?: boolean ): void;
   public forward( distance: number, enableTransition?: boolean ): void;
@@ -87,10 +92,12 @@ export default class CameraControls extends EventDispatcher {
 	protected _target: THREE.Vector3;
 	protected _targetEnd: THREE.Vector3;
 	protected _spherical: THREE.Spherical;
-	protected _sphericalEnd: THREE.Spherical;
+  protected _sphericalEnd: THREE.Spherical;
+  protected _fovOrZoom: number;
+  protected _fovOrZoomEnd: number;
 	protected _target0: THREE.Vector3;
 	protected _position0: THREE.Vector3;
-	protected _zoom0: number;
+	protected _fovOrZoom0: number;
 	protected _dollyControlAmount: number;
 	protected _dollyControlCoord: THREE.Vector2;
 	protected _boundary: THREE.Box3;
