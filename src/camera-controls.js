@@ -15,15 +15,15 @@ let _sphericalB;
 const isMac = /Mac/.test( navigator.platform );
 const EPSILON = 1e-5;
 const PI_2 = Math.PI * 2;
-const STATE = {
-	NONE              : - 1,
-	ROTATE            :   0,
-	DOLLY             :   1,
-	TRUCK             :   2,
-	TOUCH_ROTATE      :   3,
-	TOUCH_DOLLY_TRUCK :   4,
-	TOUCH_TRUCK       :   5,
-};
+const ACTION = Object.freeze( {
+	NONE: 0,
+	ROTATE: 1,
+	TRUCK: 2,
+	DOLLY: 3,
+	ZOOM: 4,
+	DOLLY_TRUCK: 5,
+	ZOOM_TRUCK: 6,
+} );
 
 export default class CameraControls extends EventDispatcher {
 
@@ -43,6 +43,12 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
+	static get ACTION() {
+
+		return ACTION;
+
+	};
+
 	constructor( camera, domElement, options = {} ) {
 
 		super();
@@ -50,7 +56,7 @@ export default class CameraControls extends EventDispatcher {
 		this._camera = camera;
 		this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
 		this._yAxisUpSpaceInverse = this._yAxisUpSpace.clone().inverse();
-		this._state = STATE.NONE;
+		this._state = ACTION.NONE;
 		this.enabled = true;
 
 		if ( this._camera.isPerspectiveCamera ) {
@@ -58,7 +64,6 @@ export default class CameraControls extends EventDispatcher {
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			this.minDistance = 0;
 			this.maxDistance = Infinity;
-			this.unstable_useDolly = true; // this may be changed the name
 			this.minFov = 1;
 			this.maxFov = 180;
 
@@ -105,6 +110,26 @@ export default class CameraControls extends EventDispatcher {
 
 		this._fovOrZoom = this._camera.isPerspectiveCamera ? this._camera.fov : this._camera.zoom;
 		this._fovOrZoomEnd = this._fovOrZoom;
+
+		this.mouseButtons = {
+			left: ACTION.ROTATE,
+			middle: ACTION.DOLLY,
+			right: ACTION.TRUCK,
+			wheel:
+				this._camera.isPerspectiveCamera ? ACTION.DOLLY :
+				this._camera.isOrthographicCamera ? ACTION.ZOOM :
+				ACTION.NONE,
+			// We can also add shiftLeft, altLeft and etc if someone wants...
+		};
+
+		this.touches = {
+			one: ACTION.ROTATE,
+			two:
+				this._camera.isPerspectiveCamera ? ACTION.DOLLY_TRUCK :
+				this._camera.isOrthographicCamera ? ACTION.ZOOM_TRUCK :
+				ACTION.NONE,
+			three: ACTION.TRUCK,
+		};
 
 		// reset
 		this._target0 = this._target.clone();
@@ -157,17 +182,17 @@ export default class CameraControls extends EventDispatcher {
 
 					case THREE.MOUSE.LEFT:
 
-						scope._state = STATE.ROTATE;
+						scope._state = scope.mouseButtons.left;
 						break;
 
 					case THREE.MOUSE.MIDDLE:
 
-						scope._state = STATE.DOLLY;
+						scope._state = scope.mouseButtons.middle;
 						break;
 
 					case THREE.MOUSE.RIGHT:
 
-						scope._state = STATE.TRUCK;
+						scope._state = scope.mouseButtons.right;
 						break;
 
 				}
@@ -190,19 +215,19 @@ export default class CameraControls extends EventDispatcher {
 
 				switch ( event.touches.length ) {
 
-					case 1:	// one-fingered touch: rotate
+					case 1:
 
-						scope._state = STATE.TOUCH_ROTATE;
+						scope._state = scope.touches.one;
 						break;
 
-					case 2:	// two-fingered touch: dolly
+					case 2:
 
-						scope._state = STATE.TOUCH_DOLLY_TRUCK;
+						scope._state = scope.touches.two;
 						break;
 
-					case 3: // three-fingered touch: truck
+					case 3:
 
-						scope._state = STATE.TOUCH_TRUCK;
+						scope._state = scope.touches.three;
 						break;
 
 				}
@@ -240,7 +265,22 @@ export default class CameraControls extends EventDispatcher {
 
 				}
 
-				dollyInternal( - delta, x, y );
+				switch ( scope.mouseButtons.wheel ) {
+
+					case ACTION.DOLLY: {
+
+						dollyInternal( - delta, x, y );
+						break;
+
+					}
+					case ACTION.ZOOM: {
+
+						zoomInternal( - delta, x, y );
+						break;
+
+					}
+
+				}
 
 				scope.dispatchEvent( {
 					type: 'control',
@@ -268,7 +308,7 @@ export default class CameraControls extends EventDispatcher {
 				elementRect = scope._getClientRect( _v4 );
 				dragStart.copy( _v2 );
 
-				if ( scope._state === STATE.TOUCH_DOLLY_TRUCK ) {
+				if ( scope._state === ACTION.DOLLY_TRUCK ) {
 
 					// 2 finger pinch
 					const dx = _v2.x - event.touches[ 1 ].clientX;
@@ -312,18 +352,19 @@ export default class CameraControls extends EventDispatcher {
 
 				switch ( scope._state ) {
 
-					case STATE.ROTATE:
-					case STATE.TOUCH_ROTATE:
+					case ACTION.ROTATE:
 						const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
 						const phi   = PI_2 * scope.polarRotateSpeed   * deltaY / elementRect.w;
 						scope.rotate( theta, phi, true );
 						break;
 
-					case STATE.DOLLY:
+					case ACTION.DOLLY:
+					case ACTION.ZOOM:
 						// not implemented
 						break;
 
-					case STATE.TOUCH_DOLLY_TRUCK:
+					case ACTION.DOLLY_TRUCK:
+					case ACTION.ZOOM_TRUCK:
 
 						const TOUCH_DOLLY_FACTOR = 8;
 						const dx = _v2.x - event.touches[ 1 ].clientX;
@@ -335,13 +376,13 @@ export default class CameraControls extends EventDispatcher {
 						const dollyX = scope.dollyToCursor ? ( dragStart.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
 						const dollyY = scope.dollyToCursor ? ( dragStart.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 
-						dollyInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+						if ( scope._state === ACTION.DOLLY_TRUCK ) dollyInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+						if ( scope._state === ACTION.ZOOM_TRUCK ) zoomInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
 						truckInternal( deltaX, deltaY );
 						break;
 
-					case STATE.TRUCK:
-					case STATE.TOUCH_TRUCK:
+					case ACTION.TRUCK:
 
 						truckInternal( deltaX, deltaY );
 						break;
@@ -359,7 +400,7 @@ export default class CameraControls extends EventDispatcher {
 
 				if ( ! scope.enabled ) return;
 
-				scope._state = STATE.NONE;
+				scope._state = ACTION.NONE;
 
 				document.removeEventListener( 'mousemove', dragging, { passive: false } );
 				document.removeEventListener( 'touchmove', dragging, { passive: false } );
@@ -425,14 +466,17 @@ export default class CameraControls extends EventDispatcher {
 
 					return;
 
-				} else if ( ! scope.unstable_useDolly ) {
-
-					// for both PerspectiveCamera and OrthographicCamera
-					// const dollyScale = Math.pow( 0.95, delta * scope.dollySpeed );
-					scope.zoomTo( scope._fovOrZoom * dollyScale );
-					return;
-
 				}
+
+			}
+
+			function zoomInternal( delta, x, y ) {
+
+				const zoomScale = Math.pow( 0.95, - delta * scope.dollySpeed );
+
+				// for both PerspectiveCamera and OrthographicCamera
+				scope.zoomTo( scope._fovOrZoom * zoomScale );
+				return;
 
 			}
 
@@ -849,7 +893,7 @@ export default class CameraControls extends EventDispatcher {
 
 	update( delta ) {
 
-		const dampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
+		const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
 		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta / 0.016 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
