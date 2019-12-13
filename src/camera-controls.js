@@ -449,28 +449,23 @@ export default class CameraControls extends EventDispatcher {
 			function dollyInternal( delta, x, y ) {
 
 				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
+				const distance = scope._sphericalEnd.radius * dollyScale;
+				const prevRadius = scope._sphericalEnd.radius;
 
-				if ( scope._camera.isPerspectiveCamera && scope.unstable_useDolly ) {
+				scope.dollyTo( distance );
 
-					const distance = scope._sphericalEnd.radius * dollyScale;
-					const prevRadius = scope._sphericalEnd.radius;
+				if ( scope.dollyToCursor ) {
 
-					scope.dollyTo( distance );
-
-					if ( scope.dollyToCursor ) {
-
-						scope._dollyControlAmount += scope._sphericalEnd.radius - prevRadius;
-						scope._dollyControlCoord.set( x, y );
-
-					}
-
-					return;
+					scope._dollyControlAmount += scope._sphericalEnd.radius - prevRadius;
+					scope._dollyControlCoord.set( x, y );
 
 				}
 
+				return;
+
 			}
 
-			function zoomInternal( delta, x, y ) {
+			function zoomInternal( delta, /* x, y */ ) {
 
 				const zoomScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 
