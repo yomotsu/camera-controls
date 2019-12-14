@@ -64,14 +64,8 @@ export default class CameraControls extends EventDispatcher {
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			this.minDistance = 0;
 			this.maxDistance = Infinity;
-			this.minFov = 1;
-			this.maxFov = 180;
-
-		} else if ( this._camera.isOrthographicCamera ) {
-
-			// How far you can zoom in and out ( OrthographicCamera only )
-			this.minZoom = 0.01;
-			this.maxZoom = Infinity;
+			// this.minFov = 1;
+			// this.maxFov = 180;
 
 		}
 
@@ -79,6 +73,8 @@ export default class CameraControls extends EventDispatcher {
 		this.maxPolarAngle = Math.PI; // radians
 		this.minAzimuthAngle = - Infinity; // radians
 		this.maxAzimuthAngle = Infinity; // radians
+		this.minZoom = 0.01;
+		this.maxZoom = Infinity;
 
 		// Target cannot move outside of this box
 		this._boundary = new THREE.Box3(
@@ -108,8 +104,8 @@ export default class CameraControls extends EventDispatcher {
 		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.clone().applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
 
-		this._fovOrZoom = this._camera.isPerspectiveCamera ? this._camera.fov : this._camera.zoom;
-		this._fovOrZoomEnd = this._fovOrZoom;
+		this._zoom = this._camera.zoom;
+		this._zoomEnd = this._zoom;
 
 		this.mouseButtons = {
 			left: ACTION.ROTATE,
@@ -134,7 +130,7 @@ export default class CameraControls extends EventDispatcher {
 		// reset
 		this._target0 = this._target.clone();
 		this._position0 = this._camera.position.clone();
-		this._fovOrZoom0 = this._fovOrZoom;
+		this._zoom0 = this._zoom;
 
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
@@ -420,7 +416,7 @@ export default class CameraControls extends EventDispatcher {
 
 					const offset = _v3A.copy( scope._camera.position ).sub( scope._target );
 					// half of the fov is center to top of screen
-					const fovInRad = scope._camera.fov * THREE.Math.DEG2RAD;
+					const fovInRad = scope._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
 					const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
 					const truckX    = ( scope.truckSpeed * deltaX * targetDistance / elementRect.w );
 					const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.w );
@@ -470,7 +466,7 @@ export default class CameraControls extends EventDispatcher {
 				const zoomScale = Math.pow( 0.95, - delta * scope.dollySpeed );
 
 				// for both PerspectiveCamera and OrthographicCamera
-				scope.zoomTo( scope._fovOrZoom * zoomScale );
+				scope.zoomTo( scope._zoom * zoomScale );
 				return;
 
 			}
@@ -544,7 +540,7 @@ export default class CameraControls extends EventDispatcher {
 
 	dolly( distance, enableTransition ) {
 
-		this.dollyTo( this._sphericalEnd.radius + distance, enableTransition );
+		this.dollyTo( this._sphericalEnd.radius - distance, enableTransition );
 
 	}
 
@@ -573,28 +569,19 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
-	// `fovOrZoomStep` is:
-	// FOV angle in degrees for PerspectiveCamera
-	// zoom level for OrthographicCamera
-	zoom( fovOrZoomStep, enableTransition ) {
+	zoom( zoomStep, enableTransition ) {
 
-		const fovOrZoom = this._camera.isPerspectiveCamera ?
-			this._fovOrZoomEnd - fovOrZoomStep :
-			this._fovOrZoomEnd + fovOrZoomStep;
-
-		this.zoomTo( fovOrZoom, enableTransition );
+		this.zoomTo( this._zoomEnd + zoomStep, enableTransition );
 
 	}
 
-	zoomTo( fovOrZoom, enableTransition ) {
+	zoomTo( zoom, enableTransition ) {
 
-		this._fovOrZoomEnd = this._camera.isPerspectiveCamera ?
-			THREE.Math.clamp( fovOrZoom, this.minFov, this.maxFov ) :
-			THREE.Math.clamp( fovOrZoom, this.minZoom, this.maxZoom );
+		this._zoomEnd = THREE.Math.clamp( zoom, this.minZoom, this.maxZoom );
 
 		if ( ! enableTransition ) {
 
-			this._fovOrZoom = this._fovOrZoomEnd;
+			this._zoom = this._zoomEnd;
 
 		}
 
@@ -829,7 +816,7 @@ export default class CameraControls extends EventDispatcher {
 
 		const camera = this._camera;
 		const boundingRectAspect = width / height;
-		const fov = camera.fov * THREE.Math.DEG2RAD;
+		const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
 		const aspect = camera.aspect;
 
 		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
@@ -867,7 +854,7 @@ export default class CameraControls extends EventDispatcher {
 			this._target0.x, this._target0.y, this._target0.z,
 			enableTransition
 		);
-		this.zoomTo( this._fovOrZoom0, enableTransition );
+		this.zoomTo( this._zoom0, enableTransition );
 
 	}
 
@@ -875,7 +862,7 @@ export default class CameraControls extends EventDispatcher {
 
 		this._target0.copy( this._target );
 		this._position0.copy( this._camera.position );
-		this._fovOrZoom0 = this._fovOrZoom;
+		this._zoom0 = this._zoom;
 
 	}
 
@@ -897,12 +884,12 @@ export default class CameraControls extends EventDispatcher {
 		const deltaTarget = _v3A.subVectors( this._targetEnd, this._target );
 
 		if (
-			Math.abs( deltaTheta    ) > EPSILON ||
-			Math.abs( deltaPhi      ) > EPSILON ||
-			Math.abs( deltaRadius   ) > EPSILON ||
-			Math.abs( deltaTarget.x ) > EPSILON ||
-			Math.abs( deltaTarget.y ) > EPSILON ||
-			Math.abs( deltaTarget.z ) > EPSILON
+			! approxZero( deltaTheta    ) ||
+			! approxZero( deltaPhi      ) ||
+			! approxZero( deltaRadius   ) ||
+			! approxZero( deltaTarget.x ) ||
+			! approxZero( deltaTarget.y ) ||
+			! approxZero( deltaTarget.z )
 		) {
 
 			this._spherical.set(
@@ -930,7 +917,7 @@ export default class CameraControls extends EventDispatcher {
 				const planeX = _v3B.copy( direction ).cross( _v3C.copy( this._camera.up ) ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, direction );
-				const worldToScreen = this._sphericalEnd.radius * Math.tan( this._camera.fov * THREE.Math.DEG2RAD * 0.5 );
+				const worldToScreen = this._sphericalEnd.radius * Math.tan( this._camera.getEffectiveFOV() * THREE.Math.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const cursor = _v3A.copy( this._targetEnd )
@@ -960,34 +947,26 @@ export default class CameraControls extends EventDispatcher {
 		}
 
 		// zoom
-		const zoomDelta = this._fovOrZoomEnd - this._fovOrZoom;
-		this._fovOrZoom += zoomDelta * lerpRatio;
+		const zoomDelta = this._zoomEnd - this._zoom;
+		this._zoom += zoomDelta * lerpRatio;
 
-		if (
-			this._camera.isPerspectiveCamera &&
-			this._camera.fov !== this._fovOrZoom
-		) {
+		if ( this._camera.zoom !== this._zoom ) {
 
-			if ( Math.abs( this._camera.fov - this._fovOrZoom ) < EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
+			if ( approxZero( zoomDelta ) ) this._zoom = this._zoomEnd;
 
-			this._camera.fov = this._fovOrZoom;
-			this._camera.updateProjectionMatrix();
-
-			this._hasUpdated = true;
-
-		} else if (
-			this._camera.isOrthographicCamera &&
-			this._camera.zoom !== this._fovOrZoom
-		) {
-
-			if ( Math.abs( this._camera.zoom - this._fovOrZoom ) < EPSILON ) this._fovOrZoom = this._fovOrZoomEnd;
-
-			this._camera.zoom = this._fovOrZoom;
+			this._camera.zoom = this._zoom;
 			this._camera.updateProjectionMatrix();
 
 			this._hasUpdated = true;
 
 		}
+
+		// if (
+		// 	this._camera.isPerspectiveCamera &&
+		// 	this._camera.fov !== this._zoom
+		// ) {
+
+		// }
 
 		const updated = this._hasUpdated;
 		this._hasUpdated = false;
@@ -1167,6 +1146,12 @@ function extractClientCoordFromEvent( event, out ) {
 function isTouchEvent( event ) {
 
 	return 'TouchEvent' in window && event instanceof TouchEvent;
+
+}
+
+function approxZero( number ) {
+
+	return Math.abs( number ) < EPSILON;
 
 }
 
