@@ -3,9 +3,20 @@ import { EventDispatcher } from './event-dispatcher';
 
 export { EventDispatcher, Event } from './event-dispatcher';
 
+export enum ACTION {
+	NONE        = 0,
+	ROTATE      = 1,
+	TRUCK       = 2,
+	DOLLY       = 3,
+	ZOOM        = 4,
+	DOLLY_TRUCK = 5,
+	ZOOM_TRUCK  = 6,
+}
+
 export default class CameraControls extends EventDispatcher {
   // static methods
   static install( libs: { THREE: any } ): void;
+  static ACTION: ACTION;
 
   // constructor
   constructor(
@@ -18,11 +29,8 @@ export default class CameraControls extends EventDispatcher {
   public enabled: boolean;
   public minDistance: number;
   public maxDistance: number;
-  public unstable_useDolly?: boolean;
-  public minFav?: number;
-  public maxFav?: number;
-  public minZoom?: number;
-  public maxZoom?: number;
+  public minZoom: number;
+  public maxZoom: number;
   public minPolarAngle: number;
   public maxPolarAngle: number;
   public minAzimuthAngle: number;
@@ -45,8 +53,8 @@ export default class CameraControls extends EventDispatcher {
   public rotateTo( azimuthAngle: number, polarAngle: number, enableTransition?: boolean ): void;
   public dolly( distance: number, enableTransition?: boolean ): void;
   public dollyTo( distance: number, enableTransition?: boolean ): void;
-  public zoom( fovOrZoomStep: number, enableTransition?: boolean ): void;
-  public zoomTo( fovOrZoomStep: number, enableTransition?: boolean ): void;
+  public zoom( zoomStep: number, enableTransition?: boolean ): void;
+  public zoomTo( zoom: number, enableTransition?: boolean ): void;
   public pan( x: number, y: number, enableTransition?: boolean ): void;
   public truck( x: number, y: number, enableTransition?: boolean ): void;
   public forward( distance: number, enableTransition?: boolean ): void;
@@ -93,11 +101,11 @@ export default class CameraControls extends EventDispatcher {
 	protected _targetEnd: THREE.Vector3;
 	protected _spherical: THREE.Spherical;
   protected _sphericalEnd: THREE.Spherical;
-  protected _fovOrZoom: number;
-  protected _fovOrZoomEnd: number;
+  protected _zoom: number;
+  protected _zoomEnd: number;
 	protected _target0: THREE.Vector3;
 	protected _position0: THREE.Vector3;
-	protected _fovOrZoom0: number;
+	protected _zoom0: number;
 	protected _dollyControlAmount: number;
 	protected _dollyControlCoord: THREE.Vector2;
 	protected _boundary: THREE.Box3;
@@ -112,14 +120,4 @@ export default class CameraControls extends EventDispatcher {
    * Get its client rect and package into given `THREE.Vector4` .
    */
   protected _getClientRect( target: THREE.Vector4 ): THREE.Vector4;
-}
-
-export enum STATE {
-  NONE              = - 1,
-  ROTATE            = 0,
-  DOLLY             = 1,
-  TRUCK             = 2,
-  TOUCH_ROTATE      = 3,
-  TOUCH_DOLLY_TRUCK = 4,
-  TOUCH_TRUCK       = 5
 }

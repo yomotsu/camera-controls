@@ -16,13 +16,13 @@ const isMac = /Mac/.test( navigator.platform );
 const EPSILON = 1e-5;
 const PI_2 = Math.PI * 2;
 const ACTION = Object.freeze( {
-	NONE: 0,
-	ROTATE: 1,
-	TRUCK: 2,
-	DOLLY: 3,
-	ZOOM: 4,
+	NONE       : 0,
+	ROTATE     : 1,
+	TRUCK      : 2,
+	DOLLY      : 3,
+	ZOOM       : 4,
 	DOLLY_TRUCK: 5,
-	ZOOM_TRUCK: 6,
+	ZOOM_TRUCK : 6,
 } );
 
 export default class CameraControls extends EventDispatcher {
