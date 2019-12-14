@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<style>
+body{
+	margin: 0;
+}
+canvas{
+	display: block;
+}
+.info{
+	color: #FFF;
+	position: absolute;
+}
+a{
+	color: inherit;
+}
+label{
+	cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<button type="button" onclick="cameraControls.reset( true )">reset</button>
+	<br>
+	cameraControls.mouseButtons.left =
+	<select onchange="cameraControls.mouseButtons.left = CameraControls.ACTION[ this.value ]">
+		<option value="ROTATE" selected>CameraControls.ACTION.ROTATE</option>
+		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="NONE">CameraControls.ACTION.NONE</option>
+	</select>
+	<br>
+	cameraControls.mouseButtons.right =
+	<select onchange="cameraControls.mouseButtons.right = CameraControls.ACTION[ this.value ]">
+		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
+		<option value="TRUCK" selected>CameraControls.ACTION.TRUCK</option>
+		<option value="NONE">CameraControls.ACTION.NONE</option>
+	</select>
+	<br>
+	cameraControls.mouseButtons.wheel =
+	<select onchange="cameraControls.mouseButtons.wheel = CameraControls.ACTION[ this.value ]">
+		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
+		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
+		<option value="NONE">CameraControls.ACTION.NONE</option>
+	</select>
+	<br>
+
+	cameraControls.touches.one =
+	<select onchange="cameraControls.touches.one = CameraControls.ACTION[ this.value ]">
+		<option value="ROTATE" selected>CameraControls.ACTION.ROTATE</option>
+		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="NONE">CameraControls.ACTION.NONE</option>
+	</select>
+	<br>
+	cameraControls.touches.two =
+	<select onchange="cameraControls.touches.two = CameraControls.ACTION[ this.value ]">
+		<option value="DOLLY_TRUCK" selected>CameraControls.ACTION.DOLLY_TRUCK</option>
+		<option value="ZOOM_TRUCK">CameraControls.ACTION.ZOOM_TRUCK</option>
+		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
+		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
+		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
+		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+	</select>
+	<br>
+	cameraControls.touches.three =
+	<select onchange="cameraControls.touches.three = CameraControls.ACTION[ this.value ]">
+		<option value="DOLLY_TRUCK">CameraControls.ACTION.DOLLY_TRUCK</option>
+		<option value="ZOOM_TRUCK">CameraControls.ACTION.ZOOM_TRUCK</option>
+		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
+		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
+		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
+		<option value="TRUCK" selected>CameraControls.ACTION.TRUCK</option>
+	</select>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/102/three.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer( { antialias: true, stencil: false } );
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+</script>
+
+</body>
+</html>

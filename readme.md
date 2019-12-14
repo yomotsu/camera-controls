@@ -6,10 +6,10 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 
 ## Working examples
 
-| camera move    | user input |
-| ---            | ---        |
+| camera move    | default user input (Configurable) |
+| ---            | ---                               |
 | Orbit rotation | left mouse drag / touch: one-finger move |
-| Dolly (Zoom)   | middle mouse drag, or mousewheel / touch: two-finger pinch-in or out |
+| Dolly          | middle mouse drag, or mousewheel / touch: two-finger pinch-in or out |
 | Truck (Pan)    | right mouse drag / touch: two-finger move or three-finger move |
 
 - [basic](https://yomotsu.github.io/camera-controls/examples/basic.html)
@@ -18,6 +18,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [`viewport` within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
+- [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
 
 ## Usage
 
@@ -53,10 +54,10 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 `CameraControls( camera, domElement, options )`
 
-- `camera` is a `THREE.PerspectiveCamera` to be controlled.
+- `camera` is a `THREE.PerspectiveCamera` or `THREE.OrthographicCamera` to be controlled.
 - `domElement` is a `HTMLElement` for draggable area.
 - `options` in Object.
-  - `ignoreDOMEventListeners`: Default is `false`. if `true`, Mouse and touch event listeners will be ignored, and you can attach your handlers instead.
+  - `ignoreDOMEventListeners`: Default is `false`. if `true`, Mouse and touch event listeners will be ignored, and you can attach your handlers instead. (this may become obsoleted and be replaced by mouseConfig)
 
 ## Terms
 
@@ -101,6 +102,32 @@ To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
 | `'controlend'`   | When the user ends to control the camera. |
 | `'update'`       | When camera position is updated. |
 
+## User input config
+
+Working example: [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
+
+| button to assign      | behavior |
+| --------------------- | -------- |
+| `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.wheel`  | `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+
+- \* is by default.
+- the default of `mouseButtons.wheel` is:
+  `DOLLY` for Perspective camera.
+  `ZOOM` for Orthographic camera, and can't set `DOLLY`.
+
+| fingers to assign     | behavior |
+| --------------------- | -------- |
+| `touches.one` | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.two` | `ACTION.DOLLY_TRUCK` \| `ACTION.ZOOM_TRUCK` \| `ACTION.DOLLY` \| `ACTION.ZOOM` \| `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.two` | `ACTION.DOLLY_TRUCK` \| `ACTION.ZOOM_TRUCK` \| `ACTION.DOLLY` \| `ACTION.ZOOM` \| `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
+
+- \* is by default.
+- the default of `mouseButtons.wheel` is:
+  `DOLLY` for Perspective camera.
+  `ZOOM` for Orthographic camera, and can't set `DOLLY`.
+
 ## Methods
 
 #### `rotate( azimuthAngle, polarAngle, enableTransition )`
@@ -133,7 +160,7 @@ Dolly in/out camera position.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
-| `distance`         | `number`  | Distance to dolly |
+| `distance`         | `number`  | Distance of dollyIn |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -144,7 +171,40 @@ Dolly in/out camera position to given distance.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
-| `distance`         | `number`  | Distance to dolly |
+| `distance`         | `number`  | Distance of dollyIn |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
+
+#### `zoom( zoomStep, enableTransition )`
+
+Zoom in/out of camera.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `zoomStep`         | `number`  | zoom scale |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+You can also make zoomIn function using `camera.zoom` property.
+e.g.
+```
+const zoomIn = () => {
+	cameraControls.zoom( camera.zoom / 2, true );
+}
+const zoomOut = () => {
+	cameraControls.zoom( - camera.zoom / 2, true );
+}
+```
+
+---
+
+#### `zoomTo( zoom, enableTransition )`
+
+Zoom in/out camera to given scale.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `zoom`             | `number`  | zoom scale |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -376,3 +436,14 @@ Reproduce the control state with JSON. `enableTransition` is where anim or not i
 #### `dispose()`
 
 Dispose the cameraControls instance itself, remove all eventListeners.
+
+---
+s
+## Breaking changes
+
+@1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
+
+## Todos
+
+- path animation
+- rewrite in TypeScript

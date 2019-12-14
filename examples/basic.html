@@ -30,7 +30,6 @@ label{
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 	<br>
-	<label><input type="checkbox" onchange="cameraControls.unstable_useDolly = ! this.checked">wheel(pinch) to zoom (disable wheel(pinch) dolly)</label>
 	<br>
 	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
 	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
@@ -43,6 +42,9 @@ label{
 	<br>
 	<button onclick="cameraControls.dolly(  1, true )">dolly  1</button>
 	<button onclick="cameraControls.dolly( -1, true )">dolly -1</button>
+	<br>
+	<button onclick="cameraControls.zoom( camera.zoom / 2, true )">zoom `camera.zoom / 2`</button>
+	<button onclick="cameraControls.zoom( -camera.zoom / 2, true )">zoom `- camera.zoom / 2`</button>
 	<br>
 	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
 	<button onclick="cameraControls.fitTo( mesh, true )">fit to the bounding box of the mesh</button>
