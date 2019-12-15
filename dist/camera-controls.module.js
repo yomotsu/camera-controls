@@ -167,8 +167,12 @@ var ACTION = Object.freeze({
   TRUCK: 2,
   DOLLY: 3,
   ZOOM: 4,
-  DOLLY_TRUCK: 5,
-  ZOOM_TRUCK: 6
+  TOUCH_ROTATE: 5,
+  TOUCH_TRUCK: 6,
+  TOUCH_DOLLY: 7,
+  TOUCH_ZOOM: 8,
+  TOUCH_DOLLY_TRUCK: 9,
+  TOUCH_ZOOM_TRUCK: 10
 });
 
 var CameraControls =
@@ -259,9 +263,9 @@ function (_EventDispatcher) {
 
     };
     _this.touches = {
-      one: ACTION.ROTATE,
-      two: _this._camera.isPerspectiveCamera ? ACTION.DOLLY_TRUCK : _this._camera.isOrthographicCamera ? ACTION.ZOOM_TRUCK : ACTION.NONE,
-      three: ACTION.TRUCK
+      one: ACTION.TOUCH_ROTATE,
+      two: _this._camera.isPerspectiveCamera ? ACTION.TOUCH_DOLLY_TRUCK : _this._camera.isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK : ACTION.TOUCH_NONE,
+      three: ACTION.TOUCH_TRUCK
     }; // reset
 
     _this._target0 = _this._target.clone();
@@ -370,8 +374,9 @@ function (_EventDispatcher) {
         extractClientCoordFromEvent(event, _v2);
         elementRect = scope._getClientRect(_v4);
         dragStart.copy(_v2);
+        var isMultiTouch = isTouchEvent(event) && event.touches.length >= 2;
 
-        if (scope._state === ACTION.DOLLY_TRUCK) {
+        if (isMultiTouch) {
           // 2 finger pinch
           var dx = _v2.x - event.touches[1].clientX;
           var dy = _v2.y - event.touches[1].clientY;
@@ -407,34 +412,64 @@ function (_EventDispatcher) {
 
         switch (scope._state) {
           case ACTION.ROTATE:
-            var theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
-            var phi = PI_2 * scope.polarRotateSpeed * deltaY / elementRect.w;
-            scope.rotate(theta, phi, true);
-            break;
+          case ACTION.TOUCH_ROTATE:
+            {
+              var theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
+              var phi = PI_2 * scope.polarRotateSpeed * deltaY / elementRect.w;
+              scope.rotate(theta, phi, true);
+              break;
+            }
 
           case ACTION.DOLLY:
           case ACTION.ZOOM:
-            // not implemented
-            break;
+            {
+              // not implemented
+              break;
+            }
 
-          case ACTION.DOLLY_TRUCK:
-          case ACTION.ZOOM_TRUCK:
-            var TOUCH_DOLLY_FACTOR = 8;
-            var dx = _v2.x - event.touches[1].clientX;
-            var dy = _v2.y - event.touches[1].clientY;
-            var distance = Math.sqrt(dx * dx + dy * dy);
-            var dollyDelta = dollyStart.y - distance;
-            dollyStart.set(0, distance);
-            var dollyX = scope.dollyToCursor ? (dragStart.x - elementRect.x) / elementRect.z * 2 - 1 : 0;
-            var dollyY = scope.dollyToCursor ? (dragStart.y - elementRect.y) / elementRect.w * -2 + 1 : 0;
-            if (scope._state === ACTION.DOLLY_TRUCK) dollyInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
-            if (scope._state === ACTION.ZOOM_TRUCK) zoomInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
-            truckInternal(deltaX, deltaY);
-            break;
+          case ACTION.TOUCH_DOLLY:
+          case ACTION.TOUCH_ZOOM:
+          case ACTION.TOUCH_DOLLY_TRUCK:
+          case ACTION.TOUCH_ZOOM_TRUCK:
+            {
+              var TOUCH_DOLLY_FACTOR = 8;
+              var dx = _v2.x - event.touches[1].clientX;
+              var dy = _v2.y - event.touches[1].clientY;
+              var distance = Math.sqrt(dx * dx + dy * dy);
+              var dollyDelta = dollyStart.y - distance;
+              dollyStart.set(0, distance);
+              var dollyX = scope.dollyToCursor ? (dragStart.x - elementRect.x) / elementRect.z * 2 - 1 : 0;
+              var dollyY = scope.dollyToCursor ? (dragStart.y - elementRect.y) / elementRect.w * -2 + 1 : 0;
+
+              switch (scope._state) {
+                case ACTION.TOUCH_DOLLY:
+                case ACTION.TOUCH_DOLLY_TRUCK:
+                  {
+                    dollyInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
+                    break;
+                  }
+
+                case ACTION.TOUCH_ZOOM:
+                case ACTION.TOUCH_ZOOM_TRUCK:
+                  {
+                    zoomInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
+                    break;
+                  }
+              }
+
+              if (scope._state === ACTION.TOUCH_DOLLY_TRUCK || scope._state === ACTION.TOUCH_ZOOM_TRUCK) {
+                truckInternal(deltaX, deltaY);
+              }
+
+              break;
+            }
 
           case ACTION.TRUCK:
-            truckInternal(deltaX, deltaY);
-            break;
+          case ACTION.TOUCH_TRUCK:
+            {
+              truckInternal(deltaX, deltaY);
+              break;
+            }
         }
 
         scope.dispatchEvent({
