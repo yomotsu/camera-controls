@@ -61,11 +61,21 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ## Terms
 
+### Orbit rotations
+
 CameraControls uses Spherical Coordinates for orbit rotations.
 
 If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation and Polar angle will be the angle for vertical position.
 
 ![](https://yomotsu.github.io/camera-controls/examples/fig1.png)
+
+
+### Dolly vs Zoom
+
+- A Zoom involves changing the lens focal length. In three.js, zooming is actually changing the camera FOV, and the camera is stationary (doesn't move).
+- A Dolly involves physically moving the camera to change the composition of the image in the frame.
+
+See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zoom)
 
 ## Properties
 
@@ -114,8 +124,8 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 
 - \* is by default.
 - the default of `mouseButtons.wheel` is:
-  `DOLLY` for Perspective camera.
-  `ZOOM` for Orthographic camera, and can't set `DOLLY`.
+  - `DOLLY` for Perspective camera.
+  - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
 
 | fingers to assign     | behavior |
 | --------------------- | -------- |
@@ -125,8 +135,8 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 
 - \* is by default.
 - the default of `mouseButtons.wheel` is:
-  `DOLLY` for Perspective camera.
-  `ZOOM` for Orthographic camera, and can't set `DOLLY`.
+  - `DOLLY` for Perspective camera.
+  - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
 
 ## Methods
 

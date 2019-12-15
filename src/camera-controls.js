@@ -463,7 +463,7 @@ export default class CameraControls extends EventDispatcher {
 
 			function zoomInternal( delta, /* x, y */ ) {
 
-				const zoomScale = Math.pow( 0.95, - delta * scope.dollySpeed );
+				const zoomScale = Math.pow( 0.95, delta * scope.dollySpeed );
 
 				// for both PerspectiveCamera and OrthographicCamera
 				scope.zoomTo( scope._zoom * zoomScale );
