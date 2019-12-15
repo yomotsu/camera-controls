@@ -129,14 +129,14 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 
 | fingers to assign     | behavior |
 | --------------------- | -------- |
-| `touches.one` | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
-| `touches.two` | `ACTION.DOLLY_TRUCK` \| `ACTION.ZOOM_TRUCK` \| `ACTION.DOLLY` \| `ACTION.ZOOM` \| `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
-| `touches.two` | `ACTION.DOLLY_TRUCK` \| `ACTION.ZOOM_TRUCK` \| `ACTION.DOLLY` \| `ACTION.ZOOM` \| `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
 
 - \* is by default.
 - the default of `mouseButtons.wheel` is:
-  - `DOLLY` for Perspective camera.
-  - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
+  - `TOUCH_DOLLY` for Perspective camera.
+  - `TOUCH_ZOOM` for Orthographic camera, and can't set `TOUCH_DOLLY`.
 
 ## Methods
 
