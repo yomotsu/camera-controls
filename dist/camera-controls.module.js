@@ -158,17 +158,18 @@ var _sphericalA;
 
 var _sphericalB;
 
-var EPSILON = 0.001;
+var isMac = /Mac/.test(navigator.platform);
+var EPSILON = 1e-5;
 var PI_2 = Math.PI * 2;
-var STATE = {
-  NONE: -1,
-  ROTATE: 0,
-  DOLLY: 1,
+var ACTION = Object.freeze({
+  NONE: 0,
+  ROTATE: 1,
   TRUCK: 2,
-  TOUCH_ROTATE: 3,
-  TOUCH_DOLLY_TRUCK: 4,
-  TOUCH_TRUCK: 5
-};
+  DOLLY: 3,
+  ZOOM: 4,
+  DOLLY_TRUCK: 5,
+  ZOOM_TRUCK: 6
+});
 
 var CameraControls =
 /*#__PURE__*/
@@ -190,6 +191,11 @@ function (_EventDispatcher) {
       _sphericalA = new THREE.Spherical();
       _sphericalB = new THREE.Spherical();
     }
+  }, {
+    key: "ACTION",
+    get: function get() {
+      return ACTION;
+    }
   }]);
 
   function CameraControls(camera, domElement) {
@@ -203,17 +209,14 @@ function (_EventDispatcher) {
     _this._camera = camera;
     _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
     _this._yAxisUpSpaceInverse = _this._yAxisUpSpace.clone().inverse();
-    _this._state = STATE.NONE;
+    _this._state = ACTION.NONE;
     _this.enabled = true;
 
     if (_this._camera.isPerspectiveCamera) {
       // How far you can dolly in and out ( PerspectiveCamera only )
       _this.minDistance = 0;
-      _this.maxDistance = Infinity;
-    } else if (_this._camera.isOrthographicCamera) {
-      // How far you can zoom in and out ( OrthographicCamera only )
-      _this.minZoom = 0;
-      _this.maxZoom = Infinity;
+      _this.maxDistance = Infinity; // this.minFov = 1;
+      // this.maxFov = 180;
     }
 
     _this.minPolarAngle = 0; // radians
@@ -223,7 +226,9 @@ function (_EventDispatcher) {
     _this.minAzimuthAngle = -Infinity; // radians
 
     _this.maxAzimuthAngle = Infinity; // radians
-    // Target cannot move outside of this box
+
+    _this.minZoom = 0.01;
+    _this.maxZoom = Infinity; // Target cannot move outside of this box
 
     _this._boundary = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
     _this.boundaryFriction = 0.0;
@@ -240,14 +245,28 @@ function (_EventDispatcher) {
     _this._viewport = null; // the location of focus, where the object orbits around
 
     _this._target = new THREE.Vector3();
-    _this._targetEnd = new THREE.Vector3(); // rotation
+    _this._targetEnd = _this._target.clone(); // rotation
 
     _this._spherical = new THREE.Spherical().setFromVector3(_this._camera.position.clone().applyQuaternion(_this._yAxisUpSpace));
-    _this._sphericalEnd = _this._spherical.clone(); // reset
+    _this._sphericalEnd = _this._spherical.clone();
+    _this._zoom = _this._camera.zoom;
+    _this._zoomEnd = _this._zoom;
+    _this.mouseButtons = {
+      left: ACTION.ROTATE,
+      middle: ACTION.DOLLY,
+      right: ACTION.TRUCK,
+      wheel: _this._camera.isPerspectiveCamera ? ACTION.DOLLY : _this._camera.isOrthographicCamera ? ACTION.ZOOM : ACTION.NONE // We can also add shiftLeft, altLeft and etc if someone wants...
+
+    };
+    _this.touches = {
+      one: ACTION.ROTATE,
+      two: _this._camera.isPerspectiveCamera ? ACTION.DOLLY_TRUCK : _this._camera.isOrthographicCamera ? ACTION.ZOOM_TRUCK : ACTION.NONE,
+      three: ACTION.TRUCK
+    }; // reset
 
     _this._target0 = _this._target.clone();
     _this._position0 = _this._camera.position.clone();
-    _this._zoom0 = _this._camera.zoom;
+    _this._zoom0 = _this._zoom;
     _this._dollyControlAmount = 0;
     _this._dollyControlCoord = new THREE.Vector2();
     _this._hasUpdated = true;
@@ -257,24 +276,6 @@ function (_EventDispatcher) {
     if (!_this._domElement || options.ignoreDOMEventListeners) {
       _this._removeAllEventListeners = function () {};
     } else {
-      var extractClientCoordFromEvent = function extractClientCoordFromEvent(event, out) {
-        out.set(0, 0);
-
-        if (isTouchEvent(event)) {
-          for (var i = 0; i < event.touches.length; i++) {
-            out.x += event.touches[i].clientX;
-            out.y += event.touches[i].clientY;
-          }
-
-          out.x /= event.touches.length;
-          out.y /= event.touches.length;
-          return out;
-        } else {
-          out.set(event.clientX, event.clientY);
-          return out;
-        }
-      };
-
       var onMouseDown = function onMouseDown(event) {
         if (!scope.enabled) return;
         event.preventDefault();
@@ -282,15 +283,15 @@ function (_EventDispatcher) {
 
         switch (event.button) {
           case THREE.MOUSE.LEFT:
-            scope._state = STATE.ROTATE;
+            scope._state = scope.mouseButtons.left;
             break;
 
           case THREE.MOUSE.MIDDLE:
-            scope._state = STATE.DOLLY;
+            scope._state = scope.mouseButtons.middle;
             break;
 
           case THREE.MOUSE.RIGHT:
-            scope._state = STATE.TRUCK;
+            scope._state = scope.mouseButtons.right;
             break;
         }
 
@@ -306,18 +307,15 @@ function (_EventDispatcher) {
 
         switch (event.touches.length) {
           case 1:
-            // one-fingered touch: rotate
-            scope._state = STATE.TOUCH_ROTATE;
+            scope._state = scope.touches.one;
             break;
 
           case 2:
-            // two-fingered touch: dolly
-            scope._state = STATE.TOUCH_DOLLY_TRUCK;
+            scope._state = scope.touches.two;
             break;
 
           case 3:
-            // three-fingered touch: truck
-            scope._state = STATE.TOUCH_TRUCK;
+            scope._state = scope.touches.three;
             break;
         }
 
@@ -331,17 +329,8 @@ function (_EventDispatcher) {
         event.preventDefault(); // Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 
         var mouseDeltaFactor = 120;
-        var deltaYFactor = navigator.platform.indexOf('Mac') === 0 ? -1 : -3;
-        var delta;
-
-        if (event.wheelDelta !== undefined) {
-          delta = event.wheelDelta / mouseDeltaFactor;
-        } else if (event.deltaMode === 1) {
-          delta = event.deltaY / deltaYFactor;
-        } else {
-          delta = event.deltaY / (10 * deltaYFactor);
-        }
-
+        var deltaYFactor = isMac ? -1 : -3;
+        var delta = event.wheelDelta !== undefined ? event.wheelDelta / mouseDeltaFactor : event.deltaMode === 1 ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
         var x, y;
 
         if (scope.dollyToCursor) {
@@ -350,7 +339,20 @@ function (_EventDispatcher) {
           y = (event.clientY - elementRect.y) / elementRect.w * -2 + 1;
         }
 
-        dollyInternal(-delta, x, y);
+        switch (scope.mouseButtons.wheel) {
+          case ACTION.DOLLY:
+            {
+              dollyInternal(-delta, x, y);
+              break;
+            }
+
+          case ACTION.ZOOM:
+            {
+              zoomInternal(-delta, x, y);
+              break;
+            }
+        }
+
         scope.dispatchEvent({
           type: 'control',
           originalEvent: event
@@ -369,7 +371,7 @@ function (_EventDispatcher) {
         elementRect = scope._getClientRect(_v4);
         dragStart.copy(_v2);
 
-        if (scope._state === STATE.TOUCH_DOLLY_TRUCK) {
+        if (scope._state === ACTION.DOLLY_TRUCK) {
           // 2 finger pinch
           var dx = _v2.x - event.touches[1].clientX;
           var dy = _v2.y - event.touches[1].clientY;
@@ -404,32 +406,33 @@ function (_EventDispatcher) {
         dragStart.copy(_v2);
 
         switch (scope._state) {
-          case STATE.ROTATE:
-          case STATE.TOUCH_ROTATE:
+          case ACTION.ROTATE:
             var theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
             var phi = PI_2 * scope.polarRotateSpeed * deltaY / elementRect.w;
             scope.rotate(theta, phi, true);
             break;
 
-          case STATE.DOLLY:
+          case ACTION.DOLLY:
+          case ACTION.ZOOM:
             // not implemented
             break;
 
-          case STATE.TOUCH_DOLLY_TRUCK:
+          case ACTION.DOLLY_TRUCK:
+          case ACTION.ZOOM_TRUCK:
+            var TOUCH_DOLLY_FACTOR = 8;
             var dx = _v2.x - event.touches[1].clientX;
             var dy = _v2.y - event.touches[1].clientY;
             var distance = Math.sqrt(dx * dx + dy * dy);
             var dollyDelta = dollyStart.y - distance;
-            var touchDollyFactor = 8;
+            dollyStart.set(0, distance);
             var dollyX = scope.dollyToCursor ? (dragStart.x - elementRect.x) / elementRect.z * 2 - 1 : 0;
             var dollyY = scope.dollyToCursor ? (dragStart.y - elementRect.y) / elementRect.w * -2 + 1 : 0;
-            dollyInternal(dollyDelta / touchDollyFactor, dollyX, dollyY);
-            dollyStart.set(0, distance);
+            if (scope._state === ACTION.DOLLY_TRUCK) dollyInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
+            if (scope._state === ACTION.ZOOM_TRUCK) zoomInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
             truckInternal(deltaX, deltaY);
             break;
 
-          case STATE.TRUCK:
-          case STATE.TOUCH_TRUCK:
+          case ACTION.TRUCK:
             truckInternal(deltaX, deltaY);
             break;
         }
@@ -442,7 +445,7 @@ function (_EventDispatcher) {
 
       var endDragging = function endDragging(event) {
         if (!scope.enabled) return;
-        scope._state = STATE.NONE;
+        scope._state = ACTION.NONE;
         document.removeEventListener('mousemove', dragging, {
           passive: false
         });
@@ -462,7 +465,7 @@ function (_EventDispatcher) {
           var offset = _v3A.copy(scope._camera.position).sub(scope._target); // half of the fov is center to top of screen
 
 
-          var fovInRad = scope._camera.fov * THREE.Math.DEG2RAD;
+          var fovInRad = scope._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
           var targetDistance = offset.length() * Math.tan(fovInRad / 2);
           var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.w;
           var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.w;
@@ -485,24 +488,26 @@ function (_EventDispatcher) {
 
       var dollyInternal = function dollyInternal(delta, x, y) {
         var dollyScale = Math.pow(0.95, -delta * scope.dollySpeed);
+        var distance = scope._sphericalEnd.radius * dollyScale;
+        var prevRadius = scope._sphericalEnd.radius;
+        scope.dollyTo(distance);
 
-        if (scope._camera.isPerspectiveCamera) {
-          var distance = scope._sphericalEnd.radius * dollyScale - scope._sphericalEnd.radius;
-          var prevRadius = scope._sphericalEnd.radius;
-          scope.dolly(distance);
+        if (scope.dollyToCursor) {
+          scope._dollyControlAmount += scope._sphericalEnd.radius - prevRadius;
 
-          if (scope.dollyToCursor) {
-            scope._dollyControlAmount += scope._sphericalEnd.radius - prevRadius;
-
-            scope._dollyControlCoord.set(x, y);
-          }
-        } else if (scope._camera.isOrthographicCamera) {
-          scope._camera.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope._camera.zoom * dollyScale));
-
-          scope._camera.updateProjectionMatrix();
-
-          scope._hasUpdated = true;
+          scope._dollyControlCoord.set(x, y);
         }
+
+        return;
+      };
+
+      var zoomInternal = function zoomInternal(delta)
+      /* x, y */
+      {
+        var zoomScale = Math.pow(0.95, -delta * scope.dollySpeed); // for both PerspectiveCamera and OrthographicCamera
+
+        scope.zoomTo(scope._zoom * zoomScale);
+        return;
       };
 
       var scope = _assertThisInitialized(_this);
@@ -568,12 +573,7 @@ function (_EventDispatcher) {
   }, {
     key: "dolly",
     value: function dolly(distance, enableTransition) {
-      if (this._camera.isOrthographicCamera) {
-        console.warn('dolly is not available for OrthographicCamera');
-        return;
-      }
-
-      this.dollyTo(this._sphericalEnd.radius + distance, enableTransition);
+      this.dollyTo(this._sphericalEnd.radius - distance, enableTransition);
     }
   }, {
     key: "dollyTo",
@@ -587,6 +587,22 @@ function (_EventDispatcher) {
 
       if (!enableTransition) {
         this._spherical.radius = this._sphericalEnd.radius;
+      }
+
+      this._hasUpdated = true;
+    }
+  }, {
+    key: "zoom",
+    value: function zoom(zoomStep, enableTransition) {
+      this.zoomTo(this._zoomEnd + zoomStep, enableTransition);
+    }
+  }, {
+    key: "zoomTo",
+    value: function zoomTo(zoom, enableTransition) {
+      this._zoomEnd = THREE.Math.clamp(zoom, this.minZoom, this.maxZoom);
+
+      if (!enableTransition) {
+        this._zoom = this._zoomEnd;
       }
 
       this._hasUpdated = true;
@@ -785,7 +801,7 @@ function (_EventDispatcher) {
     value: function getDistanceToFit(width, height, depth) {
       var camera = this._camera;
       var boundingRectAspect = width / height;
-      var fov = camera.fov * THREE.Math.DEG2RAD;
+      var fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
       var aspect = camera.aspect;
       var heightToFit = boundingRectAspect < aspect ? height : width / aspect;
       return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
@@ -814,6 +830,7 @@ function (_EventDispatcher) {
     key: "reset",
     value: function reset(enableTransition) {
       this.setLookAt(this._position0.x, this._position0.y, this._position0.z, this._target0.x, this._target0.y, this._target0.z, enableTransition);
+      this.zoomTo(this._zoom0, enableTransition);
     }
   }, {
     key: "saveState",
@@ -822,7 +839,7 @@ function (_EventDispatcher) {
 
       this._position0.copy(this._camera.position);
 
-      this._zoom0 = this._camera.zoom;
+      this._zoom0 = this._zoom;
     }
   }, {
     key: "updateCameraUp",
@@ -834,15 +851,15 @@ function (_EventDispatcher) {
   }, {
     key: "update",
     value: function update(delta) {
-      var currentDampingFactor = this._state === STATE.NONE ? this.dampingFactor : this.draggingDampingFactor;
-      var lerpRatio = 1.0 - Math.exp(-currentDampingFactor * delta / 0.016);
+      var dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
+      var lerpRatio = 1.0 - Math.exp(-dampingFactor * delta / 0.016);
       var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
       var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
       var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
 
       var deltaTarget = _v3A.subVectors(this._targetEnd, this._target);
 
-      if (Math.abs(deltaTheta) > EPSILON || Math.abs(deltaPhi) > EPSILON || Math.abs(deltaRadius) > EPSILON || Math.abs(deltaTarget.x) > EPSILON || Math.abs(deltaTarget.y) > EPSILON || Math.abs(deltaTarget.z) > EPSILON) {
+      if (!approxZero(deltaTheta) || !approxZero(deltaPhi) || !approxZero(deltaRadius) || !approxZero(deltaTarget.x) || !approxZero(deltaTarget.y) || !approxZero(deltaTarget.z)) {
         this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
 
         this._target.add(deltaTarget.multiplyScalar(lerpRatio));
@@ -864,7 +881,7 @@ function (_EventDispatcher) {
 
           var planeY = _v3C.crossVectors(planeX, direction);
 
-          var worldToScreen = this._sphericalEnd.radius * Math.tan(this._camera.fov * THREE.Math.DEG2RAD * 0.5);
+          var worldToScreen = this._sphericalEnd.radius * Math.tan(this._camera.getEffectiveFOV() * THREE.Math.DEG2RAD * 0.5);
           var prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 
           var _lerpRatio = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
@@ -887,7 +904,25 @@ function (_EventDispatcher) {
 
       if (this._boundaryEnclosesCamera) {
         this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse), 1.0);
-      }
+      } // zoom
+
+
+      var zoomDelta = this._zoomEnd - this._zoom;
+      this._zoom += zoomDelta * lerpRatio;
+
+      if (this._camera.zoom !== this._zoom) {
+        if (approxZero(zoomDelta)) this._zoom = this._zoomEnd;
+        this._camera.zoom = this._zoom;
+
+        this._camera.updateProjectionMatrix();
+
+        this._hasUpdated = true;
+      } // if (
+      // 	this._camera.isPerspectiveCamera &&
+      // 	this._camera.fov !== this._zoom
+      // ) {
+      // }
+
 
       var updated = this._hasUpdated;
       this._hasUpdated = false;
@@ -1044,8 +1079,30 @@ function (_EventDispatcher) {
   return CameraControls;
 }(EventDispatcher);
 
+function extractClientCoordFromEvent(event, out) {
+  out.set(0, 0);
+
+  if (isTouchEvent(event)) {
+    for (var i = 0; i < event.touches.length; i++) {
+      out.x += event.touches[i].clientX;
+      out.y += event.touches[i].clientY;
+    }
+
+    out.x /= event.touches.length;
+    out.y /= event.touches.length;
+    return out;
+  } else {
+    out.set(event.clientX, event.clientY);
+    return out;
+  }
+}
+
 function isTouchEvent(event) {
   return 'TouchEvent' in window && event instanceof TouchEvent;
+}
+
+function approxZero(number) {
+  return Math.abs(number) < EPSILON;
 }
 
 function infinityToMaxNumber(value) {
