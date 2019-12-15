@@ -1,20 +1,8 @@
 import { EventDispatcher } from './event-dispatcher';
 
-let THREE;
-let _AXIS_Y;
-let _v2;
-let _v3A;
-let _v3B;
-let _v3C;
-let _v4;
-let _xColumn;
-let _yColumn;
-let _sphericalA;
-let _sphericalB;
-
-const isMac = /Mac/.test( navigator.platform );
 const EPSILON = 1e-5;
 const PI_2 = Math.PI * 2;
+const FPS_60 = 1 / 0.016;
 const ACTION = Object.freeze( {
 	NONE             : 0,
 	ROTATE           : 1,
@@ -29,6 +17,19 @@ const ACTION = Object.freeze( {
 	TOUCH_ZOOM_TRUCK : 10,
 } );
 
+const isMac = /Mac/.test( navigator.platform );
+
+let THREE;
+let _AXIS_Y;
+let _v2;
+let _v3A;
+let _v3B;
+let _v3C;
+let _xColumn;
+let _yColumn;
+let _sphericalA;
+let _sphericalB;
+
 export default class CameraControls extends EventDispatcher {
 
 	static install( libs ) {
@@ -39,7 +40,6 @@ export default class CameraControls extends EventDispatcher {
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
-		_v4 = new THREE.Vector4();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
@@ -68,8 +68,6 @@ export default class CameraControls extends EventDispatcher {
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			this.minDistance = 0;
 			this.maxDistance = Infinity;
-			// this.minFov = 1;
-			// this.maxFov = 180;
 
 		}
 
@@ -150,7 +148,7 @@ export default class CameraControls extends EventDispatcher {
 			const scope = this;
 			const dragStart  = new THREE.Vector2();
 			const dollyStart = new THREE.Vector2();
-			let elementRect;
+			const elementRect = new THREE.Vector4();
 
 			this._domElement.addEventListener( 'mousedown', onMouseDown );
 			this._domElement.addEventListener( 'touchstart', onTouchStart );
@@ -255,11 +253,12 @@ export default class CameraControls extends EventDispatcher {
 					( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor :
 					event.deltaY / ( deltaYFactor * 10 );
 
-				let x, y;
+				let x = 0;
+				let y = 0;
 
 				if ( scope.dollyToCursor ) {
 
-					elementRect = scope._getClientRect( _v4 );
+					scope._getClientRect( elementRect );
 					x = ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1;
 					y = ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1;
 
@@ -305,7 +304,7 @@ export default class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( event, _v2 );
 
-				elementRect = scope._getClientRect( _v4 );
+				scope._getClientRect( elementRect );
 				dragStart.copy( _v2 );
 
 				const isMultiTouch = isTouchEvent( event ) && event.touches.length >= 2;
@@ -563,8 +562,8 @@ export default class CameraControls extends EventDispatcher {
 	// polarAngle in radian
 	rotateTo( azimuthAngle, polarAngle, enableTransition ) {
 
-		const theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, azimuthAngle ) );
-		const phi   = Math.max( this.minPolarAngle,   Math.min( this.maxPolarAngle,   polarAngle ) );
+		const theta = THREE.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
+		const phi   = THREE.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle )
 
 		this._sphericalEnd.theta = theta;
 		this._sphericalEnd.phi   = phi;
@@ -596,11 +595,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._sphericalEnd.radius = THREE.Math.clamp(
-			distance,
-			this.minDistance,
-			this.maxDistance
-		);
+		this._sphericalEnd.radius = THREE.Math.clamp( distance, this.minDistance, this.maxDistance );
 
 		if ( ! enableTransition ) {
 
@@ -919,7 +914,7 @@ export default class CameraControls extends EventDispatcher {
 	update( delta ) {
 
 		const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta / 0.016 );
+		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta * FPS_60 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
@@ -1003,13 +998,6 @@ export default class CameraControls extends EventDispatcher {
 			this._hasUpdated = true;
 
 		}
-
-		// if (
-		// 	this._camera.isPerspectiveCamera &&
-		// 	this._camera.fov !== this._zoom
-		// ) {
-
-		// }
 
 		const updated = this._hasUpdated;
 		this._hasUpdated = false;
