@@ -21,6 +21,9 @@ a{
 label{
 	cursor: pointer;
 }
+select {
+	font-size: 16px;
+}
 </style>
 </head>
 <body>
@@ -33,6 +36,7 @@ label{
 		<option value="ROTATE" selected>CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
+		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
 	</select>
 	<br>
 	cameraControls.mouseButtons.right =
@@ -59,22 +63,22 @@ label{
 	<br>
 	cameraControls.touches.two =
 	<select onchange="cameraControls.touches.two = CameraControls.ACTION[ this.value ]">
-		<option value="DOLLY_TRUCK" selected>CameraControls.ACTION.DOLLY_TRUCK</option>
-		<option value="ZOOM_TRUCK">CameraControls.ACTION.ZOOM_TRUCK</option>
-		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
-		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
-		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
-		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="TOUCH_DOLLY_TRUCK" selected>CameraControls.ACTION.TOUCH_DOLLY_TRUCK</option>
+		<option value="TOUCH_ZOOM_TRUCK">CameraControls.ACTION.TOUCH_ZOOM_TRUCK</option>
+		<option value="TOUCH_DOLLY">CameraControls.ACTION.TOUCH_DOLLY</option>
+		<option value="TOUCH_ZOOM">CameraControls.ACTION.TOUCH_ZOOM</option>
+		<option value="TOUCH_ROTATE">CameraControls.ACTION.TOUCH_ROTATE</option>
+		<option value="TOUCH_TRUCK">CameraControls.ACTION.TOUCH_TRUCK</option>
 	</select>
 	<br>
 	cameraControls.touches.three =
 	<select onchange="cameraControls.touches.three = CameraControls.ACTION[ this.value ]">
-		<option value="DOLLY_TRUCK">CameraControls.ACTION.DOLLY_TRUCK</option>
-		<option value="ZOOM_TRUCK">CameraControls.ACTION.ZOOM_TRUCK</option>
-		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
-		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
-		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
-		<option value="TRUCK" selected>CameraControls.ACTION.TRUCK</option>
+		<option value="TOUCH_DOLLY_TRUCK">CameraControls.ACTION.TOUCH_DOLLY_TRUCK</option>
+		<option value="TOUCH_ZOOM_TRUCK">CameraControls.ACTION.TOUCH_ZOOM_TRUCK</option>
+		<option value="TOUCH_DOLLY">CameraControls.ACTION.TOUCH_DOLLY</option>
+		<option value="TOUCH_ZOOM">CameraControls.ACTION.TOUCH_ZOOM</option>
+		<option value="TOUCH_ROTATE">CameraControls.ACTION.TOUCH_ROTATE</option>
+		<option value="TOUCH_TRUCK" selected>CameraControls.ACTION.TOUCH_TRUCK</option>
 	</select>
 </div>
 
