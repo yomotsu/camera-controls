@@ -510,7 +510,7 @@
 	      var zoomInternal = function zoomInternal(delta)
 	      /* x, y */
 	      {
-	        var zoomScale = Math.pow(0.95, -delta * scope.dollySpeed); // for both PerspectiveCamera and OrthographicCamera
+	        var zoomScale = Math.pow(0.95, delta * scope.dollySpeed); // for both PerspectiveCamera and OrthographicCamera
 
 	        scope.zoomTo(scope._zoom * zoomScale);
 	        return;
