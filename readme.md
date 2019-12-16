@@ -19,6 +19,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
+- [collision: unstable and experimental feature](https://yomotsu.github.io/camera-controls/examples/collision.html)
 
 ## Usage
 
@@ -122,7 +123,7 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.wheel`  | `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 
-- \* is by default.
+- \* is the default.
 - the default of `mouseButtons.wheel` is:
   - `DOLLY` for Perspective camera.
   - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
@@ -131,12 +132,12 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 | --------------------- | -------- |
 | `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
 | `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
-| `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.three` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
 
-- \* is by default.
-- the default of `mouseButtons.wheel` is:
-  - `TOUCH_DOLLY` for Perspective camera.
-  - `TOUCH_ZOOM` for Orthographic camera, and can't set `TOUCH_DOLLY`.
+- \* is the default.
+- the default of `touches.two` and `touches.three` is:
+  - `TOUCH_DOLLY_TRUCK` for Perspective camera.
+  - `TOUCH_ZOOM_TRUCK` for Orthographic camera, and can't set `TOUCH_DOLLY_TRUCK` and `TOUCH_DOLLY`.
 
 ## Methods
 
@@ -448,7 +449,7 @@ Reproduce the control state with JSON. `enableTransition` is where anim or not i
 Dispose the cameraControls instance itself, remove all eventListeners.
 
 ---
-s
+
 ## Breaking changes
 
 @1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
