@@ -1,20 +1,8 @@
 import { EventDispatcher } from './event-dispatcher';
 
-let THREE;
-let _AXIS_Y;
-let _v2;
-let _v3A;
-let _v3B;
-let _v3C;
-let _v4;
-let _xColumn;
-let _yColumn;
-let _sphericalA;
-let _sphericalB;
-
-const isMac = /Mac/.test( navigator.platform );
 const EPSILON = 1e-5;
 const PI_2 = Math.PI * 2;
+const FPS_60 = 1 / 0.016;
 const ACTION = Object.freeze( {
 	NONE             : 0,
 	ROTATE           : 1,
@@ -29,21 +17,39 @@ const ACTION = Object.freeze( {
 	TOUCH_ZOOM_TRUCK : 10,
 } );
 
+const isMac = /Mac/.test( navigator.platform );
+
+let THREE;
+let _ORIGIN;
+let _AXIS_Y;
+let _v2;
+let _v3A;
+let _v3B;
+let _v3C;
+let _xColumn;
+let _yColumn;
+let _sphericalA;
+let _sphericalB;
+let _rotationMatrix;
+let _raycaster;
+
 export default class CameraControls extends EventDispatcher {
 
 	static install( libs ) {
 
 		THREE = libs.THREE;
+		_ORIGIN = new THREE.Vector3( 0, 0, 0 );
 		_AXIS_Y = new THREE.Vector3( 0, 1, 0 );
 		_v2 = new THREE.Vector2();
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
-		_v4 = new THREE.Vector4();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
+		_rotationMatrix = new THREE.Matrix4();
+		_raycaster      = new THREE.Raycaster();
 
 	}
 
@@ -68,8 +74,16 @@ export default class CameraControls extends EventDispatcher {
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			this.minDistance = 0;
 			this.maxDistance = Infinity;
-			// this.minFov = 1;
-			// this.maxFov = 180;
+
+			// collisionTest uses nearPlane.
+			this._nearPlaneCorners = [
+				new THREE.Vector3(),
+				new THREE.Vector3(),
+				new THREE.Vector3(),
+				new THREE.Vector3(),
+			];
+			this.updateNearPlaneCorners();
+			this.unstable_colliderMeshes = [];
 
 		}
 
@@ -150,7 +164,7 @@ export default class CameraControls extends EventDispatcher {
 			const scope = this;
 			const dragStart  = new THREE.Vector2();
 			const dollyStart = new THREE.Vector2();
-			let elementRect;
+			const elementRect = new THREE.Vector4();
 
 			this._domElement.addEventListener( 'mousedown', onMouseDown );
 			this._domElement.addEventListener( 'touchstart', onTouchStart );
@@ -255,11 +269,12 @@ export default class CameraControls extends EventDispatcher {
 					( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor :
 					event.deltaY / ( deltaYFactor * 10 );
 
-				let x, y;
+				let x = 0;
+				let y = 0;
 
 				if ( scope.dollyToCursor ) {
 
-					elementRect = scope._getClientRect( _v4 );
+					scope._getClientRect( elementRect );
 					x = ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1;
 					y = ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1;
 
@@ -305,7 +320,7 @@ export default class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( event, _v2 );
 
-				elementRect = scope._getClientRect( _v4 );
+				scope._getClientRect( elementRect );
 				dragStart.copy( _v2 );
 
 				const isMultiTouch = isTouchEvent( event ) && event.touches.length >= 2;
@@ -459,8 +474,8 @@ export default class CameraControls extends EventDispatcher {
 
 					const offset = _v3A.copy( scope._camera.position ).sub( scope._target );
 					// half of the fov is center to top of screen
-					const fovInRad = scope._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
-					const targetDistance = offset.length() * Math.tan( ( fovInRad / 2 ) );
+					const fov = scope._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+					const targetDistance = offset.length() * Math.tan( fov * 0.5 );
 					const truckX    = ( scope.truckSpeed * deltaX * targetDistance / elementRect.w );
 					const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.w );
 					if ( scope.verticalDragToForward ) {
@@ -563,8 +578,8 @@ export default class CameraControls extends EventDispatcher {
 	// polarAngle in radian
 	rotateTo( azimuthAngle, polarAngle, enableTransition ) {
 
-		const theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, azimuthAngle ) );
-		const phi   = Math.max( this.minPolarAngle,   Math.min( this.maxPolarAngle,   polarAngle ) );
+		const theta = THREE.Math.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
+		const phi   = THREE.Math.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle )
 
 		this._sphericalEnd.theta = theta;
 		this._sphericalEnd.phi   = phi;
@@ -596,11 +611,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		this._sphericalEnd.radius = THREE.Math.clamp(
-			distance,
-			this.minDistance,
-			this.maxDistance
-		);
+		this._sphericalEnd.radius = THREE.Math.clamp( distance, this.minDistance, this.maxDistance );
 
 		if ( ! enableTransition ) {
 
@@ -857,13 +868,66 @@ export default class CameraControls extends EventDispatcher {
 
 	getDistanceToFit( width, height, depth ) {
 
-		const camera = this._camera;
 		const boundingRectAspect = width / height;
-		const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
-		const aspect = camera.aspect;
+		const fov = this._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+		const aspect = this._camera.aspect;
 
 		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
 		return heightToFit * 0.5 / Math.tan( fov * 0.5 ) + depth * 0.5;
+
+	}
+
+	updateNearPlaneCorners() {
+
+		if ( ! this._camera.isPerspectiveCamera ) return;
+
+		const near = this._camera.near;
+		const fov = this._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+		const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
+		const widthHalf = heightHalf * this._camera.aspect; // near plain half width
+		this._nearPlaneCorners = [
+			new THREE.Vector3( - widthHalf, - heightHalf, 0 ),
+			new THREE.Vector3(   widthHalf, - heightHalf, 0 ),
+			new THREE.Vector3(   widthHalf,   heightHalf, 0 ),
+			new THREE.Vector3( - widthHalf,   heightHalf, 0 ),
+		];
+
+	}
+
+	// lateUpdate
+	collisionTest() {
+
+		let distance = Infinity;
+		const hasCollider = this.unstable_colliderMeshes.length >= 1;
+
+		if ( ! this._camera.isPerspectiveCamera || ! hasCollider ) return distance;
+
+		distance = this._sphericalEnd.radius;
+		const direction = _v3A.setFromSpherical( this._spherical ).sub( this._target ).normalize();
+
+		_rotationMatrix.lookAt( _ORIGIN, direction, this._camera.up );
+
+		for ( let i = 0; i < 4; i ++ ) {
+
+			const nearPlaneCorner = _v3B.copy( this._nearPlaneCorners[ i ] );
+			nearPlaneCorner.applyMatrix4( _rotationMatrix );
+
+			const origin = _v3C.addVectors( this._target, nearPlaneCorner );
+			_raycaster.set( origin, direction );
+			_raycaster.near = 0;// this._camera.near;
+			_raycaster.far = distance;
+
+			const intersects = _raycaster.intersectObjects( this.unstable_colliderMeshes );
+
+			if ( intersects.length !== 0 && intersects[ 0 ].distance < distance ) {
+
+				distance = intersects[ 0 ].distance;
+
+			}
+
+		}
+
+		return distance;
 
 	}
 
@@ -919,7 +983,7 @@ export default class CameraControls extends EventDispatcher {
 	update( delta ) {
 
 		const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta / 0.016 );
+		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta * FPS_60 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
@@ -975,6 +1039,10 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
+		const maxDistance = this.collisionTest();
+		this._spherical.radius = Math.min( this._spherical.radius, maxDistance );
+
+		// decompose spherical to the camera position
 		this._spherical.makeSafe();
 		this._camera.position.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._target );
 		this._camera.lookAt( this._target );
@@ -999,17 +1067,11 @@ export default class CameraControls extends EventDispatcher {
 
 			this._camera.zoom = this._zoom;
 			this._camera.updateProjectionMatrix();
+			this.updateNearPlaneCorners();
 
 			this._hasUpdated = true;
 
 		}
-
-		// if (
-		// 	this._camera.isPerspectiveCamera &&
-		// 	this._camera.fov !== this._zoom
-		// ) {
-
-		// }
 
 		const updated = this._hasUpdated;
 		this._hasUpdated = false;
