@@ -35,14 +35,26 @@ select {
 	<select onchange="cameraControls.mouseButtons.left = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE" selected>CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
+		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
+	</select>
+	<br>
+	cameraControls.mouseButtons.middle =
+	<select onchange="cameraControls.mouseButtons.middle = CameraControls.ACTION[ this.value ]">
+		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
+		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
 		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
+		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
+		<option value="NONE">CameraControls.ACTION.NONE</option>
 	</select>
 	<br>
 	cameraControls.mouseButtons.right =
 	<select onchange="cameraControls.mouseButtons.right = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK" selected>CameraControls.ACTION.TRUCK</option>
+		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
+		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
 	</select>
 	<br>
@@ -56,8 +68,8 @@ select {
 
 	cameraControls.touches.one =
 	<select onchange="cameraControls.touches.one = CameraControls.ACTION[ this.value ]">
-		<option value="ROTATE" selected>CameraControls.ACTION.ROTATE</option>
-		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="ROTATE" selected>CameraControls.ACTION.TOUCH_ROTATE</option>
+		<option value="TRUCK">CameraControls.ACTION.TOUCH_TRUCK</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
 	</select>
 	<br>

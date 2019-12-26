@@ -49,7 +49,7 @@ export default class CameraControls extends EventDispatcher {
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
 		_rotationMatrix = new THREE.Matrix4();
-		_raycaster      = new THREE.Raycaster();
+		_raycaster = new THREE.Raycaster();
 
 	}
 
@@ -162,7 +162,8 @@ export default class CameraControls extends EventDispatcher {
 		} else {
 
 			const scope = this;
-			const dragStart  = new THREE.Vector2();
+			const dragStartPosition  = new THREE.Vector2();
+			const lastDragPosition  = new THREE.Vector2();
 			const dollyStart = new THREE.Vector2();
 			const elementRect = new THREE.Vector4();
 
@@ -321,7 +322,8 @@ export default class CameraControls extends EventDispatcher {
 				extractClientCoordFromEvent( event, _v2 );
 
 				scope._getClientRect( elementRect );
-				dragStart.copy( _v2 );
+				dragStartPosition.copy( _v2 );
+				lastDragPosition.copy( _v2 );
 
 				const isMultiTouch = isTouchEvent( event ) && event.touches.length >= 2;
 
@@ -338,7 +340,7 @@ export default class CameraControls extends EventDispatcher {
 					const x = ( event.touches[ 0 ].clientX + event.touches[ 1 ].clientX ) * 0.5;
 					const y = ( event.touches[ 0 ].clientY + event.touches[ 1 ].clientY ) * 0.5;
 
-					dragStart.set( x, y );
+					lastDragPosition.set( x, y );
 
 				}
 
@@ -362,10 +364,10 @@ export default class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( event, _v2 );
 
-				const deltaX = dragStart.x - _v2.x;
-				const deltaY = dragStart.y - _v2.y;
+				const deltaX = lastDragPosition.x - _v2.x;
+				const deltaY = lastDragPosition.y - _v2.y;
 
-				dragStart.copy( _v2 );
+				lastDragPosition.copy( _v2 );
 
 				switch ( scope._state ) {
 
@@ -381,7 +383,11 @@ export default class CameraControls extends EventDispatcher {
 					case ACTION.DOLLY:
 					case ACTION.ZOOM: {
 
-						// not implemented
+						const dollyX = scope.dollyToCursor ? ( dragStartPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const dollyY = scope.dollyToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+						scope._state === scope.DOLLY ?
+							dollyInternal( deltaY / 8, dollyX, dollyY ) :
+							zoomInternal( deltaY / 8, dollyX, dollyY );
 						break;
 
 					}
@@ -398,27 +404,13 @@ export default class CameraControls extends EventDispatcher {
 						const dollyDelta = dollyStart.y - distance;
 						dollyStart.set( 0, distance );
 
-						const dollyX = scope.dollyToCursor ? ( dragStart.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
-						const dollyY = scope.dollyToCursor ? ( dragStart.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+						const dollyX = scope.dollyToCursor ? ( lastDragPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const dollyY = scope.dollyToCursor ? ( lastDragPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 
-						switch ( scope._state ) {
-
-							case ACTION.TOUCH_DOLLY:
-							case ACTION.TOUCH_DOLLY_TRUCK: {
-
-								dollyInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY );
-								break;
-
-							}
-							case ACTION.TOUCH_ZOOM:
-							case ACTION.TOUCH_ZOOM_TRUCK: {
-
-								zoomInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY );
-								break;
-
-							}
-
-						}
+						scope._state === ACTION.TOUCH_DOLLY ||
+						scope._state === ACTION.TOUCH_DOLLY_TRUCK ?
+							dollyInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY ):
+							zoomInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
 						if (
 							scope._state === ACTION.TOUCH_DOLLY_TRUCK ||
@@ -903,7 +895,8 @@ export default class CameraControls extends EventDispatcher {
 		if ( ! this._camera.isPerspectiveCamera || ! hasCollider ) return distance;
 
 		distance = this._sphericalEnd.radius;
-		const direction = _v3A.setFromSpherical( this._spherical ).sub( this._target ).normalize();
+		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
+		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( distance );
 
 		_rotationMatrix.lookAt( _ORIGIN, direction, this._camera.up );
 
@@ -914,7 +907,6 @@ export default class CameraControls extends EventDispatcher {
 
 			const origin = _v3C.addVectors( this._target, nearPlaneCorner );
 			_raycaster.set( origin, direction );
-			_raycaster.near = 0;// this._camera.near;
 			_raycaster.far = distance;
 
 			const intersects = _raycaster.intersectObjects( this.unstable_colliderMeshes );
@@ -1020,8 +1012,8 @@ export default class CameraControls extends EventDispatcher {
 
 			if ( this._camera.isPerspectiveCamera ) {
 
-				const direction = _v3A.copy( _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ) ).normalize().negate();
-				const planeX = _v3B.copy( direction ).cross( _v3C.copy( this._camera.up ) ).normalize();
+				const direction = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+				const planeX = _v3B.copy( direction ).cross( this._camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, direction );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( this._camera.getEffectiveFOV() * THREE.Math.DEG2RAD * 0.5 );
