@@ -142,31 +142,9 @@
 	  return EventDispatcher;
 	}();
 
-	var THREE;
-
-	var _AXIS_Y;
-
-	var _v2;
-
-	var _v3A;
-
-	var _v3B;
-
-	var _v3C;
-
-	var _v4;
-
-	var _xColumn;
-
-	var _yColumn;
-
-	var _sphericalA;
-
-	var _sphericalB;
-
-	var isMac = /Mac/.test(navigator.platform);
 	var EPSILON = 1e-5;
 	var PI_2 = Math.PI * 2;
+	var FPS_60 = 1 / 0.016;
 	var ACTION = Object.freeze({
 	  NONE: 0,
 	  ROTATE: 1,
@@ -180,6 +158,32 @@
 	  TOUCH_DOLLY_TRUCK: 9,
 	  TOUCH_ZOOM_TRUCK: 10
 	});
+	var isMac = /Mac/.test(navigator.platform);
+	var THREE;
+
+	var _ORIGIN;
+
+	var _AXIS_Y;
+
+	var _v2;
+
+	var _v3A;
+
+	var _v3B;
+
+	var _v3C;
+
+	var _xColumn;
+
+	var _yColumn;
+
+	var _sphericalA;
+
+	var _sphericalB;
+
+	var _rotationMatrix;
+
+	var _raycaster;
 
 	var CameraControls =
 	/*#__PURE__*/
@@ -190,16 +194,18 @@
 	    key: "install",
 	    value: function install(libs) {
 	      THREE = libs.THREE;
+	      _ORIGIN = new THREE.Vector3(0, 0, 0);
 	      _AXIS_Y = new THREE.Vector3(0, 1, 0);
 	      _v2 = new THREE.Vector2();
 	      _v3A = new THREE.Vector3();
 	      _v3B = new THREE.Vector3();
 	      _v3C = new THREE.Vector3();
-	      _v4 = new THREE.Vector4();
 	      _xColumn = new THREE.Vector3();
 	      _yColumn = new THREE.Vector3();
 	      _sphericalA = new THREE.Spherical();
 	      _sphericalB = new THREE.Spherical();
+	      _rotationMatrix = new THREE.Matrix4();
+	      _raycaster = new THREE.Raycaster();
 	    }
 	  }, {
 	    key: "ACTION",
@@ -225,8 +231,13 @@
 	    if (_this._camera.isPerspectiveCamera) {
 	      // How far you can dolly in and out ( PerspectiveCamera only )
 	      _this.minDistance = 0;
-	      _this.maxDistance = Infinity; // this.minFov = 1;
-	      // this.maxFov = 180;
+	      _this.maxDistance = Infinity; // collisionTest uses nearPlane.
+
+	      _this._nearPlaneCorners = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+
+	      _this._updateNearPlaneCorners();
+
+	      _this.colliderMeshes = [];
 	    }
 
 	    _this.minPolarAngle = 0; // radians
@@ -341,10 +352,12 @@
 	        var mouseDeltaFactor = 120;
 	        var deltaYFactor = isMac ? -1 : -3;
 	        var delta = event.wheelDelta !== undefined ? event.wheelDelta / mouseDeltaFactor : event.deltaMode === 1 ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
-	        var x, y;
+	        var x = 0;
+	        var y = 0;
 
 	        if (scope.dollyToCursor) {
-	          elementRect = scope._getClientRect(_v4);
+	          scope._getClientRect(elementRect);
+
 	          x = (event.clientX - elementRect.x) / elementRect.z * 2 - 1;
 	          y = (event.clientY - elementRect.y) / elementRect.w * -2 + 1;
 	        }
@@ -378,8 +391,11 @@
 	        if (!scope.enabled) return;
 	        event.preventDefault();
 	        extractClientCoordFromEvent(event, _v2);
-	        elementRect = scope._getClientRect(_v4);
-	        dragStart.copy(_v2);
+
+	        scope._getClientRect(elementRect);
+
+	        dragStartPosition.copy(_v2);
+	        lastDragPosition.copy(_v2);
 	        var isMultiTouch = isTouchEvent(event) && event.touches.length >= 2;
 
 	        if (isMultiTouch) {
@@ -391,7 +407,7 @@
 
 	          var x = (event.touches[0].clientX + event.touches[1].clientX) * 0.5;
 	          var y = (event.touches[0].clientY + event.touches[1].clientY) * 0.5;
-	          dragStart.set(x, y);
+	          lastDragPosition.set(x, y);
 	        }
 
 	        document.addEventListener('mousemove', dragging, {
@@ -412,15 +428,16 @@
 	        if (!scope.enabled) return;
 	        event.preventDefault();
 	        extractClientCoordFromEvent(event, _v2);
-	        var deltaX = dragStart.x - _v2.x;
-	        var deltaY = dragStart.y - _v2.y;
-	        dragStart.copy(_v2);
+	        var deltaX = lastDragPosition.x - _v2.x;
+	        var deltaY = lastDragPosition.y - _v2.y;
+	        lastDragPosition.copy(_v2);
 
 	        switch (scope._state) {
 	          case ACTION.ROTATE:
 	          case ACTION.TOUCH_ROTATE:
 	            {
-	              var theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
+	              var theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.w; // divide by *height* to refer the resolution
+
 	              var phi = PI_2 * scope.polarRotateSpeed * deltaY / elementRect.w;
 	              scope.rotate(theta, phi, true);
 	              break;
@@ -429,7 +446,9 @@
 	          case ACTION.DOLLY:
 	          case ACTION.ZOOM:
 	            {
-	              // not implemented
+	              var dollyX = scope.dollyToCursor ? (dragStartPosition.x - elementRect.x) / elementRect.z * 2 - 1 : 0;
+	              var dollyY = scope.dollyToCursor ? (dragStartPosition.y - elementRect.y) / elementRect.w * -2 + 1 : 0;
+	              scope._state === scope.DOLLY ? dollyInternal(deltaY / 8, dollyX, dollyY) : zoomInternal(deltaY / 8, dollyX, dollyY);
 	              break;
 	            }
 
@@ -444,24 +463,12 @@
 	              var distance = Math.sqrt(dx * dx + dy * dy);
 	              var dollyDelta = dollyStart.y - distance;
 	              dollyStart.set(0, distance);
-	              var dollyX = scope.dollyToCursor ? (dragStart.x - elementRect.x) / elementRect.z * 2 - 1 : 0;
-	              var dollyY = scope.dollyToCursor ? (dragStart.y - elementRect.y) / elementRect.w * -2 + 1 : 0;
 
-	              switch (scope._state) {
-	                case ACTION.TOUCH_DOLLY:
-	                case ACTION.TOUCH_DOLLY_TRUCK:
-	                  {
-	                    dollyInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
-	                    break;
-	                  }
+	              var _dollyX = scope.dollyToCursor ? (lastDragPosition.x - elementRect.x) / elementRect.z * 2 - 1 : 0;
 
-	                case ACTION.TOUCH_ZOOM:
-	                case ACTION.TOUCH_ZOOM_TRUCK:
-	                  {
-	                    zoomInternal(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY);
-	                    break;
-	                  }
-	              }
+	              var _dollyY = scope.dollyToCursor ? (lastDragPosition.y - elementRect.y) / elementRect.w * -2 + 1 : 0;
+
+	              scope._state === ACTION.TOUCH_DOLLY || scope._state === ACTION.TOUCH_DOLLY_TRUCK ? dollyInternal(dollyDelta / TOUCH_DOLLY_FACTOR, _dollyX, _dollyY) : zoomInternal(dollyDelta / TOUCH_DOLLY_FACTOR, _dollyX, _dollyY);
 
 	              if (scope._state === ACTION.TOUCH_DOLLY_TRUCK || scope._state === ACTION.TOUCH_ZOOM_TRUCK) {
 	                truckInternal(deltaX, deltaY);
@@ -506,8 +513,8 @@
 	          var offset = _v3A.copy(scope._camera.position).sub(scope._target); // half of the fov is center to top of screen
 
 
-	          var fovInRad = scope._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
-	          var targetDistance = offset.length() * Math.tan(fovInRad / 2);
+	          var fov = scope._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+	          var targetDistance = offset.length() * Math.tan(fov * 0.5);
 	          var truckX = scope.truckSpeed * deltaX * targetDistance / elementRect.w;
 	          var pedestalY = scope.truckSpeed * deltaY * targetDistance / elementRect.w;
 
@@ -553,9 +560,10 @@
 
 	      var scope = _assertThisInitialized(_this);
 
-	      var dragStart = new THREE.Vector2();
+	      var dragStartPosition = new THREE.Vector2();
+	      var lastDragPosition = new THREE.Vector2();
 	      var dollyStart = new THREE.Vector2();
-	      var elementRect;
+	      var elementRect = new THREE.Vector4();
 
 	      _this._domElement.addEventListener('mousedown', onMouseDown);
 
@@ -597,8 +605,8 @@
 	  }, {
 	    key: "rotateTo",
 	    value: function rotateTo(azimuthAngle, polarAngle, enableTransition) {
-	      var theta = Math.max(this.minAzimuthAngle, Math.min(this.maxAzimuthAngle, azimuthAngle));
-	      var phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, polarAngle));
+	      var theta = THREE.Math.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
+	      var phi = THREE.Math.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
 	      this._sphericalEnd.theta = theta;
 	      this._sphericalEnd.phi = phi;
 
@@ -840,12 +848,57 @@
 	  }, {
 	    key: "getDistanceToFit",
 	    value: function getDistanceToFit(width, height, depth) {
-	      var camera = this._camera;
 	      var boundingRectAspect = width / height;
-	      var fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
-	      var aspect = camera.aspect;
+	      var fov = this._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+	      var aspect = this._camera.aspect;
 	      var heightToFit = boundingRectAspect < aspect ? height : width / aspect;
 	      return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
+	    }
+	  }, {
+	    key: "_updateNearPlaneCorners",
+	    value: function _updateNearPlaneCorners() {
+	      if (!this._camera.isPerspectiveCamera) return;
+	      var near = this._camera.near;
+	      var fov = this._camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+	      var heightHalf = Math.tan(fov * 0.5) * near; // near plain half height
+
+	      var widthHalf = heightHalf * this._camera.aspect; // near plain half width
+
+	      this._nearPlaneCorners = [new THREE.Vector3(-widthHalf, -heightHalf, 0), new THREE.Vector3(widthHalf, -heightHalf, 0), new THREE.Vector3(widthHalf, heightHalf, 0), new THREE.Vector3(-widthHalf, heightHalf, 0)];
+	    } // lateUpdate
+
+	  }, {
+	    key: "_collisionTest",
+	    value: function _collisionTest() {
+	      if (!this._camera.isPerspectiveCamera) return this._spherical.radius;
+	      var distance = Infinity;
+	      var hasCollider = this.colliderMeshes.length >= 1;
+	      if (!this._camera.isPerspectiveCamera || !hasCollider) return distance;
+	      distance = this._spherical.radius; // divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
+
+	      var direction = _v3A.setFromSpherical(this._spherical).divideScalar(distance);
+
+	      _rotationMatrix.lookAt(_ORIGIN, direction, this._camera.up);
+
+	      for (var i = 0; i < 4; i++) {
+	        var nearPlaneCorner = _v3B.copy(this._nearPlaneCorners[i]);
+
+	        nearPlaneCorner.applyMatrix4(_rotationMatrix);
+
+	        var origin = _v3C.addVectors(this._target, nearPlaneCorner);
+
+	        _raycaster.set(origin, direction);
+
+	        _raycaster.far = distance;
+
+	        var intersects = _raycaster.intersectObjects(this.colliderMeshes);
+
+	        if (intersects.length !== 0 && intersects[0].distance < distance) {
+	          distance = intersects[0].distance;
+	        }
+	      }
+
+	      return distance;
 	    }
 	  }, {
 	    key: "getTarget",
@@ -893,7 +946,7 @@
 	    key: "update",
 	    value: function update(delta) {
 	      var dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-	      var lerpRatio = 1.0 - Math.exp(-dampingFactor * delta / 0.016);
+	      var lerpRatio = 1.0 - Math.exp(-dampingFactor * delta * FPS_60);
 	      var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 	      var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 	      var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
@@ -914,9 +967,9 @@
 
 	      if (this._dollyControlAmount !== 0) {
 	        if (this._camera.isPerspectiveCamera) {
-	          var direction = _v3A.copy(_v3A.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse)).normalize().negate();
+	          var direction = _v3A.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).normalize().negate();
 
-	          var planeX = _v3B.copy(direction).cross(_v3C.copy(this._camera.up)).normalize();
+	          var planeX = _v3B.copy(direction).cross(this._camera.up).normalize();
 
 	          if (planeX.lengthSq() === 0) planeX.x = 1.0;
 
@@ -936,6 +989,10 @@
 
 	        this._dollyControlAmount = 0;
 	      }
+
+	      var maxDistance = this._collisionTest();
+
+	      this._spherical.radius = Math.min(this._spherical.radius, maxDistance); // decompose spherical to the camera position
 
 	      this._spherical.makeSafe();
 
@@ -957,13 +1014,10 @@
 
 	        this._camera.updateProjectionMatrix();
 
-	        this._hasUpdated = true;
-	      } // if (
-	      // 	this._camera.isPerspectiveCamera &&
-	      // 	this._camera.fov !== this._zoom
-	      // ) {
-	      // }
+	        this._updateNearPlaneCorners();
 
+	        this._hasUpdated = true;
+	      }
 
 	      var updated = this._hasUpdated;
 	      this._hasUpdated = false;
