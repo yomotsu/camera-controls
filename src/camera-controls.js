@@ -374,7 +374,7 @@ export default class CameraControls extends EventDispatcher {
 					case ACTION.ROTATE:
 					case ACTION.TOUCH_ROTATE: {
 
-						const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.z;
+						const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.w; // divide by *height* to refer the resolution
 						const phi   = PI_2 * scope.polarRotateSpeed   * deltaY / elementRect.w;
 						scope.rotate( theta, phi, true );
 						break;
