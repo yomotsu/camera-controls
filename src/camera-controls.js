@@ -889,6 +889,8 @@ export default class CameraControls extends EventDispatcher {
 	// lateUpdate
 	_collisionTest() {
 
+		if ( ! this._camera.isPerspectiveCamera ) return this._spherical.radius;
+
 		let distance = Infinity;
 		const hasCollider = this.colliderMeshes.length >= 1;
 
