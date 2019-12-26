@@ -57,7 +57,7 @@ export default class CameraControls extends EventDispatcher {
 
 		return ACTION;
 
-	};
+	}
 
 	constructor( camera, domElement, options = {} ) {
 
@@ -82,7 +82,7 @@ export default class CameraControls extends EventDispatcher {
 				new THREE.Vector3(),
 				new THREE.Vector3(),
 			];
-			this.updateNearPlaneCorners();
+			this._updateNearPlaneCorners();
 			this.colliderMeshes = [];
 
 		}
@@ -869,7 +869,7 @@ export default class CameraControls extends EventDispatcher {
 
 	}
 
-	updateNearPlaneCorners() {
+	_updateNearPlaneCorners() {
 
 		if ( ! this._camera.isPerspectiveCamera ) return;
 
@@ -887,14 +887,14 @@ export default class CameraControls extends EventDispatcher {
 	}
 
 	// lateUpdate
-	collisionTest() {
+	_collisionTest() {
 
 		let distance = Infinity;
-		const hasCollider = this.unstable_colliderMeshes.length >= 1;
+		const hasCollider = this.colliderMeshes.length >= 1;
 
 		if ( ! this._camera.isPerspectiveCamera || ! hasCollider ) return distance;
 
-		distance = this._sphericalEnd.radius;
+		distance = this._spherical.radius;
 		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
 		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( distance );
 
@@ -909,7 +909,7 @@ export default class CameraControls extends EventDispatcher {
 			_raycaster.set( origin, direction );
 			_raycaster.far = distance;
 
-			const intersects = _raycaster.intersectObjects( this.unstable_colliderMeshes );
+			const intersects = _raycaster.intersectObjects( this.colliderMeshes );
 
 			if ( intersects.length !== 0 && intersects[ 0 ].distance < distance ) {
 
@@ -1031,7 +1031,7 @@ export default class CameraControls extends EventDispatcher {
 
 		}
 
-		const maxDistance = this.collisionTest();
+		const maxDistance = this._collisionTest();
 		this._spherical.radius = Math.min( this._spherical.radius, maxDistance );
 
 		// decompose spherical to the camera position
@@ -1059,7 +1059,7 @@ export default class CameraControls extends EventDispatcher {
 
 			this._camera.zoom = this._zoom;
 			this._camera.updateProjectionMatrix();
-			this.updateNearPlaneCorners();
+			this._updateNearPlaneCorners();
 
 			this._hasUpdated = true;
 

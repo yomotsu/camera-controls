@@ -47,6 +47,7 @@ export default class CameraControls extends EventDispatcher {
 	public truckSpeed: number;
 	public dollyToCursor: boolean;
 	public verticalDragToForward: boolean;
+	public colliderMeshes: THREE.Object3D[];
 
 	// public methods
 	public rotate( azimuthAngle: number, polarAngle: number, enableTransition?: boolean ): void;
