@@ -83,7 +83,7 @@ export default class CameraControls extends EventDispatcher {
 				new THREE.Vector3(),
 			];
 			this.updateNearPlaneCorners();
-			this.unstable_colliderMeshes = [];
+			this.colliderMeshes = [];
 
 		}
 

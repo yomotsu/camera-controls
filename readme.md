@@ -19,7 +19,8 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
-- [collision: unstable and experimental feature](https://yomotsu.github.io/camera-controls/examples/collision.html)
+- [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
+
 
 ## Usage
 
@@ -80,7 +81,6 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 
 ## Properties
 
-
 | Name                      | Type      | Default     | Description |
 | ------------------------- | --------- | ----------- | ----------- |
 | `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
@@ -100,6 +100,9 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
+| `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera *. |
+
+* Be aware colliderMeshes may decrease the performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 
 ## Events
 

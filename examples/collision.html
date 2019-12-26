@@ -94,10 +94,10 @@ const colliderMesh3 = new THREE.Mesh(
 colliderMesh3.position.set( 0, 0, - 3 );
 scene.add( colliderMesh3 );
 
-cameraControls.unstable_colliderMeshes.push( colliderMesh0 );
-cameraControls.unstable_colliderMeshes.push( colliderMesh1 );
-cameraControls.unstable_colliderMeshes.push( colliderMesh2 );
-cameraControls.unstable_colliderMeshes.push( colliderMesh3 );
+cameraControls.colliderMeshes.push( colliderMesh0 );
+cameraControls.colliderMeshes.push( colliderMesh1 );
+cameraControls.colliderMeshes.push( colliderMesh2 );
+cameraControls.colliderMeshes.push( colliderMesh3 );
 
 renderer.render( scene, camera );
 
