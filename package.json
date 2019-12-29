@@ -6,37 +6,19 @@
   "main": "dist/camera-controls.js",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
-  "types": "types/camera-controls.d.ts",
+  "types": "dist/index.d.ts",
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
-    "@babel/core": "^7.7.5",
-    "@babel/plugin-transform-runtime": "^7.7.6",
-    "@babel/preset-env": "^7.7.6",
-    "@babel/runtime": "^7.7.6",
-    "rollup": "^1.27.13",
-    "rollup-plugin-babel": "4.3.3",
-    "rollup-watch": "^4.3.1",
-    "terser": "^4.4.2",
-    "three": "^0.111.0"
+    "rollup": "^1.27.14",
+    "rollup-plugin-typescript2": "^0.25.3",
+    "terser": "^4.4.3",
+    "three": "^0.112.1",
+    "typescript": "^3.7.4"
   },
   "scripts": {
     "dev": "rollup --config --watch",
     "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'"
   },
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "useBuiltIns": false
-        }
-      ]
-    ]
-  },
-  "browserslist": [
-    "last 2 versions",
-    "ie >= 11"
-  ],
   "keywords": [
     "three",
     "three.js",

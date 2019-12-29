@@ -1,15 +1,15 @@
-import babel from 'rollup-plugin-babel';
+import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 
 const license = `/*!
- * camera-controls
- * https://github.com/yomotsu/camera-controls
+ * ${ pkg.name }
+ * https://github.com/${ pkg.repository }
  * (c) 2017 @yomotsu
  * Released under the MIT License.
- */`
+ */`;
 
 export default {
-	input: 'src/camera-controls.js',
+	input: 'src/index.ts',
 	output: [
 		{
 			format: 'umd',
@@ -25,5 +25,7 @@ export default {
 			indent: '\t',
 		}
 	],
-	plugins: [ babel() ],
+	plugins: [
+		typescript( { typescript: require( 'typescript' ) } ),
+	],
 };
