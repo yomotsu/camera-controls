@@ -23,7 +23,7 @@ import { EventDispatcher } from './EventDispatcher';
 ////////////////////////////////////////////////////////////////////////////////
 // IMPORTANT NOTICE
 //
-// DO NOT USE `_THREE` to make instances, call functions, etc...
+// DO NOT USE `_THREE` to make instances, call functions, etc.
 // `_THREE` is exclusively for types.
 // Otherwise the bundle file will contain three.js.
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ export class CameraControls extends EventDispatcher {
 	protected _target: _THREE.Vector3;
 	protected _targetEnd: _THREE.Vector3;
 
-	// rotation
+	// rotation and dolly distance
 	protected _spherical: _THREE.Spherical;
 	protected _sphericalEnd: _THREE.Spherical;
 
@@ -190,24 +190,20 @@ export class CameraControls extends EventDispatcher {
 			left: ACTION.ROTATE,
 			middle: ACTION.DOLLY,
 			right: ACTION.TRUCK,
-			/* eslint-disable @typescript-eslint/indent */
 			wheel:
 				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.DOLLY :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
 				ACTION.NONE,
-			/* eslint-enable @typescript-eslint/indent */
 			// We can also add shiftLeft, altLeft and etc if someone wants...
 		};
 
 		this.touches = {
 			one: ACTION.TOUCH_ROTATE,
-			/* eslint-disable @typescript-eslint/indent */
 			two:
 				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.TOUCH_DOLLY_TRUCK :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
-			/* eslint-enable @typescript-eslint/indent */
 		};
 
 		if ( this._domElement ) {
@@ -439,8 +435,8 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				document.addEventListener( 'mousemove', dragging, { passive: false } );
-				document.addEventListener( 'touchmove', dragging, { passive: false } );
+				document.addEventListener( 'mousemove', dragging );
+				document.addEventListener( 'touchmove', dragging );
 				document.addEventListener( 'mouseup', endDragging );
 				document.addEventListener( 'touchend', endDragging );
 
@@ -545,9 +541,9 @@ export class CameraControls extends EventDispatcher {
 				scope._state = ACTION.NONE;
 
 				// @ts-ignore
-				document.removeEventListener( 'mousemove', dragging, { passive: false } );
+				document.removeEventListener( 'mousemove', dragging );
 				// @ts-ignore
-				document.removeEventListener( 'touchmove', dragging, { passive: false } );
+				document.removeEventListener( 'touchmove', dragging );
 				document.removeEventListener( 'mouseup',  endDragging );
 				document.removeEventListener( 'touchend', endDragging );
 

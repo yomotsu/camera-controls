@@ -39,7 +39,8 @@
         "error",
         "tab",
         {
-          "SwitchCase": 1
+          "SwitchCase": 1,
+          "flatTernaryExpressions": true
         }
       ],
       "no-multi-spaces": [
