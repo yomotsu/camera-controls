@@ -20,7 +20,7 @@ import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
 import { EventDispatcher } from './EventDispatcher';
 
-////////////////////////////////////s////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // IMPORTANT NOTICE
 //
 // DO NOT USE `_THREE` to make instances, call functions, etc...
@@ -190,20 +190,24 @@ export class CameraControls extends EventDispatcher {
 			left: ACTION.ROTATE,
 			middle: ACTION.DOLLY,
 			right: ACTION.TRUCK,
+			/* eslint-disable @typescript-eslint/indent */
 			wheel:
 				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.DOLLY :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
 				ACTION.NONE,
+			/* eslint-enable @typescript-eslint/indent */
 			// We can also add shiftLeft, altLeft and etc if someone wants...
 		};
 
 		this.touches = {
 			one: ACTION.TOUCH_ROTATE,
+			/* eslint-disable @typescript-eslint/indent */
 			two:
 				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.TOUCH_DOLLY_TRUCK :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
+			/* eslint-enable @typescript-eslint/indent */
 		};
 
 		if ( this._domElement ) {
@@ -1267,8 +1271,3 @@ export class CameraControls extends EventDispatcher {
 	protected _removeAllEventListeners(): void {}
 
 }
-
-function a(x:number){
-  return x;
-}
-a(9)

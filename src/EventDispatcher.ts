@@ -70,7 +70,9 @@ export class EventDispatcher {
 				array[ i ].call( this, event );
 
 			}
+
 		}
 
 	}
+
 }

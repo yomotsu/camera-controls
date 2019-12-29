@@ -9,6 +9,10 @@
   "types": "dist/index.d.ts",
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.13.0",
+    "@typescript-eslint/parser": "^2.13.0",
+    "eslint": "^6.8.0",
+    "eslint-config-mdcs": "^4.2.3",
     "rollup": "^1.27.14",
     "rollup-plugin-typescript2": "^0.25.3",
     "terser": "^4.4.3",
@@ -17,7 +21,34 @@
   },
   "scripts": {
     "dev": "rollup --config --watch",
-    "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'"
+    "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'",
+    "lint": "eslint src --ext ts"
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "extends": "mdcs",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "no-unused-vars": 0,
+      "@typescript-eslint/no-unused-vars": 1,
+      "indent": 0,
+      "@typescript-eslint/indent": [
+        "error",
+        "tab",
+        {
+          "SwitchCase": 1
+        }
+      ],
+      "no-multi-spaces": [
+        0
+      ],
+      "key-spacing": [
+        0
+      ]
+    }
   },
   "keywords": [
     "three",
