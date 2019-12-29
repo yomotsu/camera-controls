@@ -24,6 +24,10 @@
     "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'",
     "lint": "eslint src --ext ts"
   },
+  "browserslist": [	
+    "last 2 versions",	
+    "ie >= 11"	
+  ],
   "eslintConfig": {
     "root": true,
     "parser": "@typescript-eslint/parser",
