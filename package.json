@@ -6,37 +6,55 @@
   "main": "dist/camera-controls.js",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
-  "types": "types/camera-controls.d.ts",
+  "types": "dist/index.d.ts",
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
-    "@babel/core": "^7.7.5",
-    "@babel/plugin-transform-runtime": "^7.7.6",
-    "@babel/preset-env": "^7.7.6",
-    "@babel/runtime": "^7.7.6",
-    "rollup": "^1.27.13",
-    "rollup-plugin-babel": "4.3.3",
-    "rollup-watch": "^4.3.1",
-    "terser": "^4.4.2",
-    "three": "^0.111.0"
+    "@typescript-eslint/eslint-plugin": "^2.13.0",
+    "@typescript-eslint/parser": "^2.13.0",
+    "eslint": "^6.8.0",
+    "eslint-config-mdcs": "^4.2.3",
+    "rollup": "^1.27.14",
+    "rollup-plugin-typescript2": "^0.25.3",
+    "terser": "^4.4.3",
+    "three": "^0.112.1",
+    "typescript": "^3.7.4"
   },
   "scripts": {
     "dev": "rollup --config --watch",
-    "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'"
+    "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'",
+    "lint": "eslint src --ext ts"
   },
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "useBuiltIns": false
-        }
-      ]
-    ]
-  },
-  "browserslist": [
-    "last 2 versions",
-    "ie >= 11"
+  "browserslist": [	
+    "last 2 versions",	
+    "ie >= 11"	
   ],
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "extends": "mdcs",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "no-unused-vars": 0,
+      "@typescript-eslint/no-unused-vars": 1,
+      "indent": 0,
+      "@typescript-eslint/indent": [
+        "error",
+        "tab",
+        {
+          "SwitchCase": 1,
+          "flatTernaryExpressions": true
+        }
+      ],
+      "no-multi-spaces": [
+        0
+      ],
+      "key-spacing": [
+        0
+      ]
+    }
+  },
   "keywords": [
     "three",
     "three.js",
