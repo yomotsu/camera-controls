@@ -32,7 +32,7 @@ CameraControls.install( { THREE: THREE } );
 
 // snip ( init three scene... )
 const clock = new THREE.Clock();
-const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 1000 );
 const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ( function anim () {
@@ -54,12 +54,10 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ## Constructor
 
-`CameraControls( camera, domElement, options )`
+`CameraControls( camera, domElement )`
 
 - `camera` is a `THREE.PerspectiveCamera` or `THREE.OrthographicCamera` to be controlled.
 - `domElement` is a `HTMLElement` for draggable area.
-- `options` in Object.
-  - `ignoreDOMEventListeners`: Default is `false`. if `true`, Mouse and touch event listeners will be ignored, and you can attach your handlers instead. (this may become obsoleted and be replaced by mouseConfig)
 
 ## Terms
 
@@ -460,4 +458,3 @@ Dispose the cameraControls instance itself, remove all eventListeners.
 ## Todos
 
 - path animation
-- rewrite in TypeScript
