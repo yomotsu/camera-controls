@@ -1,6 +1,6 @@
 {
   "name": "camera-controls",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "author": "Yomotsu",
   "license": "MIT",
   "main": "dist/camera-controls.js",
@@ -24,9 +24,9 @@
     "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/'",
     "lint": "eslint src --ext ts"
   },
-  "browserslist": [	
-    "last 2 versions",	
-    "ie >= 11"	
+  "browserslist": [
+    "last 2 versions",
+    "ie >= 11"
   ],
   "eslintConfig": {
     "root": true,
