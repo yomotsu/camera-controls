@@ -20,6 +20,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
 - [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
+- [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 
 
 ## Usage
@@ -454,7 +455,3 @@ Dispose the cameraControls instance itself, remove all eventListeners.
 ## Breaking changes
 
 @1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
-
-## Todos
-
-- path animation
