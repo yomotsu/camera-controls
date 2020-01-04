@@ -169,7 +169,7 @@ export class CameraControls extends EventDispatcher {
 			new THREE.Vector3(),
 			new THREE.Vector3(),
 		];
-		// this._updateNearPlaneCorners();
+		this._updateNearPlaneCorners();
 
 		// Target cannot move outside of this box
 		this._boundary = new THREE.Box3(
@@ -1232,7 +1232,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		return distance;
+		return distance - EPSILON;
 
 	}
 
