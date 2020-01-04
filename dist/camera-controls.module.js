@@ -190,6 +190,7 @@ var CameraControls = (function (_super) {
             new THREE.Vector3(),
             new THREE.Vector3(),
         ];
+        _this._updateNearPlaneCorners();
         _this._boundary = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
         _this._target0 = _this._target.clone();
         _this._position0 = _this._camera.position.clone();
