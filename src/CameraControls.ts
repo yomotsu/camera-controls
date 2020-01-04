@@ -1232,7 +1232,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		return distance - EPSILON;
+		return distance;
 
 	}
 
