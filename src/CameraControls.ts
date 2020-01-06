@@ -354,6 +354,18 @@ export class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
+				// Ref: https://stackoverflow.com/questions/10744645/detect-touchpad-vs-mouse-in-javascript/56948026#56948026
+				// @ts-ignore
+				const isTrackpad = event.wheelDeltaY ? event.wheelDeltaY === -3 * event.deltaY : event.deltaMode === 0;
+
+				// Ref: https://stackoverflow.com/questions/15416851/catching-mac-trackpad-zoom/28685082#28685082
+				if ( isTrackpad && !event.ctrlKey ) {
+					// TODO: only need to fire this once
+					scope._getClientRect( elementRect );
+					truckInternal( event.deltaX, event.deltaY );
+					return;
+				}
+
 				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 				const deltaYFactor = isMac ? - 1 : - 3;
 
