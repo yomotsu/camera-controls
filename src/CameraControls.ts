@@ -360,6 +360,10 @@ export class CameraControls extends EventDispatcher {
 
 				// Ref: https://stackoverflow.com/questions/15416851/catching-mac-trackpad-zoom/28685082#28685082
 				if ( isTrackpad && !event.ctrlKey ) {
+					// Note that this appears to not work in Edge for
+					// Microsoft Surface trackpads:
+					// https://developercommunity.visualstudio.com/content/problem/191727/two-point-touch-scrolling-in-code-viewer-doesnt-wo.html
+
 					// TODO: only need to fire this once
 					scope._getClientRect( elementRect );
 					truckInternal( event.deltaX, event.deltaY );
