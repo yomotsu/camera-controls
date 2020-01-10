@@ -2,10 +2,12 @@ import * as _THREE from 'three';
 import {
 	ACTION,
 	MouseButtons,
+	Trackpad,
 	Touches,
 	FitToOption,
 } from './types';
 import {
+	DOM_DELTA_PIXEL,
 	PI_2,
 	FPS_60,
 	FIT_TO_OPTION_DEFAULT,
@@ -99,6 +101,7 @@ export class CameraControls extends EventDispatcher {
 
 	// button configs
 	mouseButtons: MouseButtons;
+	trackpad: Trackpad;
 	touches: Touches;
 
 	protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
@@ -197,6 +200,10 @@ export class CameraControls extends EventDispatcher {
 			// We can also add shiftLeft, altLeft and etc if someone wants...
 		};
 
+		this.trackpad = {
+			two: this.mouseButtons.wheel,
+		};
+
 		this.touches = {
 			one: ACTION.TOUCH_ROTATE,
 			two:
@@ -246,6 +253,14 @@ export class CameraControls extends EventDispatcher {
 					scope.truck( truckX, pedestalY, true );
 
 				}
+
+			};
+
+			const rotateInternal = ( deltaX: number, deltaY: number ): void => {
+
+				const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.w; // divide by *height* to refer the resolution
+				const phi   = PI_2 * scope.polarRotateSpeed   * deltaY / elementRect.w;
+				scope.rotate( theta, phi, true );
 
 			};
 
@@ -355,19 +370,37 @@ export class CameraControls extends EventDispatcher {
 				event.preventDefault();
 
 				// Ref: https://stackoverflow.com/questions/10744645/detect-touchpad-vs-mouse-in-javascript/56948026#56948026
-				// @ts-ignore
-				const isTrackpad = event.wheelDeltaY ? event.wheelDeltaY === -3 * event.deltaY : event.deltaMode === 0;
+				const isTrackpad =
+					event.wheelDeltaY ? event.wheelDeltaY === - 3 * event.deltaY :
+					event.deltaMode === DOM_DELTA_PIXEL;
 
 				// Ref: https://stackoverflow.com/questions/15416851/catching-mac-trackpad-zoom/28685082#28685082
-				if ( isTrackpad && !event.ctrlKey ) {
-					// Note that this appears to not work in Edge for
-					// Microsoft Surface trackpads:
-					// https://developercommunity.visualstudio.com/content/problem/191727/two-point-touch-scrolling-in-code-viewer-doesnt-wo.html
+				const isTrackpadPinch = isTrackpad && event.ctrlKey;
+				const isTrackpadMove = isTrackpad && ! isTrackpadPinch;
 
-					// TODO: only need to fire this once
-					scope._getClientRect( elementRect );
-					truckInternal( event.deltaX, event.deltaY );
+				if ( isTrackpadMove && ( scope.trackpad.two === ACTION.ROTATE || scope.trackpad.two === ACTION.TRUCK ) ) {
+
+					scope._getClientRect( elementRect ); // TODO: only need to fire this once
+
+					switch ( scope.trackpad.two ) {
+
+						case ACTION.ROTATE: {
+
+							rotateInternal( event.deltaX, event.deltaY );
+							break;
+
+						}
+						case ACTION.TRUCK: {
+
+							truckInternal( event.deltaX, event.deltaY );
+							break;
+
+						}
+
+					}
+
 					return;
+
 				}
 
 				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
@@ -481,9 +514,7 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.ROTATE:
 					case ACTION.TOUCH_ROTATE: {
 
-						const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.w; // divide by *height* to refer the resolution
-						const phi   = PI_2 * scope.polarRotateSpeed   * deltaY / elementRect.w;
-						scope.rotate( theta, phi, true );
+						rotateInternal( deltaX, deltaY );
 						break;
 
 					}
