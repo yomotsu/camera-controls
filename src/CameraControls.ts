@@ -370,8 +370,9 @@ export class CameraControls extends EventDispatcher {
 				event.preventDefault();
 
 				// Ref: https://stackoverflow.com/questions/10744645/detect-touchpad-vs-mouse-in-javascript/56948026#56948026
+				// WheelDeltaY is Long while deltaY is Double. round it to compare.
 				const isTrackpad =
-					event.wheelDeltaY ? event.wheelDeltaY === - 3 * event.deltaY :
+					event.wheelDeltaY ? Math.round( event.wheelDeltaY / - 3 ) === event.deltaY :
 					event.deltaMode === DOM_DELTA_PIXEL;
 
 				// Ref: https://stackoverflow.com/questions/15416851/catching-mac-trackpad-zoom/28685082#28685082
