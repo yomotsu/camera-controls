@@ -556,9 +556,7 @@ export class CameraControls extends EventDispatcher {
 
 				scope._state = ACTION.NONE;
 
-				// @ts-ignore
 				document.removeEventListener( 'mousemove', dragging );
-				// @ts-ignore
 				document.removeEventListener( 'touchmove', dragging );
 				document.removeEventListener( 'mouseup',  endDragging );
 				document.removeEventListener( 'touchend', endDragging );
