@@ -363,6 +363,8 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
+			let lastTrackpadMoveTimeStamp = - 1;
+
 			const onMouseWheel = ( event: WheelEvent ): void => {
 
 				if ( ! scope.enabled ) return;
@@ -370,7 +372,8 @@ export class CameraControls extends EventDispatcher {
 				event.preventDefault();
 
 				// Ref: https://stackoverflow.com/questions/10744645/detect-touchpad-vs-mouse-in-javascript/56948026#56948026
-				// WheelDeltaY is Long while deltaY is Double. round it to compare.
+				// WheelDeltaY is Int while deltaY is Double. round it to compare.
+				// Note: wheelDeltaY is deprecated. Trackpad feature may removed in the feature.
 				const isTrackpad =
 					event.wheelDeltaY ? Math.round( event.wheelDeltaY / - 3 ) === event.deltaY :
 					event.deltaMode === DOM_DELTA_PIXEL;
@@ -381,7 +384,16 @@ export class CameraControls extends EventDispatcher {
 
 				if ( isTrackpadMove && ( scope.trackpad.two === ACTION.ROTATE || scope.trackpad.two === ACTION.TRUCK ) ) {
 
-					scope._getClientRect( elementRect ); // TODO: only need to fire this once
+					const now = performance.now();
+
+					if ( lastTrackpadMoveTimeStamp - now < 1000 ) {
+
+						// only need to fire this at trackpad-move start.
+						scope._getClientRect( elementRect );
+
+					}
+
+					lastTrackpadMoveTimeStamp = now;
 
 					switch ( scope.trackpad.two ) {
 
