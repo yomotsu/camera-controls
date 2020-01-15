@@ -134,7 +134,8 @@ export class CameraControls extends EventDispatcher {
 	protected _boundary: _THREE.Box3;
 	protected _boundaryEnclosesCamera = false;
 
-	protected _hasUpdated = true;
+	protected _needsUpdate = true;
+	protected _updatedLastTime = false;
 
 	constructor(
 		camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera,
@@ -659,7 +660,7 @@ export class CameraControls extends EventDispatcher {
 	set boundaryEnclosesCamera( boundaryEnclosesCamera ) {
 
 		this._boundaryEnclosesCamera = boundaryEnclosesCamera;
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -693,7 +694,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -715,7 +716,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -735,7 +736,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -764,7 +765,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -782,7 +783,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -796,7 +797,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -853,7 +854,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -895,7 +896,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -926,7 +927,7 @@ export class CameraControls extends EventDispatcher {
 
 			this._boundary.min.set( - Infinity, - Infinity, - Infinity );
 			this._boundary.max.set(   Infinity,   Infinity,   Infinity );
-			this._hasUpdated = true;
+			this._needsUpdate = true;
 
 			return;
 
@@ -934,7 +935,7 @@ export class CameraControls extends EventDispatcher {
 
 		this._boundary.copy( box3 );
 		this._boundary.clampPoint( this._targetEnd, this._targetEnd );
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
@@ -1050,7 +1051,7 @@ export class CameraControls extends EventDispatcher {
 
 			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
 
-			this._hasUpdated = true;
+			this._needsUpdate = true;
 
 		} else {
 
@@ -1113,14 +1114,29 @@ export class CameraControls extends EventDispatcher {
 			this._camera.updateProjectionMatrix();
 			this._updateNearPlaneCorners();
 
-			this._hasUpdated = true;
+			this._needsUpdate = true;
 
 		}
 
-		const updated = this._hasUpdated;
-		this._hasUpdated = false;
+		const updated = this._needsUpdate;
 
-		if ( updated ) this.dispatchEvent( { type: 'update' } );
+		if ( updated && ! this._updatedLastTime ) {
+
+			this.dispatchEvent( { type: 'wake' } );
+			this.dispatchEvent( { type: 'update' } );
+
+		} else if ( updated ) {
+
+			this.dispatchEvent( { type: 'update' } );
+
+		} else if ( ! updated && this._updatedLastTime ) {
+
+			this.dispatchEvent( { type: 'sleep' } );
+
+		}
+
+		this._updatedLastTime = updated;
+		this._needsUpdate = false;
 		return updated;
 
 	}
@@ -1185,7 +1201,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._hasUpdated = true;
+		this._needsUpdate = true;
 
 	}
 
