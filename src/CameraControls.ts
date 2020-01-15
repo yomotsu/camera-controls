@@ -1,4 +1,4 @@
-import * as _THREE from 'three';
+import * as _THREE from 'three/src/Three.d';
 import {
 	ACTION,
 	MouseButtons,
@@ -22,15 +22,9 @@ import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
 import { EventDispatcher } from './EventDispatcher';
 
-////////////////////////////////////////////////////////////////////////////////
-// IMPORTANT NOTICE
-//
-// DO NOT USE `_THREE` to make instances, call functions, etc.
-// `_THREE` is exclusively for types.
-// Otherwise the bundle file will contain three.js.
-////////////////////////////////////////////////////////////////////////////////
 const isMac: boolean = /Mac/.test( navigator.platform );
 const readonlyACTION = Object.freeze( ACTION );
+const TOUCH_DOLLY_FACTOR = 1 / 8;
 
 let THREE: any;
 let _ORIGIN: _THREE.Vector3;
@@ -43,6 +37,7 @@ let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
 let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
+let _box3: _THREE.Box3;
 let _rotationMatrix: _THREE.Matrix4;
 let _raycaster: _THREE.Raycaster;
 
@@ -61,6 +56,7 @@ export class CameraControls extends EventDispatcher {
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
+		_box3 = new THREE.Box3();
 		_rotationMatrix = new THREE.Matrix4();
 		_raycaster = new THREE.Raycaster();
 
@@ -153,7 +149,6 @@ export class CameraControls extends EventDispatcher {
 		this._state = ACTION.NONE;
 
 		this._domElement = domElement;
-		// this._viewport = new THREE.Vector4();
 
 		// the location
 		this._target = new THREE.Vector3();
@@ -168,10 +163,10 @@ export class CameraControls extends EventDispatcher {
 
 		// collisionTest uses nearPlane.s
 		this._nearPlaneCorners = [
-			new THREE.Vector3(),
-			new THREE.Vector3(),
-			new THREE.Vector3(),
-			new THREE.Vector3(),
+			new THREE.Vector3() as _THREE.Vector3,
+			new THREE.Vector3() as _THREE.Vector3,
+			new THREE.Vector3() as _THREE.Vector3,
+			new THREE.Vector3() as _THREE.Vector3,
 		];
 		this._updateNearPlaneCorners();
 
@@ -216,42 +211,41 @@ export class CameraControls extends EventDispatcher {
 
 		if ( this._domElement ) {
 
-			const scope = this;
-			const dragStartPosition  = new THREE.Vector2();
-			const lastDragPosition  = new THREE.Vector2();
-			const dollyStart = new THREE.Vector2();
-			const elementRect = new THREE.Vector4();
+			const dragStartPosition  = new THREE.Vector2() as _THREE.Vector2;
+			const lastDragPosition  = new THREE.Vector2() as _THREE.Vector2;
+			const dollyStart = new THREE.Vector2() as _THREE.Vector2;
+			const elementRect = new THREE.Vector4() as _THREE.Vector4;
 
 			const truckInternal = ( deltaX: number, deltaY: number ): void => {
 
-				if ( ( scope._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
+				if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
 
-					const camera = scope._camera as _THREE.PerspectiveCamera;
+					const camera = this._camera as _THREE.PerspectiveCamera;
 
-					const offset = _v3A.copy( camera.position ).sub( scope._target );
+					const offset = _v3A.copy( camera.position ).sub( this._target );
 					// half of the fov is center to top of screen
 					const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
 					const targetDistance = offset.length() * Math.tan( fov * 0.5 );
-					const truckX    = ( scope.truckSpeed * deltaX * targetDistance / elementRect.w );
-					const pedestalY = ( scope.truckSpeed * deltaY * targetDistance / elementRect.w );
-					if ( scope.verticalDragToForward ) {
+					const truckX    = ( this.truckSpeed * deltaX * targetDistance / elementRect.w );
+					const pedestalY = ( this.truckSpeed * deltaY * targetDistance / elementRect.w );
+					if ( this.verticalDragToForward ) {
 
-						scope.truck( truckX, 0, true );
-						scope.forward( - pedestalY, true );
+						this.truck( truckX, 0, true );
+						this.forward( - pedestalY, true );
 
 					} else {
 
-						scope.truck( truckX, pedestalY, true );
+						this.truck( truckX, pedestalY, true );
 
 					}
 
-				} else if ( ( scope._camera as _THREE.OrthographicCamera ).isOrthographicCamera ) {
+				} else if ( ( this._camera as _THREE.OrthographicCamera ).isOrthographicCamera ) {
 
 					// orthographic
-					const camera = scope._camera as _THREE.OrthographicCamera;
+					const camera = this._camera as _THREE.OrthographicCamera;
 					const truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / elementRect.z;
 					const pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / elementRect.w;
-					scope.truck( truckX, pedestalY, true );
+					this.truck( truckX, pedestalY, true );
 
 				}
 
@@ -259,24 +253,24 @@ export class CameraControls extends EventDispatcher {
 
 			const rotateInternal = ( deltaX: number, deltaY: number ): void => {
 
-				const theta = PI_2 * scope.azimuthRotateSpeed * deltaX / elementRect.w; // divide by *height* to refer the resolution
-				const phi   = PI_2 * scope.polarRotateSpeed   * deltaY / elementRect.w;
-				scope.rotate( theta, phi, true );
+				const theta = PI_2 * this.azimuthRotateSpeed * deltaX / elementRect.w; // divide by *height* to refer the resolution
+				const phi   = PI_2 * this.polarRotateSpeed   * deltaY / elementRect.w;
+				this.rotate( theta, phi, true );
 
 			};
 
 			const dollyInternal = ( delta: number, x: number, y : number ): void => {
 
-				const dollyScale = Math.pow( 0.95, - delta * scope.dollySpeed );
-				const distance = scope._sphericalEnd.radius * dollyScale;
-				const prevRadius = scope._sphericalEnd.radius;
+				const dollyScale = Math.pow( 0.95, - delta * this.dollySpeed );
+				const distance = this._sphericalEnd.radius * dollyScale;
+				const prevRadius = this._sphericalEnd.radius;
 
-				scope.dollyTo( distance );
+				this.dollyTo( distance );
 
-				if ( scope.dollyToCursor ) {
+				if ( this.dollyToCursor ) {
 
-					scope._dollyControlAmount += scope._sphericalEnd.radius - prevRadius;
-					scope._dollyControlCoord.set( x, y );
+					this._dollyControlAmount += this._sphericalEnd.radius - prevRadius;
+					this._dollyControlCoord.set( x, y );
 
 				}
 
@@ -286,42 +280,42 @@ export class CameraControls extends EventDispatcher {
 
 			const zoomInternal = ( delta: number /* , x: number, y: number */ ): void => {
 
-				const zoomScale = Math.pow( 0.95, delta * scope.dollySpeed );
+				const zoomScale = Math.pow( 0.95, delta * this.dollySpeed );
 
 				// for both PerspectiveCamera and OrthographicCamera
-				scope.zoomTo( scope._zoom * zoomScale );
+				this.zoomTo( this._zoom * zoomScale );
 				return;
 
 			};
 
 			const onMouseDown = ( event: MouseEvent ): void => {
 
-				if ( ! scope.enabled ) return;
+				if ( ! this.enabled ) return;
 
 				event.preventDefault();
 
-				const prevState = scope._state;
+				const prevState = this._state;
 
 				switch ( event.button ) {
 
 					case THREE.MOUSE.LEFT:
 
-						scope._state = scope.mouseButtons.left;
+						this._state = this.mouseButtons.left;
 						break;
 
 					case THREE.MOUSE.MIDDLE:
 
-						scope._state = scope.mouseButtons.middle;
+						this._state = this.mouseButtons.middle;
 						break;
 
 					case THREE.MOUSE.RIGHT:
 
-						scope._state = scope.mouseButtons.right;
+						this._state = this.mouseButtons.right;
 						break;
 
 				}
 
-				if ( prevState !== scope._state ) {
+				if ( prevState !== this._state ) {
 
 					startDragging( event );
 
@@ -331,32 +325,32 @@ export class CameraControls extends EventDispatcher {
 
 			const onTouchStart = ( event:TouchEvent ): void => {
 
-				if ( ! scope.enabled ) return;
+				if ( ! this.enabled ) return;
 
 				event.preventDefault();
 
-				const prevState = scope._state;
+				const prevState = this._state;
 
 				switch ( event.touches.length ) {
 
 					case 1:
 
-						scope._state = scope.touches.one;
+						this._state = this.touches.one;
 						break;
 
 					case 2:
 
-						scope._state = scope.touches.two;
+						this._state = this.touches.two;
 						break;
 
 					case 3:
 
-						scope._state = scope.touches.three;
+						this._state = this.touches.three;
 						break;
 
 				}
 
-				if ( prevState !== scope._state ) {
+				if ( prevState !== this._state ) {
 
 					startDragging( event );
 
@@ -368,7 +362,7 @@ export class CameraControls extends EventDispatcher {
 
 			const onMouseWheel = ( event: WheelEvent ): void => {
 
-				if ( ! scope.enabled ) return;
+				if ( ! this.enabled ) return;
 
 				event.preventDefault();
 
@@ -384,9 +378,9 @@ export class CameraControls extends EventDispatcher {
 				const isTrackpadMove = isTrackpad && ! isTrackpadPinch;
 
 				if (
-					scope.enableUnstableTrackpadConfig &&
+					this.enableUnstableTrackpadConfig &&
 					isTrackpadMove &&
-					( scope.trackpad.two === ACTION.ROTATE || scope.trackpad.two === ACTION.TRUCK )
+					( this.trackpad.two === ACTION.ROTATE || this.trackpad.two === ACTION.TRUCK )
 				) {
 
 					const now = performance.now();
@@ -394,13 +388,13 @@ export class CameraControls extends EventDispatcher {
 					if ( lastTrackpadMoveTimeStamp - now < 1000 ) {
 
 						// only need to fire this at trackpad-move start.
-						scope._getClientRect( elementRect );
+						this._getClientRect( elementRect );
 
 					}
 
 					lastTrackpadMoveTimeStamp = now;
 
-					switch ( scope.trackpad.two ) {
+					switch ( this.trackpad.two ) {
 
 						case ACTION.ROTATE: {
 
@@ -429,15 +423,15 @@ export class CameraControls extends EventDispatcher {
 				let x = 0;
 				let y = 0;
 
-				if ( scope.dollyToCursor ) {
+				if ( this.dollyToCursor ) {
 
-					scope._getClientRect( elementRect );
+					this._getClientRect( elementRect );
 					x = ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1;
 					y = ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1;
 
 				}
 
-				switch ( scope.mouseButtons.wheel ) {
+				switch ( this.mouseButtons.wheel ) {
 
 					case ACTION.DOLLY: {
 
@@ -454,7 +448,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				scope.dispatchEvent( {
+				this.dispatchEvent( {
 					type: 'control',
 					originalEvent: event,
 				} );
@@ -463,7 +457,7 @@ export class CameraControls extends EventDispatcher {
 
 			const onContextMenu = ( event: Event ): void => {
 
-				if ( ! scope.enabled ) return;
+				if ( ! this.enabled ) return;
 
 				event.preventDefault();
 
@@ -471,13 +465,13 @@ export class CameraControls extends EventDispatcher {
 
 			const startDragging = ( event: Event ): void => {
 
-				if ( ! scope.enabled ) return;
+				if ( ! this.enabled ) return;
 
 				event.preventDefault();
 
 				extractClientCoordFromEvent( event, _v2 );
 
-				scope._getClientRect( elementRect );
+				this._getClientRect( elementRect );
 				dragStartPosition.copy( _v2 );
 				lastDragPosition.copy( _v2 );
 
@@ -507,7 +501,7 @@ export class CameraControls extends EventDispatcher {
 				document.addEventListener( 'mouseup', endDragging );
 				document.addEventListener( 'touchend', endDragging );
 
-				scope.dispatchEvent( {
+				this.dispatchEvent( {
 					type: 'controlstart',
 					originalEvent: event,
 				} );
@@ -516,7 +510,7 @@ export class CameraControls extends EventDispatcher {
 
 			const dragging = ( event: Event ): void => {
 
-				if ( ! scope.enabled ) return;
+				if ( ! this.enabled ) return;
 
 				event.preventDefault();
 
@@ -527,7 +521,7 @@ export class CameraControls extends EventDispatcher {
 
 				lastDragPosition.copy( _v2 );
 
-				switch ( scope._state ) {
+				switch ( this._state ) {
 
 					case ACTION.ROTATE:
 					case ACTION.TOUCH_ROTATE: {
@@ -539,11 +533,11 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.DOLLY:
 					case ACTION.ZOOM: {
 
-						const dollyX = scope.dollyToCursor ? ( dragStartPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
-						const dollyY = scope.dollyToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
-						scope._state === ACTION.DOLLY ?
-							dollyInternal( deltaY / 8, dollyX, dollyY ) :
-							zoomInternal( deltaY / 8 /*, dollyX, dollyY */ );
+						const dollyX = this.dollyToCursor ? ( dragStartPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+						this._state === ACTION.DOLLY ?
+							dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
+							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
 						break;
 
 					}
@@ -553,7 +547,6 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.TOUCH_DOLLY_TRUCK:
 					case ACTION.TOUCH_ZOOM_TRUCK: {
 
-						const TOUCH_DOLLY_FACTOR = 8;
 						const touchEvent = event as TouchEvent;
 						const dx = _v2.x - touchEvent.touches[ 1 ].clientX;
 						const dy = _v2.y - touchEvent.touches[ 1 ].clientY;
@@ -561,17 +554,17 @@ export class CameraControls extends EventDispatcher {
 						const dollyDelta = dollyStart.y - distance;
 						dollyStart.set( 0, distance );
 
-						const dollyX = scope.dollyToCursor ? ( lastDragPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
-						const dollyY = scope.dollyToCursor ? ( lastDragPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+						const dollyX = this.dollyToCursor ? ( lastDragPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const dollyY = this.dollyToCursor ? ( lastDragPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 
-						scope._state === ACTION.TOUCH_DOLLY ||
-						scope._state === ACTION.TOUCH_DOLLY_TRUCK ?
-							dollyInternal( dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( dollyDelta / TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
+						this._state === ACTION.TOUCH_DOLLY ||
+						this._state === ACTION.TOUCH_DOLLY_TRUCK ?
+							dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
+							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
 
 						if (
-							scope._state === ACTION.TOUCH_DOLLY_TRUCK ||
-							scope._state === ACTION.TOUCH_ZOOM_TRUCK
+							this._state === ACTION.TOUCH_DOLLY_TRUCK ||
+							this._state === ACTION.TOUCH_ZOOM_TRUCK
 						) {
 
 							truckInternal( deltaX, deltaY );
@@ -592,7 +585,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				scope.dispatchEvent( {
+				this.dispatchEvent( {
 					type: 'control',
 					originalEvent: event,
 				} );
@@ -601,16 +594,16 @@ export class CameraControls extends EventDispatcher {
 
 			const endDragging = ( event: Event ): void => {
 
-				if ( ! scope.enabled ) return;
+				if ( ! this.enabled ) return;
 
-				scope._state = ACTION.NONE;
+				this._state = ACTION.NONE;
 
 				document.removeEventListener( 'mousemove', dragging );
 				document.removeEventListener( 'touchmove', dragging );
 				document.removeEventListener( 'mouseup',  endDragging );
 				document.removeEventListener( 'touchend', endDragging );
 
-				scope.dispatchEvent( {
+				this.dispatchEvent( {
 					type: 'controlend',
 					originalEvent: event,
 				} );
@@ -624,10 +617,10 @@ export class CameraControls extends EventDispatcher {
 
 			this._removeAllEventListeners = (): void => {
 
-				scope._domElement.removeEventListener( 'mousedown', onMouseDown );
-				scope._domElement.removeEventListener( 'touchstart', onTouchStart );
-				scope._domElement.removeEventListener( 'wheel', onMouseWheel );
-				scope._domElement.removeEventListener( 'contextmenu', onContextMenu );
+				this._domElement.removeEventListener( 'mousedown', onMouseDown );
+				this._domElement.removeEventListener( 'touchstart', onTouchStart );
+				this._domElement.removeEventListener( 'wheel', onMouseWheel );
+				this._domElement.removeEventListener( 'contextmenu', onContextMenu );
 				document.removeEventListener( 'mousemove', dragging );
 				document.removeEventListener( 'touchmove', dragging );
 				document.removeEventListener( 'mouseup', endDragging );
@@ -807,7 +800,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	fitTo( box3OrObject: _THREE.Box3, enableTransition: boolean, options: FitToOption = FIT_TO_OPTION_DEFAULT ): void {
+	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, options: FitToOption = FIT_TO_OPTION_DEFAULT ): void {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'fitTo' ) ) return;
 
@@ -818,7 +811,9 @@ export class CameraControls extends EventDispatcher {
 
 		// TODO `Box3.isBox3: boolean` is missing in three.js. waiting for next update of three.js.
 		// see this PR: https://github.com/mrdoob/three.js/pull/18259
-		const boundingBox = ( box3OrObject as any ).isBox3 ? box3OrObject.clone() : new THREE.Box3().setFromObject( box3OrObject );
+		const boundingBox =
+			( box3OrObject as any ).isBox3 ? _box3.copy( box3OrObject as _THREE.Box3 ) :
+			_box3.setFromObject( box3OrObject as _THREE.Object3D );
 		const size = boundingBox.getSize( _v3A );
 		const boundingWidth  = size.x + paddingLeft + paddingRight;
 		const boundingHeight = size.y + paddingTop  + paddingBottom;
@@ -953,7 +948,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._viewport = this._viewport as _THREE.Vector4 || new THREE.Vector4();
+		this._viewport = this._viewport as _THREE.Vector4 || new THREE.Vector4() as _THREE.Vector4;
 
 		if ( typeof viewportOrX === 'number' ) { // number
 
@@ -983,14 +978,14 @@ export class CameraControls extends EventDispatcher {
 
 	getTarget( out: _THREE.Vector3 ): _THREE.Vector3 {
 
-		const _out = !! out && out.isVector3 ? out : new THREE.Vector3();
+		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
 		return _out.copy( this._targetEnd );
 
 	}
 
 	getPosition( out: _THREE.Vector3 ): _THREE.Vector3 {
 
-		const _out = !! out && out.isVector3 ? out : new THREE.Vector3();
+		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
 		return _out.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._targetEnd );
 
 	}
@@ -1101,7 +1096,7 @@ export class CameraControls extends EventDispatcher {
 			this._encloseToBoundary(
 				this._camera.position.copy( this._target ),
 				_v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ),
-				1.0
+				1.0,
 			);
 
 		}
@@ -1160,7 +1155,7 @@ export class CameraControls extends EventDispatcher {
 	fromJSON( json: any, enableTransition: boolean = false ): void {
 
 		const obj = JSON.parse( json );
-		const position = new THREE.Vector3().fromArray( obj.position );
+		const position = ( new THREE.Vector3() as _THREE.Vector3 ).fromArray( obj.position );
 
 		this.enabled               = obj.enabled;
 
@@ -1250,12 +1245,10 @@ export class CameraControls extends EventDispatcher {
 		const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
 		const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
 		const widthHalf = heightHalf * camera.aspect; // near plain half width
-		this._nearPlaneCorners = [
-			new THREE.Vector3( - widthHalf, - heightHalf, 0 ),
-			new THREE.Vector3(   widthHalf, - heightHalf, 0 ),
-			new THREE.Vector3(   widthHalf,   heightHalf, 0 ),
-			new THREE.Vector3( - widthHalf,   heightHalf, 0 ),
-		];
+		this._nearPlaneCorners[ 0 ].set( - widthHalf, - heightHalf, 0 );
+		this._nearPlaneCorners[ 1 ].set(   widthHalf, - heightHalf, 0 );
+		this._nearPlaneCorners[ 2 ].set(   widthHalf,   heightHalf, 0 );
+		this._nearPlaneCorners[ 3 ].set( - widthHalf,   heightHalf, 0 );
 
 	}
 

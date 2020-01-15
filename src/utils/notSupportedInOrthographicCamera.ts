@@ -1,4 +1,4 @@
-import * as _THREE from 'three';
+import * as _THREE from 'three/src/Three.d';
 
 export function notSupportedInOrthographicCamera( camera: _THREE.Camera, message: string ): boolean {
 
