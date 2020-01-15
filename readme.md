@@ -19,6 +19,9 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
+- [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
+- [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
+
 
 ## Usage
 
@@ -30,7 +33,7 @@ CameraControls.install( { THREE: THREE } );
 
 // snip ( init three scene... )
 const clock = new THREE.Clock();
-const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 1000 );
 const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ( function anim () {
@@ -52,12 +55,10 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ## Constructor
 
-`CameraControls( camera, domElement, options )`
+`CameraControls( camera, domElement )`
 
 - `camera` is a `THREE.PerspectiveCamera` or `THREE.OrthographicCamera` to be controlled.
 - `domElement` is a `HTMLElement` for draggable area.
-- `options` in Object.
-  - `ignoreDOMEventListeners`: Default is `false`. if `true`, Mouse and touch event listeners will be ignored, and you can attach your handlers instead. (this may become obsoleted and be replaced by mouseConfig)
 
 ## Terms
 
@@ -79,7 +80,6 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 
 ## Properties
 
-
 | Name                      | Type      | Default     | Description |
 | ------------------------- | --------- | ----------- | ----------- |
 | `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
@@ -99,6 +99,9 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
+| `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera *. |
+
+* Be aware colliderMeshes may decrease the performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 
 ## Events
 
@@ -122,7 +125,7 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.wheel`  | `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 
-- \* is by default.
+- \* is the default.
 - the default of `mouseButtons.wheel` is:
   - `DOLLY` for Perspective camera.
   - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
@@ -131,12 +134,12 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 | --------------------- | -------- |
 | `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
 | `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
-| `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.three` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
 
-- \* is by default.
-- the default of `mouseButtons.wheel` is:
-  - `TOUCH_DOLLY` for Perspective camera.
-  - `TOUCH_ZOOM` for Orthographic camera, and can't set `TOUCH_DOLLY`.
+- \* is the default.
+- the default of `touches.two` and `touches.three` is:
+  - `TOUCH_DOLLY_TRUCK` for Perspective camera.
+  - `TOUCH_ZOOM_TRUCK` for Orthographic camera, and can't set `TOUCH_DOLLY_TRUCK` and `TOUCH_DOLLY`.
 
 ## Methods
 
@@ -448,12 +451,7 @@ Reproduce the control state with JSON. `enableTransition` is where anim or not i
 Dispose the cameraControls instance itself, remove all eventListeners.
 
 ---
-s
+
 ## Breaking changes
 
 @1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
-
-## Todos
-
-- path animation
-- rewrite in TypeScript

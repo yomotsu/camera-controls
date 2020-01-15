@@ -13,36 +13,12 @@
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 	<br>
-	<br>
 	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
 	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
 	<button onclick="cameraControls.rotate( 360 * THREE.Math.DEG2RAD, 0, true )">rotate theta 360deg</button>
 	<button onclick="cameraControls.rotate( 0, 20 * THREE.Math.DEG2RAD, true )">rotate phi 20deg</button>
 	<br>
-	<button onclick="cameraControls.truck(  1,  0, true)">truck( 1, 0 )</button>
-	<button onclick="cameraControls.truck(  0,  1, true)">truck( 0, 1 )</button>
-	<button onclick="cameraControls.truck( -1, -1, true )">truck( -1, -1 )</button>
-	<br>
-	<button onclick="cameraControls.dolly(  1, true )">dolly  1</button>
-	<button onclick="cameraControls.dolly( -1, true )">dolly -1</button>
-	<br>
-	<button onclick="cameraControls.zoom( camera.zoom / 2, true )">zoom `camera.zoom / 2`</button>
-	<button onclick="cameraControls.zoom( -camera.zoom / 2, true )">zoom `- camera.zoom / 2`</button>
-	<br>
-	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
-	<button onclick="cameraControls.fitTo( mesh, true )">fit to the bounding box of the mesh</button>
-	<br>
-	<button onclick="cameraControls.setPosition( -5, 2, 1, true )">move to ( -5, 2, 1 )</button>
-	<button onclick="cameraControls.setTarget( 3, 0, -3, true )">look at ( 3, 0, -3 )</button>
-	<button onclick="cameraControls.setLookAt( 1, 2, 3, 1, 1, 0, true )">move to ( 1, 2, 3 ), look at ( 1, 1, 0 )</button>
-	<br>
-	<button onclick="cameraControls.lerpLookAt( -2, 0, 0, 1, 1, 0, 0, 2, 5, -1, 0, 0, Math.random(), true )">move to somewhere between ( -2, 0, 0 ) -> ( 1, 1, 0 ) and ( 0, 2, 5 ) -> ( -1, 0, 0 )</button>
-	<br>
 	<button onclick="cameraControls.reset( true )">reset</button>
-	<button onclick="cameraControls.saveState()">saveState</button>
-	<br>
-	<button onclick="cameraControls.enabled = false;">disable mouse/touch controls</button>
-	<button onclick="cameraControls.enabled = true;">enable mouse/touch controls</button>
 </div>
 
 <script src="https://unpkg.com/three@0.112.1/build/three.min.js"></script>
@@ -72,6 +48,40 @@ const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.position.y = - 1;
 scene.add( gridHelper );
 
+// colliders
+const colliderMesh0 = new THREE.Mesh(
+	new THREE.BoxGeometry( 3, 0.1, 3 ),
+	new THREE.MeshNormalMaterial(),
+);
+colliderMesh0.position.y = - 1;
+scene.add( colliderMesh0 );
+
+const colliderMesh1 = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshNormalMaterial(),
+);
+colliderMesh1.position.set( 3, 0, 0 );
+scene.add( colliderMesh1 );
+
+const colliderMesh2 = new THREE.Mesh(
+	new THREE.SphereGeometry( 1, 32, 32 ),
+	new THREE.MeshNormalMaterial(),
+);
+colliderMesh2.position.set( - 3, 0, 0 );
+scene.add( colliderMesh2 );
+
+const colliderMesh3 = new THREE.Mesh(
+	new THREE.TorusGeometry( 1, 0.3, 16, 64 ),
+	new THREE.MeshNormalMaterial(),
+);
+colliderMesh3.position.set( 0, 0, - 3 );
+scene.add( colliderMesh3 );
+
+cameraControls.colliderMeshes.push( colliderMesh0 );
+cameraControls.colliderMeshes.push( colliderMesh1 );
+cameraControls.colliderMeshes.push( colliderMesh2 );
+cameraControls.colliderMeshes.push( colliderMesh3 );
+
 renderer.render( scene, camera );
 
 ( function anim () {
@@ -80,7 +90,7 @@ renderer.render( scene, camera );
 	const elapsed = clock.getElapsedTime();
 	const updated = cameraControls.update( delta );
 
-	// if ( elapsed > 30 ) { return; }
+	// if ( elapsed > 130 ) { return; }
 
 	requestAnimationFrame( anim );
 
@@ -92,6 +102,7 @@ renderer.render( scene, camera );
 	}
 
 } )();
+
 </script>
 
 </body>

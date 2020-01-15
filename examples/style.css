@@ -1,0 +1,20 @@
+body {
+	margin: 0;
+}
+
+canvas {
+	display: block;
+}
+
+.info {
+	color: #FFF;
+	position: absolute;
+}
+
+a {
+	color: inherit;
+}
+
+label {
+	cursor: pointer;
+}

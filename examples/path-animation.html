@@ -9,26 +9,15 @@
 <body>
 <div class="info">
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
-	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
-	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
-	<button onclick="cameraControls.rotate( 360 * THREE.Math.DEG2RAD, 0, true )">rotate theta 360deg</button>
-	<button onclick="cameraControls.rotate( 0, 20 * THREE.Math.DEG2RAD, true )">rotate phi 20deg</button>
+	<button onclick="moveToStartPoint()">move to the animation start point</button>
 	<br>
-	<button onclick="cameraControls.truck(  1,  0, true)">truck( 1, 0 )</button>
-	<button onclick="cameraControls.truck(  0,  1, true)">truck( 0, 1 )</button>
-	<button onclick="cameraControls.truck( -1, -1, true )">truck( -1, -1 )</button>
+	<button onclick="pathAnimation.start()">path animation</button>
 	<br>
-	<button onclick="cameraControls.dolly(  1, true )">dolly  1</button>
-	<button onclick="cameraControls.dolly( -1, true )">dolly -1</button>
-	<br>
-	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
 	<button onclick="cameraControls.reset( true )">reset</button>
-	<br>
-	<button onclick="cameraControls.enabled = false;">disable mouse/touch controls</button>
-	<button onclick="cameraControls.enabled = true;">enable mouse/touch controls</button>
 </div>
 
 <script src="https://unpkg.com/three@0.112.1/build/three.min.js"></script>
+<script src="https://unpkg.com/@tweenjs/tween.js@18.5.0/dist/tween.umd.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -38,9 +27,7 @@ const height = window.innerHeight;
 const clock = new THREE.Clock();
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
-
-camera.up.set( 0, 0, 1 );
-camera.position.set( 0, 5, 0 );
+camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer( { antialias: true, stencil: false } );
 renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
@@ -53,12 +40,62 @@ const mesh = new THREE.Mesh(
 );
 scene.add( mesh );
 
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
-
 const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.position.y = - 1;
 scene.add( gridHelper );
+
+const curve = new THREE.CatmullRomCurve3( [
+	new THREE.Vector3( -3,  2, 1 ),
+	new THREE.Vector3(  2,  2, 0 ),
+	new THREE.Vector3(  -1, 0, 3 ),
+	new THREE.Vector3(  2, -1, 0 ),
+] );
+const points = curve.getPoints( 50 );
+const pathMesh = new THREE.Line(
+	new THREE.BufferGeometry().setFromPoints( points ),
+	new THREE.LineBasicMaterial( { color: 0x00ffff } )
+);
+scene.add( pathMesh );
+
+const _tmp = new THREE.Vector3();
+const pathAnimation = new TWEEN.Tween( { progress: 0 } )
+	.to( { progress: 1 }, 3000 )
+	.easing( TWEEN.Easing.Quadratic.Out )
+	.onStart( function() {
+		// disable user control while the animation
+		cameraControls.enabled = false;
+	} )
+	.onUpdate( function( values ) {
+
+		curve.getPoint ( values.progress, _tmp );
+		const cameraX = _tmp.x;
+		const cameraY = _tmp.y;
+		const cameraZ = _tmp.z;
+		const lookAtX = 0;
+		const lookAtY = 0;
+		const lookAtZ = 0;
+
+		cameraControls.setLookAt( 
+			cameraX,
+			cameraY,
+			cameraZ,
+			lookAtX,
+			lookAtY,
+			lookAtZ,
+			false
+		);
+
+	} )
+	.onComplete( function() {
+		cameraControls.enabled = true;
+	} );
+
+function moveToStartPoint() {
+
+	curve.getPoint ( 0, _tmp );
+	cameraControls.setLookAt( _tmp.x, _tmp.y, _tmp.z, 0, 0, 0, true );
+
+}
 
 renderer.render( scene, camera );
 
@@ -66,13 +103,15 @@ renderer.render( scene, camera );
 
 	const delta = clock.getDelta();
 	const elapsed = clock.getElapsedTime();
-	const needsUpdate = cameraControls.update( delta );
+	const updated = cameraControls.update( delta );
 
 	// if ( elapsed > 30 ) { return; }
 
 	requestAnimationFrame( anim );
 
-	if ( needsUpdate ) {
+	TWEEN.update();
+
+	if ( updated ) {
 
 		renderer.render( scene, camera );
 		console.log( 'rendered' );

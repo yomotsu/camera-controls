@@ -4,21 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
 <title>=^.^=</title>
-<style>
-body{
-	margin: 0;
-}
-canvas{
-	display: block;
-}
-.info{
-	color: #FFF;
-	position: absolute;
-}
-a{
-	color: inherit;
-}
-</style>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <div class="info">
@@ -48,7 +34,7 @@ a{
 	<button onclick="cameraControls.enabled = true;">enable mouse/touch controls</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/102/three.min.js"></script>
+<script src="https://unpkg.com/three@0.112.1/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
