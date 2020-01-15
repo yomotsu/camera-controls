@@ -130,6 +130,16 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
   - `DOLLY` for Perspective camera.
   - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
 
+| trackpad to assign      | behavior |
+| --------------------- | -------- |
+| `trackpad.two`   | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+
+The trackpad config is disabled by default, since it uses deprecated JS feature ([MouseEvent.wheelDeltaY](https://developer.mozilla.org/en-US/docs/Web/API/MouseWheelEvent)). To enable it, set `.enableUnstableTrackpadConfig` to `true`
+- the default of `trackpad.two` is:
+  - `DOLLY` for Perspective camera.
+  - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
+
+
 | fingers to assign     | behavior |
 | --------------------- | -------- |
 | `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
