@@ -100,6 +100,7 @@ export class CameraControls extends EventDispatcher {
 	colliderMeshes: _THREE.Object3D[] = [];
 
 	// button configs
+	enableUnstableTrackpadConfig: boolean = false;
 	mouseButtons: MouseButtons;
 	trackpad: Trackpad;
 	touches: Touches;
@@ -382,7 +383,11 @@ export class CameraControls extends EventDispatcher {
 				const isTrackpadPinch = isTrackpad && event.ctrlKey;
 				const isTrackpadMove = isTrackpad && ! isTrackpadPinch;
 
-				if ( isTrackpadMove && ( scope.trackpad.two === ACTION.ROTATE || scope.trackpad.two === ACTION.TRUCK ) ) {
+				if (
+					scope.enableUnstableTrackpadConfig &&
+					isTrackpadMove &&
+					( scope.trackpad.two === ACTION.ROTATE || scope.trackpad.two === ACTION.TRUCK )
+				) {
 
 					const now = performance.now();
 
