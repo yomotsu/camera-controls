@@ -1,11 +1,3 @@
-
-declare global {
-	interface WheelEvent {
-		wheelDeltaY: number,
-	}
-}
-
-
 export enum ACTION {
 	NONE              = 0,
 	ROTATE            = 1,

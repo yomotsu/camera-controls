@@ -369,8 +369,10 @@ export class CameraControls extends EventDispatcher {
 
 				// Ref: https://stackoverflow.com/questions/10744645/detect-touchpad-vs-mouse-in-javascript/56948026#56948026
 				// WheelDeltaY is Int while deltaY is Double. round it to compare.
-				// Note: wheelDeltaY is deprecated. Trackpad feature may removed in the feature.
+				// Note: `wheelDeltaY` is deprecated from web standards.
+				// Trackpad feature may removed in the feature.
 				const isTrackpad =
+					// @ts-ignore
 					event.wheelDeltaY ? Math.round( event.wheelDeltaY / - 3 ) === event.deltaY :
 					event.deltaMode === DOM_DELTA_PIXEL;
 
