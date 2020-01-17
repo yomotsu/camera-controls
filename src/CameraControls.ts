@@ -1254,17 +1254,33 @@ export class CameraControls extends EventDispatcher {
 
 	protected _updateNearPlaneCorners(): void {
 
-		if ( notSupportedInOrthographicCamera( this._camera, '_updateNearPlaneCorners' ) ) return;
+		if ( ( this._camera as any ).isPerspectiveCamera )  {
 
-		const camera = this._camera as _THREE.PerspectiveCamera;
-		const near = camera.near;
-		const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
-		const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
-		const widthHalf = heightHalf * camera.aspect; // near plain half width
-		this._nearPlaneCorners[ 0 ].set( - widthHalf, - heightHalf, 0 );
-		this._nearPlaneCorners[ 1 ].set(   widthHalf, - heightHalf, 0 );
-		this._nearPlaneCorners[ 2 ].set(   widthHalf,   heightHalf, 0 );
-		this._nearPlaneCorners[ 3 ].set( - widthHalf,   heightHalf, 0 );
+			const camera = this._camera as _THREE.PerspectiveCamera;
+			const near = camera.near;
+			const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+			const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
+			const widthHalf = heightHalf * camera.aspect; // near plain half width
+			this._nearPlaneCorners[ 0 ].set( - widthHalf, - heightHalf, 0 );
+			this._nearPlaneCorners[ 1 ].set(   widthHalf, - heightHalf, 0 );
+			this._nearPlaneCorners[ 2 ].set(   widthHalf,   heightHalf, 0 );
+			this._nearPlaneCorners[ 3 ].set( - widthHalf,   heightHalf, 0 );
+
+		} else if ( ( this._camera as any ).isOrthographicCamera ) {
+
+			const camera = this._camera as _THREE.OrthographicCamera;
+			const zoomInv = 1 / camera.zoom;
+			const left   = camera.left   * zoomInv;
+			const right  = camera.right  * zoomInv;
+			const top    = camera.top    * zoomInv;
+			const bottom = camera.bottom * zoomInv;
+
+			this._nearPlaneCorners[ 0 ].set( left,  top,    0 );
+			this._nearPlaneCorners[ 1 ].set( right, top,    0 );
+			this._nearPlaneCorners[ 2 ].set( right, bottom, 0 );
+			this._nearPlaneCorners[ 3 ].set( left,  bottom, 0 );
+
+		}
 
 	}
 
@@ -1273,11 +1289,10 @@ export class CameraControls extends EventDispatcher {
 
 		let distance = Infinity;
 
-		if ( notSupportedInOrthographicCamera( this._camera, '_collisionTest' ) ) return distance;
-
 		const hasCollider = this.colliderMeshes.length >= 1;
-
 		if ( ! hasCollider ) return distance;
+
+		if ( notSupportedInOrthographicCamera( this._camera, '_collisionTest' ) ) return distance;
 
 		distance = this._spherical.radius;
 		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
