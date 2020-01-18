@@ -1,9 +1,9 @@
-import * as _THREE from 'three';
-import { ACTION, MouseButtons, Touches, FitToOption } from './types';
+import * as _THREE from 'three/src/Three.d';
+import { ACTION, MouseButtons, Trackpad, Touches, FitToOption } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     static install(libs: any): void;
-    static get ACTION(): Readonly<typeof ACTION>;
+    static readonly ACTION: Readonly<typeof ACTION>;
     enabled: boolean;
     minPolarAngle: number;
     maxPolarAngle: number;
@@ -23,7 +23,9 @@ export declare class CameraControls extends EventDispatcher {
     verticalDragToForward: boolean;
     boundaryFriction: number;
     colliderMeshes: _THREE.Object3D[];
+    enableUnstableTrackpadConfig: boolean;
     mouseButtons: MouseButtons;
+    trackpad: Trackpad;
     touches: Touches;
     protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
     protected _yAxisUpSpace: _THREE.Quaternion;
@@ -45,12 +47,12 @@ export declare class CameraControls extends EventDispatcher {
     protected _nearPlaneCorners: _THREE.Vector3[];
     protected _boundary: _THREE.Box3;
     protected _boundaryEnclosesCamera: boolean;
-    protected _hasUpdated: boolean;
+    protected _needsUpdate: boolean;
+    protected _updatedLastTime: boolean;
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
-    set phiSpeed(speed: number);
-    set thetaSpeed(speed: number);
-    get boundaryEnclosesCamera(): boolean;
-    set boundaryEnclosesCamera(boundaryEnclosesCamera: boolean);
+    phiSpeed: number;
+    thetaSpeed: number;
+    boundaryEnclosesCamera: boolean;
     rotate(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     rotateTo(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     dolly(distance: number, enableTransition?: boolean): void;
@@ -61,7 +63,7 @@ export declare class CameraControls extends EventDispatcher {
     truck(x: number, y: number, enableTransition?: boolean): void;
     forward(distance: number, enableTransition?: boolean): void;
     moveTo(x: number, y: number, z: number, enableTransition?: boolean): void;
-    fitTo(box3OrObject: _THREE.Box3, enableTransition: boolean, options?: FitToOption): void;
+    fitTo(box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, options?: FitToOption): void;
     setLookAt(positionX: number, positionY: number, positionZ: number, targetX: number, targetY: number, targetZ: number, enableTransition?: boolean): void;
     lerpLookAt(positionAX: number, positionAY: number, positionAZ: number, targetAX: number, targetAY: number, targetAZ: number, positionBX: number, positionBY: number, positionBZ: number, targetBX: number, targetBY: number, targetBZ: number, t: number, enableTransition?: boolean): void;
     setPosition(positionX: number, positionY: number, positionZ: number, enableTransition?: boolean): void;

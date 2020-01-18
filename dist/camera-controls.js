@@ -54,6 +54,7 @@
 	    ACTION[ACTION["TOUCH_ZOOM_TRUCK"] = 10] = "TOUCH_ZOOM_TRUCK";
 	})(ACTION || (ACTION = {}));
 
+	var DOM_DELTA_PIXEL = 0x00;
 	var PI_2 = Math.PI * 2;
 	var FPS_60 = 1 / 0.016;
 	var FIT_TO_OPTION_DEFAULT = {
@@ -138,6 +139,7 @@
 
 	var isMac = /Mac/.test(navigator.platform);
 	var readonlyACTION = Object.freeze(ACTION);
+	var TOUCH_DOLLY_FACTOR = 1 / 8;
 	var THREE;
 	var _ORIGIN;
 	var _AXIS_Y;
@@ -149,6 +151,7 @@
 	var _yColumn;
 	var _sphericalA;
 	var _sphericalB;
+	var _box3;
 	var _rotationMatrix;
 	var _raycaster;
 	var CameraControls = (function (_super) {
@@ -174,11 +177,13 @@
 	        _this.verticalDragToForward = false;
 	        _this.boundaryFriction = 0.0;
 	        _this.colliderMeshes = [];
+	        _this.enableUnstableTrackpadConfig = false;
 	        _this._state = ACTION.NONE;
 	        _this._viewport = null;
 	        _this._dollyControlAmount = 0;
 	        _this._boundaryEnclosesCamera = false;
-	        _this._hasUpdated = true;
+	        _this._needsUpdate = true;
+	        _this._updatedLastTime = false;
 	        _this._camera = camera;
 	        _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
 	        _this._yAxisUpSpaceInverse = _this._yAxisUpSpace.clone().inverse();
@@ -211,6 +216,9 @@
 	                _this._camera.isOrthographicCamera ? ACTION.ZOOM :
 	                    ACTION.NONE,
 	        };
+	        _this.trackpad = {
+	            two: _this.mouseButtons.wheel,
+	        };
 	        _this.touches = {
 	            one: ACTION.TOUCH_ROTATE,
 	            two: _this._camera.isPerspectiveCamera ? ACTION.TOUCH_DOLLY_TRUCK :
@@ -219,104 +227,133 @@
 	            three: ACTION.TOUCH_TRUCK,
 	        };
 	        if (_this._domElement) {
-	            var scope_1 = _this;
 	            var dragStartPosition_1 = new THREE.Vector2();
 	            var lastDragPosition_1 = new THREE.Vector2();
 	            var dollyStart_1 = new THREE.Vector2();
 	            var elementRect_1 = new THREE.Vector4();
 	            var truckInternal_1 = function (deltaX, deltaY) {
-	                if (scope_1._camera.isPerspectiveCamera) {
-	                    var camera_1 = scope_1._camera;
-	                    var offset = _v3A.copy(camera_1.position).sub(scope_1._target);
+	                if (_this._camera.isPerspectiveCamera) {
+	                    var camera_1 = _this._camera;
+	                    var offset = _v3A.copy(camera_1.position).sub(_this._target);
 	                    var fov = camera_1.getEffectiveFOV() * THREE.Math.DEG2RAD;
 	                    var targetDistance = offset.length() * Math.tan(fov * 0.5);
-	                    var truckX = (scope_1.truckSpeed * deltaX * targetDistance / elementRect_1.w);
-	                    var pedestalY = (scope_1.truckSpeed * deltaY * targetDistance / elementRect_1.w);
-	                    if (scope_1.verticalDragToForward) {
-	                        scope_1.truck(truckX, 0, true);
-	                        scope_1.forward(-pedestalY, true);
+	                    var truckX = (_this.truckSpeed * deltaX * targetDistance / elementRect_1.w);
+	                    var pedestalY = (_this.truckSpeed * deltaY * targetDistance / elementRect_1.w);
+	                    if (_this.verticalDragToForward) {
+	                        _this.truck(truckX, 0, true);
+	                        _this.forward(-pedestalY, true);
 	                    }
 	                    else {
-	                        scope_1.truck(truckX, pedestalY, true);
+	                        _this.truck(truckX, pedestalY, true);
 	                    }
 	                }
-	                else if (scope_1._camera.isOrthographicCamera) {
-	                    var camera_2 = scope_1._camera;
+	                else if (_this._camera.isOrthographicCamera) {
+	                    var camera_2 = _this._camera;
 	                    var truckX = deltaX * (camera_2.right - camera_2.left) / camera_2.zoom / elementRect_1.z;
 	                    var pedestalY = deltaY * (camera_2.top - camera_2.bottom) / camera_2.zoom / elementRect_1.w;
-	                    scope_1.truck(truckX, pedestalY, true);
+	                    _this.truck(truckX, pedestalY, true);
 	                }
 	            };
+	            var rotateInternal_1 = function (deltaX, deltaY) {
+	                var theta = PI_2 * _this.azimuthRotateSpeed * deltaX / elementRect_1.w;
+	                var phi = PI_2 * _this.polarRotateSpeed * deltaY / elementRect_1.w;
+	                _this.rotate(theta, phi, true);
+	            };
 	            var dollyInternal_1 = function (delta, x, y) {
-	                var dollyScale = Math.pow(0.95, -delta * scope_1.dollySpeed);
-	                var distance = scope_1._sphericalEnd.radius * dollyScale;
-	                var prevRadius = scope_1._sphericalEnd.radius;
-	                scope_1.dollyTo(distance);
-	                if (scope_1.dollyToCursor) {
-	                    scope_1._dollyControlAmount += scope_1._sphericalEnd.radius - prevRadius;
-	                    scope_1._dollyControlCoord.set(x, y);
+	                var dollyScale = Math.pow(0.95, -delta * _this.dollySpeed);
+	                var distance = _this._sphericalEnd.radius * dollyScale;
+	                var prevRadius = _this._sphericalEnd.radius;
+	                _this.dollyTo(distance);
+	                if (_this.dollyToCursor) {
+	                    _this._dollyControlAmount += _this._sphericalEnd.radius - prevRadius;
+	                    _this._dollyControlCoord.set(x, y);
 	                }
 	                return;
 	            };
 	            var zoomInternal_1 = function (delta) {
-	                var zoomScale = Math.pow(0.95, delta * scope_1.dollySpeed);
-	                scope_1.zoomTo(scope_1._zoom * zoomScale);
+	                var zoomScale = Math.pow(0.95, delta * _this.dollySpeed);
+	                _this.zoomTo(_this._zoom * zoomScale);
 	                return;
 	            };
 	            var onMouseDown_1 = function (event) {
-	                if (!scope_1.enabled)
+	                if (!_this.enabled)
 	                    return;
 	                event.preventDefault();
-	                var prevState = scope_1._state;
+	                var prevState = _this._state;
 	                switch (event.button) {
 	                    case THREE.MOUSE.LEFT:
-	                        scope_1._state = scope_1.mouseButtons.left;
+	                        _this._state = _this.mouseButtons.left;
 	                        break;
 	                    case THREE.MOUSE.MIDDLE:
-	                        scope_1._state = scope_1.mouseButtons.middle;
+	                        _this._state = _this.mouseButtons.middle;
 	                        break;
 	                    case THREE.MOUSE.RIGHT:
-	                        scope_1._state = scope_1.mouseButtons.right;
+	                        _this._state = _this.mouseButtons.right;
 	                        break;
 	                }
-	                if (prevState !== scope_1._state) {
+	                if (prevState !== _this._state) {
 	                    startDragging_1(event);
 	                }
 	            };
 	            var onTouchStart_1 = function (event) {
-	                if (!scope_1.enabled)
+	                if (!_this.enabled)
 	                    return;
 	                event.preventDefault();
-	                var prevState = scope_1._state;
+	                var prevState = _this._state;
 	                switch (event.touches.length) {
 	                    case 1:
-	                        scope_1._state = scope_1.touches.one;
+	                        _this._state = _this.touches.one;
 	                        break;
 	                    case 2:
-	                        scope_1._state = scope_1.touches.two;
+	                        _this._state = _this.touches.two;
 	                        break;
 	                    case 3:
-	                        scope_1._state = scope_1.touches.three;
+	                        _this._state = _this.touches.three;
 	                        break;
 	                }
-	                if (prevState !== scope_1._state) {
+	                if (prevState !== _this._state) {
 	                    startDragging_1(event);
 	                }
 	            };
+	            var lastTrackpadMoveTimeStamp_1 = -1;
 	            var onMouseWheel_1 = function (event) {
-	                if (!scope_1.enabled)
+	                if (!_this.enabled)
 	                    return;
 	                event.preventDefault();
+	                var isTrackpad = event.wheelDeltaY ? Math.round(event.wheelDeltaY / -3) === event.deltaY :
+	                    event.deltaMode === DOM_DELTA_PIXEL;
+	                var isTrackpadPinch = isTrackpad && event.ctrlKey;
+	                var isTrackpadMove = isTrackpad && !isTrackpadPinch;
+	                if (_this.enableUnstableTrackpadConfig &&
+	                    isTrackpadMove &&
+	                    (_this.trackpad.two === ACTION.ROTATE || _this.trackpad.two === ACTION.TRUCK)) {
+	                    var now = performance.now();
+	                    if (lastTrackpadMoveTimeStamp_1 - now < 1000) {
+	                        _this._getClientRect(elementRect_1);
+	                    }
+	                    lastTrackpadMoveTimeStamp_1 = now;
+	                    switch (_this.trackpad.two) {
+	                        case ACTION.ROTATE: {
+	                            rotateInternal_1(event.deltaX, event.deltaY);
+	                            break;
+	                        }
+	                        case ACTION.TRUCK: {
+	                            truckInternal_1(event.deltaX, event.deltaY);
+	                            break;
+	                        }
+	                    }
+	                    return;
+	                }
 	                var deltaYFactor = isMac ? -1 : -3;
 	                var delta = (event.deltaMode === 1) ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
 	                var x = 0;
 	                var y = 0;
-	                if (scope_1.dollyToCursor) {
-	                    scope_1._getClientRect(elementRect_1);
+	                if (_this.dollyToCursor) {
+	                    _this._getClientRect(elementRect_1);
 	                    x = (event.clientX - elementRect_1.x) / elementRect_1.z * 2 - 1;
 	                    y = (event.clientY - elementRect_1.y) / elementRect_1.w * -2 + 1;
 	                }
-	                switch (scope_1.mouseButtons.wheel) {
+	                switch (_this.mouseButtons.wheel) {
 	                    case ACTION.DOLLY: {
 	                        dollyInternal_1(-delta, x, y);
 	                        break;
@@ -326,22 +363,22 @@
 	                        break;
 	                    }
 	                }
-	                scope_1.dispatchEvent({
+	                _this.dispatchEvent({
 	                    type: 'control',
 	                    originalEvent: event,
 	                });
 	            };
 	            var onContextMenu_1 = function (event) {
-	                if (!scope_1.enabled)
+	                if (!_this.enabled)
 	                    return;
 	                event.preventDefault();
 	            };
 	            var startDragging_1 = function (event) {
-	                if (!scope_1.enabled)
+	                if (!_this.enabled)
 	                    return;
 	                event.preventDefault();
 	                extractClientCoordFromEvent(event, _v2);
-	                scope_1._getClientRect(elementRect_1);
+	                _this._getClientRect(elementRect_1);
 	                dragStartPosition_1.copy(_v2);
 	                lastDragPosition_1.copy(_v2);
 	                var isMultiTouch = isTouchEvent(event) && event.touches.length >= 2;
@@ -359,55 +396,52 @@
 	                document.addEventListener('touchmove', dragging_1);
 	                document.addEventListener('mouseup', endDragging_1);
 	                document.addEventListener('touchend', endDragging_1);
-	                scope_1.dispatchEvent({
+	                _this.dispatchEvent({
 	                    type: 'controlstart',
 	                    originalEvent: event,
 	                });
 	            };
 	            var dragging_1 = function (event) {
-	                if (!scope_1.enabled)
+	                if (!_this.enabled)
 	                    return;
 	                event.preventDefault();
 	                extractClientCoordFromEvent(event, _v2);
 	                var deltaX = lastDragPosition_1.x - _v2.x;
 	                var deltaY = lastDragPosition_1.y - _v2.y;
 	                lastDragPosition_1.copy(_v2);
-	                switch (scope_1._state) {
+	                switch (_this._state) {
 	                    case ACTION.ROTATE:
 	                    case ACTION.TOUCH_ROTATE: {
-	                        var theta = PI_2 * scope_1.azimuthRotateSpeed * deltaX / elementRect_1.w;
-	                        var phi = PI_2 * scope_1.polarRotateSpeed * deltaY / elementRect_1.w;
-	                        scope_1.rotate(theta, phi, true);
+	                        rotateInternal_1(deltaX, deltaY);
 	                        break;
 	                    }
 	                    case ACTION.DOLLY:
 	                    case ACTION.ZOOM: {
-	                        var dollyX = scope_1.dollyToCursor ? (dragStartPosition_1.x - elementRect_1.x) / elementRect_1.z * 2 - 1 : 0;
-	                        var dollyY = scope_1.dollyToCursor ? (dragStartPosition_1.y - elementRect_1.y) / elementRect_1.w * -2 + 1 : 0;
-	                        scope_1._state === ACTION.DOLLY ?
-	                            dollyInternal_1(deltaY / 8, dollyX, dollyY) :
-	                            zoomInternal_1(deltaY / 8);
+	                        var dollyX = _this.dollyToCursor ? (dragStartPosition_1.x - elementRect_1.x) / elementRect_1.z * 2 - 1 : 0;
+	                        var dollyY = _this.dollyToCursor ? (dragStartPosition_1.y - elementRect_1.y) / elementRect_1.w * -2 + 1 : 0;
+	                        _this._state === ACTION.DOLLY ?
+	                            dollyInternal_1(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
+	                            zoomInternal_1(deltaY * TOUCH_DOLLY_FACTOR);
 	                        break;
 	                    }
 	                    case ACTION.TOUCH_DOLLY:
 	                    case ACTION.TOUCH_ZOOM:
 	                    case ACTION.TOUCH_DOLLY_TRUCK:
 	                    case ACTION.TOUCH_ZOOM_TRUCK: {
-	                        var TOUCH_DOLLY_FACTOR = 8;
 	                        var touchEvent = event;
 	                        var dx = _v2.x - touchEvent.touches[1].clientX;
 	                        var dy = _v2.y - touchEvent.touches[1].clientY;
 	                        var distance = Math.sqrt(dx * dx + dy * dy);
 	                        var dollyDelta = dollyStart_1.y - distance;
 	                        dollyStart_1.set(0, distance);
-	                        var dollyX = scope_1.dollyToCursor ? (lastDragPosition_1.x - elementRect_1.x) / elementRect_1.z * 2 - 1 : 0;
-	                        var dollyY = scope_1.dollyToCursor ? (lastDragPosition_1.y - elementRect_1.y) / elementRect_1.w * -2 + 1 : 0;
-	                        scope_1._state === ACTION.TOUCH_DOLLY ||
-	                            scope_1._state === ACTION.TOUCH_DOLLY_TRUCK ?
-	                            dollyInternal_1(dollyDelta / TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
-	                            zoomInternal_1(dollyDelta / TOUCH_DOLLY_FACTOR);
-	                        if (scope_1._state === ACTION.TOUCH_DOLLY_TRUCK ||
-	                            scope_1._state === ACTION.TOUCH_ZOOM_TRUCK) {
+	                        var dollyX = _this.dollyToCursor ? (lastDragPosition_1.x - elementRect_1.x) / elementRect_1.z * 2 - 1 : 0;
+	                        var dollyY = _this.dollyToCursor ? (lastDragPosition_1.y - elementRect_1.y) / elementRect_1.w * -2 + 1 : 0;
+	                        _this._state === ACTION.TOUCH_DOLLY ||
+	                            _this._state === ACTION.TOUCH_DOLLY_TRUCK ?
+	                            dollyInternal_1(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
+	                            zoomInternal_1(dollyDelta * TOUCH_DOLLY_FACTOR);
+	                        if (_this._state === ACTION.TOUCH_DOLLY_TRUCK ||
+	                            _this._state === ACTION.TOUCH_ZOOM_TRUCK) {
 	                            truckInternal_1(deltaX, deltaY);
 	                        }
 	                        break;
@@ -418,20 +452,20 @@
 	                        break;
 	                    }
 	                }
-	                scope_1.dispatchEvent({
+	                _this.dispatchEvent({
 	                    type: 'control',
 	                    originalEvent: event,
 	                });
 	            };
 	            var endDragging_1 = function (event) {
-	                if (!scope_1.enabled)
+	                if (!_this.enabled)
 	                    return;
-	                scope_1._state = ACTION.NONE;
+	                _this._state = ACTION.NONE;
 	                document.removeEventListener('mousemove', dragging_1);
 	                document.removeEventListener('touchmove', dragging_1);
 	                document.removeEventListener('mouseup', endDragging_1);
 	                document.removeEventListener('touchend', endDragging_1);
-	                scope_1.dispatchEvent({
+	                _this.dispatchEvent({
 	                    type: 'controlend',
 	                    originalEvent: event,
 	                });
@@ -441,10 +475,10 @@
 	            _this._domElement.addEventListener('wheel', onMouseWheel_1);
 	            _this._domElement.addEventListener('contextmenu', onContextMenu_1);
 	            _this._removeAllEventListeners = function () {
-	                scope_1._domElement.removeEventListener('mousedown', onMouseDown_1);
-	                scope_1._domElement.removeEventListener('touchstart', onTouchStart_1);
-	                scope_1._domElement.removeEventListener('wheel', onMouseWheel_1);
-	                scope_1._domElement.removeEventListener('contextmenu', onContextMenu_1);
+	                _this._domElement.removeEventListener('mousedown', onMouseDown_1);
+	                _this._domElement.removeEventListener('touchstart', onTouchStart_1);
+	                _this._domElement.removeEventListener('wheel', onMouseWheel_1);
+	                _this._domElement.removeEventListener('contextmenu', onContextMenu_1);
 	                document.removeEventListener('mousemove', dragging_1);
 	                document.removeEventListener('touchmove', dragging_1);
 	                document.removeEventListener('mouseup', endDragging_1);
@@ -466,6 +500,7 @@
 	        _yColumn = new THREE.Vector3();
 	        _sphericalA = new THREE.Spherical();
 	        _sphericalB = new THREE.Spherical();
+	        _box3 = new THREE.Box3();
 	        _rotationMatrix = new THREE.Matrix4();
 	        _raycaster = new THREE.Raycaster();
 	    };
@@ -498,7 +533,7 @@
 	        },
 	        set: function (boundaryEnclosesCamera) {
 	            this._boundaryEnclosesCamera = boundaryEnclosesCamera;
-	            this._hasUpdated = true;
+	            this._needsUpdate = true;
 	        },
 	        enumerable: true,
 	        configurable: true
@@ -518,7 +553,7 @@
 	            this._spherical.theta = this._sphericalEnd.theta;
 	            this._spherical.phi = this._sphericalEnd.phi;
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.dolly = function (distance, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
@@ -532,7 +567,7 @@
 	        if (!enableTransition) {
 	            this._spherical.radius = this._sphericalEnd.radius;
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.zoom = function (zoomStep, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
@@ -544,7 +579,7 @@
 	        if (!enableTransition) {
 	            this._zoom = this._zoomEnd;
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.pan = function (x, y, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
@@ -563,7 +598,7 @@
 	        if (!enableTransition) {
 	            this._target.copy(this._targetEnd);
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.forward = function (distance, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
@@ -574,7 +609,7 @@
 	        if (!enableTransition) {
 	            this._target.copy(this._targetEnd);
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.moveTo = function (x, y, z, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
@@ -582,7 +617,7 @@
 	        if (!enableTransition) {
 	            this._target.copy(this._targetEnd);
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.fitTo = function (box3OrObject, enableTransition, options) {
 	        if (options === void 0) { options = FIT_TO_OPTION_DEFAULT; }
@@ -592,7 +627,8 @@
 	        var paddingRight = options.paddingRight || 0;
 	        var paddingBottom = options.paddingBottom || 0;
 	        var paddingTop = options.paddingTop || 0;
-	        var boundingBox = box3OrObject.isBox3 ? box3OrObject.clone() : new THREE.Box3().setFromObject(box3OrObject);
+	        var boundingBox = box3OrObject.isBox3 ? _box3.copy(box3OrObject) :
+	            _box3.setFromObject(box3OrObject);
 	        var size = boundingBox.getSize(_v3A);
 	        var boundingWidth = size.x + paddingLeft + paddingRight;
 	        var boundingHeight = size.y + paddingTop + paddingBottom;
@@ -618,7 +654,7 @@
 	            this._target.copy(this._targetEnd);
 	            this._spherical.copy(this._sphericalEnd);
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.lerpLookAt = function (positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, t, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
@@ -638,7 +674,7 @@
 	            this._target.copy(this._targetEnd);
 	            this._spherical.copy(this._sphericalEnd);
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.setPosition = function (positionX, positionY, positionZ, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
@@ -653,12 +689,12 @@
 	        if (!box3) {
 	            this._boundary.min.set(-Infinity, -Infinity, -Infinity);
 	            this._boundary.max.set(Infinity, Infinity, Infinity);
-	            this._hasUpdated = true;
+	            this._needsUpdate = true;
 	            return;
 	        }
 	        this._boundary.copy(box3);
 	        this._boundary.clampPoint(this._targetEnd, this._targetEnd);
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.setViewport = function (viewportOrX, y, width, height) {
 	        if (viewportOrX === null) {
@@ -724,7 +760,7 @@
 	            !approxZero(deltaTarget.z)) {
 	            this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
 	            this._target.add(deltaTarget.multiplyScalar(lerpRatio));
-	            this._hasUpdated = true;
+	            this._needsUpdate = true;
 	        }
 	        else {
 	            this._spherical.copy(this._sphericalEnd);
@@ -765,12 +801,21 @@
 	            this._camera.zoom = this._zoom;
 	            this._camera.updateProjectionMatrix();
 	            this._updateNearPlaneCorners();
-	            this._hasUpdated = true;
+	            this._needsUpdate = true;
 	        }
-	        var updated = this._hasUpdated;
-	        this._hasUpdated = false;
-	        if (updated)
+	        var updated = this._needsUpdate;
+	        if (updated && !this._updatedLastTime) {
+	            this.dispatchEvent({ type: 'wake' });
 	            this.dispatchEvent({ type: 'update' });
+	        }
+	        else if (updated) {
+	            this.dispatchEvent({ type: 'update' });
+	        }
+	        else if (!updated && this._updatedLastTime) {
+	            this.dispatchEvent({ type: 'sleep' });
+	        }
+	        this._updatedLastTime = updated;
+	        this._needsUpdate = false;
 	        return updated;
 	    };
 	    CameraControls.prototype.toJSON = function () {
@@ -819,7 +864,7 @@
 	            this._target.copy(this._targetEnd);
 	            this._spherical.copy(this._sphericalEnd);
 	        }
-	        this._hasUpdated = true;
+	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.dispose = function () {
 	        this._removeAllEventListeners();
@@ -850,26 +895,36 @@
 	        }
 	    };
 	    CameraControls.prototype._updateNearPlaneCorners = function () {
-	        if (notSupportedInOrthographicCamera(this._camera, '_updateNearPlaneCorners'))
-	            return;
-	        var camera = this._camera;
-	        var near = camera.near;
-	        var fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
-	        var heightHalf = Math.tan(fov * 0.5) * near;
-	        var widthHalf = heightHalf * camera.aspect;
-	        this._nearPlaneCorners = [
-	            new THREE.Vector3(-widthHalf, -heightHalf, 0),
-	            new THREE.Vector3(widthHalf, -heightHalf, 0),
-	            new THREE.Vector3(widthHalf, heightHalf, 0),
-	            new THREE.Vector3(-widthHalf, heightHalf, 0),
-	        ];
+	        if (this._camera.isPerspectiveCamera) {
+	            var camera = this._camera;
+	            var near = camera.near;
+	            var fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+	            var heightHalf = Math.tan(fov * 0.5) * near;
+	            var widthHalf = heightHalf * camera.aspect;
+	            this._nearPlaneCorners[0].set(-widthHalf, -heightHalf, 0);
+	            this._nearPlaneCorners[1].set(widthHalf, -heightHalf, 0);
+	            this._nearPlaneCorners[2].set(widthHalf, heightHalf, 0);
+	            this._nearPlaneCorners[3].set(-widthHalf, heightHalf, 0);
+	        }
+	        else if (this._camera.isOrthographicCamera) {
+	            var camera = this._camera;
+	            var zoomInv = 1 / camera.zoom;
+	            var left = camera.left * zoomInv;
+	            var right = camera.right * zoomInv;
+	            var top_1 = camera.top * zoomInv;
+	            var bottom = camera.bottom * zoomInv;
+	            this._nearPlaneCorners[0].set(left, top_1, 0);
+	            this._nearPlaneCorners[1].set(right, top_1, 0);
+	            this._nearPlaneCorners[2].set(right, bottom, 0);
+	            this._nearPlaneCorners[3].set(left, bottom, 0);
+	        }
 	    };
 	    CameraControls.prototype._collisionTest = function () {
 	        var distance = Infinity;
-	        if (notSupportedInOrthographicCamera(this._camera, '_collisionTest'))
-	            return distance;
 	        var hasCollider = this.colliderMeshes.length >= 1;
 	        if (!hasCollider)
+	            return distance;
+	        if (notSupportedInOrthographicCamera(this._camera, '_collisionTest'))
 	            return distance;
 	        distance = this._spherical.radius;
 	        var direction = _v3A.setFromSpherical(this._spherical).divideScalar(distance);
@@ -877,8 +932,8 @@
 	        for (var i = 0; i < 4; i++) {
 	            var nearPlaneCorner = _v3B.copy(this._nearPlaneCorners[i]);
 	            nearPlaneCorner.applyMatrix4(_rotationMatrix);
-	            var origin_1 = _v3C.addVectors(this._target, nearPlaneCorner);
-	            _raycaster.set(origin_1, direction);
+	            var origin = _v3C.addVectors(this._target, nearPlaneCorner);
+	            _raycaster.set(origin, direction);
 	            _raycaster.far = distance;
 	            var intersects = _raycaster.intersectObjects(this.colliderMeshes);
 	            if (intersects.length !== 0 && intersects[0].distance < distance) {
