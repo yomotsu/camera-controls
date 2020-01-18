@@ -500,7 +500,7 @@ export class CameraControls extends EventDispatcher {
 				}
 
 				document.addEventListener( 'mousemove', dragging );
-				document.addEventListener( 'touchmove', dragging, { passive: true } );
+				document.addEventListener( 'touchmove', dragging, { passive: false } );
 				document.addEventListener( 'mouseup', endDragging );
 				document.addEventListener( 'touchend', endDragging );
 
@@ -603,7 +603,7 @@ export class CameraControls extends EventDispatcher {
 
 				document.removeEventListener( 'mousemove', dragging );
 				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
-				document.removeEventListener( 'touchmove', dragging, { passive: true } as AddEventListenerOptions );
+				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
 				document.removeEventListener( 'mouseup',  endDragging );
 				document.removeEventListener( 'touchend', endDragging );
 
@@ -627,7 +627,7 @@ export class CameraControls extends EventDispatcher {
 				this._domElement.removeEventListener( 'contextmenu', onContextMenu );
 				document.removeEventListener( 'mousemove', dragging );
 				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
-				document.removeEventListener( 'touchmove', dragging, { passive: true } as AddEventListenerOptions );
+				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
 				document.removeEventListener( 'mouseup', endDragging );
 				document.removeEventListener( 'touchend', endDragging );
 
