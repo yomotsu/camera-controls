@@ -121,24 +121,14 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 
 | button to assign      | behavior |
 | --------------------- | -------- |
-| `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.wheel`  | `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.wheel`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 
 - \* is the default.
-- the default of `mouseButtons.wheel` is:
+- The default of `mouseButtons.wheel` is:
   - `DOLLY` for Perspective camera.
   - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
-
-| trackpad to assign      | behavior |
-| --------------------- | -------- |
-| `trackpad.two`   | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-
-The trackpad config is disabled by default, since it uses deprecated JS feature ([MouseEvent.wheelDeltaY](https://developer.mozilla.org/en-US/docs/Web/API/MouseWheelEvent)). To enable it, set `.enableUnstableTrackpadConfig` to `true`
-- the default of `trackpad.two` is:
-  - `DOLLY` for Perspective camera.
-  - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
-
 
 | fingers to assign     | behavior |
 | --------------------- | -------- |
@@ -147,7 +137,7 @@ The trackpad config is disabled by default, since it uses deprecated JS feature 
 | `touches.three` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
 
 - \* is the default.
-- the default of `touches.two` and `touches.three` is:
+- The default of `touches.two` and `touches.three` is:
   - `TOUCH_DOLLY_TRUCK` for Perspective camera.
   - `TOUCH_ZOOM_TRUCK` for Orthographic camera, and can't set `TOUCH_DOLLY_TRUCK` and `TOUCH_DOLLY`.
 

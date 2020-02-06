@@ -2,12 +2,10 @@ import * as _THREE from 'three/src/Three.d';
 import {
 	ACTION,
 	MouseButtons,
-	Trackpad,
 	Touches,
 	FitToOption,
 } from './types';
 import {
-	DOM_DELTA_PIXEL,
 	PI_2,
 	FPS_60,
 	FIT_TO_OPTION_DEFAULT,
@@ -96,9 +94,7 @@ export class CameraControls extends EventDispatcher {
 	colliderMeshes: _THREE.Object3D[] = [];
 
 	// button configs
-	enableUnstableTrackpadConfig: boolean = false;
 	mouseButtons: MouseButtons;
-	trackpad: Trackpad;
 	touches: Touches;
 
 	protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
@@ -195,10 +191,6 @@ export class CameraControls extends EventDispatcher {
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
 				ACTION.NONE,
 			// We can also add shiftLeft, altLeft and etc if someone wants...
-		};
-
-		this.trackpad = {
-			two: this.mouseButtons.wheel,
 		};
 
 		this.touches = {
@@ -359,7 +351,7 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
-			let lastTrackpadMoveTimeStamp = - 1;
+			let lastScrollTimeStamp = - 1;
 
 			const onMouseWheel = ( event: WheelEvent ): void => {
 
@@ -367,74 +359,41 @@ export class CameraControls extends EventDispatcher {
 
 				event.preventDefault();
 
-				// Ref: https://stackoverflow.com/questions/10744645/detect-touchpad-vs-mouse-in-javascript/56948026#56948026
-				// WheelDeltaY is Int while deltaY is Double. round it to compare.
-				// Note: `wheelDeltaY` is deprecated from web standards.
-				// Trackpad feature may removed in the feature.
-				const isTrackpad =
-					// @ts-ignore
-					event.wheelDeltaY ? Math.round( event.wheelDeltaY / - 3 ) === event.deltaY :
-					event.deltaMode === DOM_DELTA_PIXEL;
-
-				// Ref: https://stackoverflow.com/questions/15416851/catching-mac-trackpad-zoom/28685082#28685082
-				const isTrackpadPinch = isTrackpad && event.ctrlKey;
-				const isTrackpadMove = isTrackpad && ! isTrackpadPinch;
-
 				if (
-					this.enableUnstableTrackpadConfig &&
-					isTrackpadMove &&
-					( this.trackpad.two === ACTION.ROTATE || this.trackpad.two === ACTION.TRUCK )
+					this.dollyToCursor ||
+					this.mouseButtons.wheel === ACTION.ROTATE ||
+					this.mouseButtons.wheel === ACTION.TRUCK
 				) {
 
 					const now = performance.now();
 
-					if ( lastTrackpadMoveTimeStamp - now < 1000 ) {
-
-						// only need to fire this at trackpad-move start.
-						this._getClientRect( elementRect );
-
-					}
-
-					lastTrackpadMoveTimeStamp = now;
-
-					switch ( this.trackpad.two ) {
-
-						case ACTION.ROTATE: {
-
-							rotateInternal( event.deltaX, event.deltaY );
-							break;
-
-						}
-						case ACTION.TRUCK: {
-
-							truckInternal( event.deltaX, event.deltaY );
-							break;
-
-						}
-
-					}
-
-					return;
+					// only need to fire this at scroll start.
+					if ( lastScrollTimeStamp - now < 1000 ) this._getClientRect( elementRect );
+					lastScrollTimeStamp = now;
 
 				}
 
 				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 				const deltaYFactor = isMac ? - 1 : - 3;
-
 				const delta = ( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor : event.deltaY / ( deltaYFactor * 10 );
-
-				let x = 0;
-				let y = 0;
-
-				if ( this.dollyToCursor ) {
-
-					this._getClientRect( elementRect );
-					x = ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1;
-					y = ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1;
-
-				}
+				const x = this.dollyToCursor ? ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+				const y = this.dollyToCursor ? ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 
 				switch ( this.mouseButtons.wheel ) {
+
+					case ACTION.ROTATE: {
+
+						rotateInternal( event.deltaX, event.deltaY );
+						break;
+
+					}
+
+					case ACTION.TRUCK: {
+
+						truckInternal( event.deltaX, event.deltaY );
+						break;
+
+					}
 
 					case ACTION.DOLLY: {
 

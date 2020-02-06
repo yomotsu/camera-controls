@@ -40,13 +40,6 @@
 	<br>
 	cameraControls.mouseButtons.wheel =
 	<select onchange="cameraControls.mouseButtons.wheel = CameraControls.ACTION[ this.value ]">
-		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
-		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
-		<option value="NONE">CameraControls.ACTION.NONE</option>
-	</select>
-	<br>
-	cameraControls.trackpad.two =
-	<select onchange="cameraControls.trackpad.two = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
 		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
@@ -99,7 +92,6 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-cameraControls.enableUnstableTrackpadConfig = true;
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),

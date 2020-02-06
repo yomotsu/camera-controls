@@ -13,8 +13,7 @@ export enum ACTION {
 }
 
 type mouseButtonAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
-type mouseWheelAction = ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
-type trackpadAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
+type mouseWheelAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 type singleTouchAction = ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.NONE;
 type multiTouchAction = ACTION.TOUCH_DOLLY_TRUCK | ACTION.TOUCH_ZOOM_TRUCK | ACTION.TOUCH_DOLLY | ACTION.TOUCH_ZOOM | ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.NONE;
 
@@ -24,10 +23,6 @@ export interface MouseButtons {
 	right : mouseButtonAction;
 	wheel : mouseWheelAction;
 	// We can also add shiftLeft, altLeft and etc if someone wants...
-}
-
-export interface Trackpad {
-	two: trackpadAction;
 }
 
 export interface Touches {
