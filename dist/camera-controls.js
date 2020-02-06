@@ -54,7 +54,6 @@
 	    ACTION[ACTION["TOUCH_ZOOM_TRUCK"] = 10] = "TOUCH_ZOOM_TRUCK";
 	})(ACTION || (ACTION = {}));
 
-	var DOM_DELTA_PIXEL = 0x00;
 	var PI_2 = Math.PI * 2;
 	var FPS_60 = 1 / 0.016;
 	var FIT_TO_OPTION_DEFAULT = {
@@ -177,7 +176,6 @@
 	        _this.verticalDragToForward = false;
 	        _this.boundaryFriction = 0.0;
 	        _this.colliderMeshes = [];
-	        _this.enableUnstableTrackpadConfig = false;
 	        _this._state = ACTION.NONE;
 	        _this._viewport = null;
 	        _this._dollyControlAmount = 0;
@@ -215,9 +213,6 @@
 	            wheel: _this._camera.isPerspectiveCamera ? ACTION.DOLLY :
 	                _this._camera.isOrthographicCamera ? ACTION.ZOOM :
 	                    ACTION.NONE,
-	        };
-	        _this.trackpad = {
-	            two: _this.mouseButtons.wheel,
 	        };
 	        _this.touches = {
 	            one: ACTION.TOUCH_ROTATE,
@@ -315,45 +310,32 @@
 	                    startDragging_1(event);
 	                }
 	            };
-	            var lastTrackpadMoveTimeStamp_1 = -1;
+	            var lastScrollTimeStamp_1 = -1;
 	            var onMouseWheel_1 = function (event) {
 	                if (!_this.enabled)
 	                    return;
 	                event.preventDefault();
-	                var isTrackpad = event.wheelDeltaY ? Math.round(event.wheelDeltaY / -3) === event.deltaY :
-	                    event.deltaMode === DOM_DELTA_PIXEL;
-	                var isTrackpadPinch = isTrackpad && event.ctrlKey;
-	                var isTrackpadMove = isTrackpad && !isTrackpadPinch;
-	                if (_this.enableUnstableTrackpadConfig &&
-	                    isTrackpadMove &&
-	                    (_this.trackpad.two === ACTION.ROTATE || _this.trackpad.two === ACTION.TRUCK)) {
+	                if (_this.dollyToCursor ||
+	                    _this.mouseButtons.wheel === ACTION.ROTATE ||
+	                    _this.mouseButtons.wheel === ACTION.TRUCK) {
 	                    var now = performance.now();
-	                    if (lastTrackpadMoveTimeStamp_1 - now < 1000) {
+	                    if (lastScrollTimeStamp_1 - now < 1000)
 	                        _this._getClientRect(elementRect_1);
-	                    }
-	                    lastTrackpadMoveTimeStamp_1 = now;
-	                    switch (_this.trackpad.two) {
-	                        case ACTION.ROTATE: {
-	                            rotateInternal_1(event.deltaX, event.deltaY);
-	                            break;
-	                        }
-	                        case ACTION.TRUCK: {
-	                            truckInternal_1(event.deltaX, event.deltaY);
-	                            break;
-	                        }
-	                    }
-	                    return;
+	                    lastScrollTimeStamp_1 = now;
 	                }
 	                var deltaYFactor = isMac ? -1 : -3;
 	                var delta = (event.deltaMode === 1) ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
-	                var x = 0;
-	                var y = 0;
-	                if (_this.dollyToCursor) {
-	                    _this._getClientRect(elementRect_1);
-	                    x = (event.clientX - elementRect_1.x) / elementRect_1.z * 2 - 1;
-	                    y = (event.clientY - elementRect_1.y) / elementRect_1.w * -2 + 1;
-	                }
+	                var x = _this.dollyToCursor ? (event.clientX - elementRect_1.x) / elementRect_1.z * 2 - 1 : 0;
+	                var y = _this.dollyToCursor ? (event.clientY - elementRect_1.y) / elementRect_1.w * -2 + 1 : 0;
 	                switch (_this.mouseButtons.wheel) {
+	                    case ACTION.ROTATE: {
+	                        rotateInternal_1(event.deltaX, event.deltaY);
+	                        break;
+	                    }
+	                    case ACTION.TRUCK: {
+	                        truckInternal_1(event.deltaX, event.deltaY);
+	                        break;
+	                    }
 	                    case ACTION.DOLLY: {
 	                        dollyInternal_1(-delta, x, y);
 	                        break;
@@ -393,7 +375,7 @@
 	                    lastDragPosition_1.set(x, y);
 	                }
 	                document.addEventListener('mousemove', dragging_1);
-	                document.addEventListener('touchmove', dragging_1);
+	                document.addEventListener('touchmove', dragging_1, { passive: false });
 	                document.addEventListener('mouseup', endDragging_1);
 	                document.addEventListener('touchend', endDragging_1);
 	                _this.dispatchEvent({
@@ -462,7 +444,7 @@
 	                    return;
 	                _this._state = ACTION.NONE;
 	                document.removeEventListener('mousemove', dragging_1);
-	                document.removeEventListener('touchmove', dragging_1);
+	                document.removeEventListener('touchmove', dragging_1, { passive: false });
 	                document.removeEventListener('mouseup', endDragging_1);
 	                document.removeEventListener('touchend', endDragging_1);
 	                _this.dispatchEvent({
@@ -480,7 +462,7 @@
 	                _this._domElement.removeEventListener('wheel', onMouseWheel_1);
 	                _this._domElement.removeEventListener('contextmenu', onContextMenu_1);
 	                document.removeEventListener('mousemove', dragging_1);
-	                document.removeEventListener('touchmove', dragging_1);
+	                document.removeEventListener('touchmove', dragging_1, { passive: false });
 	                document.removeEventListener('mouseup', endDragging_1);
 	                document.removeEventListener('touchend', endDragging_1);
 	            };
@@ -932,8 +914,8 @@
 	        for (var i = 0; i < 4; i++) {
 	            var nearPlaneCorner = _v3B.copy(this._nearPlaneCorners[i]);
 	            nearPlaneCorner.applyMatrix4(_rotationMatrix);
-	            var origin = _v3C.addVectors(this._target, nearPlaneCorner);
-	            _raycaster.set(origin, direction);
+	            var origin_1 = _v3C.addVectors(this._target, nearPlaneCorner);
+	            _raycaster.set(origin_1, direction);
 	            _raycaster.far = distance;
 	            var intersects = _raycaster.intersectObjects(this.colliderMeshes);
 	            if (intersects.length !== 0 && intersects[0].distance < distance) {

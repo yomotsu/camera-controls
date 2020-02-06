@@ -1,5 +1,5 @@
 import * as _THREE from 'three/src/Three.d';
-import { ACTION, MouseButtons, Trackpad, Touches, FitToOption } from './types';
+import { ACTION, MouseButtons, Touches, FitToOption } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     static install(libs: any): void;
@@ -23,9 +23,7 @@ export declare class CameraControls extends EventDispatcher {
     verticalDragToForward: boolean;
     boundaryFriction: number;
     colliderMeshes: _THREE.Object3D[];
-    enableUnstableTrackpadConfig: boolean;
     mouseButtons: MouseButtons;
-    trackpad: Trackpad;
     touches: Touches;
     protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
     protected _yAxisUpSpace: _THREE.Quaternion;
