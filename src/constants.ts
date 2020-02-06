@@ -1,6 +1,5 @@
 import { FitToOption } from './types';
 
-export const DOM_DELTA_PIXEL = 0x00; // https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent/deltaMode
 export const PI_2 = Math.PI * 2;
 export const FPS_60 = 1 / 0.016;
 export const FIT_TO_OPTION_DEFAULT: FitToOption = {
