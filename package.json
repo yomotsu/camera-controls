@@ -17,7 +17,7 @@
     "rollup-plugin-typescript2": "^0.25.3",
     "terser": "^4.4.3",
     "three": "^0.112.1",
-    "typescript": "~3.0"
+    "typescript": "3.2.1"
   },
   "scripts": {
     "dev": "rollup --config --watch",
