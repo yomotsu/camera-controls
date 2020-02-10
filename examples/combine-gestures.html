@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<button type="button" onclick="cameraControls.reset( true )">reset</button>
+	<ul>
+		<li>single tap move: rotate</li>
+		<li>double tap vertical move: zoom</li>
+	</ul>
+</div>
+
+<script src="https://unpkg.com/three@0.112.1/build/three.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer( { antialias: true, stencil: false } );
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+// prepare pointer condition event BEFORE INITIALIZING camera-controls in order to interrupt.
+var lastTapTime = performance.now();
+const doubleTapTimeout = 250;
+const customPointerEvent = new THREE.EventDispatcher();
+const detectDoubleTap = function() {
+
+	const now = performance.now();
+	const isDoubleTap = now - lastTapTime < doubleTapTimeout;
+
+	customPointerEvent.dispatchEvent( { type: isDoubleTap ? 'doubletap' : 'tap' } );
+	lastTapTime = now;
+
+}
+renderer.domElement.addEventListener( 'mousedown', detectDoubleTap );
+renderer.domElement.addEventListener( 'touchstart', detectDoubleTap );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+// switch the behavior with the pointer condition
+customPointerEvent.addEventListener( 'doubletap', function() {
+
+	cameraControls.mouseButtons.left = CameraControls.ACTION.ZOOM;
+
+} );
+customPointerEvent.addEventListener( 'tap', function() {
+
+	cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+
+} );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+</script>
+
+</body>
+</html>
