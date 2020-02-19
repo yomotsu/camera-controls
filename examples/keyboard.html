@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<p>
+		W, A, S, D keys to move<br>
+		arrow keys (left, right, up, down) to rotate
+	</p>
+	<button onclick="cameraControls.reset( true )">reset</button>
+</div>
+
+<script src="https://unpkg.com/three@0.112.1/build/three.min.js"></script>
+<script src="https://unpkg.com/hold-event@0.0.0/dist/hold-event.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer( { antialias: true, stencil: false } );
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+const KEYCODE = {
+	W: 87,
+	A: 65,
+	S: 83,
+	D: 68,
+	ARROW_LEFT : 37,
+	ARROW_UP   : 38,
+	ARROW_RIGHT: 39,
+	ARROW_DOWN : 40,
+};
+
+const wKey = new holdEvent.KeyboardKeyHold( KEYCODE.W, 100 );
+const aKey = new holdEvent.KeyboardKeyHold( KEYCODE.A, 100 );
+const sKey = new holdEvent.KeyboardKeyHold( KEYCODE.S, 100 );
+const dKey = new holdEvent.KeyboardKeyHold( KEYCODE.D, 100 );
+aKey.addEventListener( 'holding', function( event ) { cameraControls.truck( - 0.01 * event.deltaTime, 0, true ) } );
+dKey.addEventListener( 'holding', function( event ) { cameraControls.truck(   0.01 * event.deltaTime, 0, true ) } );
+wKey.addEventListener( 'holding', function( event ) { cameraControls.forward(   0.01 * event.deltaTime, true ) } );
+sKey.addEventListener( 'holding', function( event ) { cameraControls.forward( - 0.01 * event.deltaTime, true ) } );
+
+const leftKey  = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_LEFT,  100 );
+const rightKey = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_RIGHT, 100 );
+const upKey    = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_UP,    100 );
+const downKey  = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_DOWN,  100 );
+leftKey.addEventListener ( 'holding', function( event ) { cameraControls.rotate( - 0.1 * THREE.Math.DEG2RAD * event.deltaTime, 0, true ) } );
+rightKey.addEventListener( 'holding', function( event ) { cameraControls.rotate(   0.1 * THREE.Math.DEG2RAD * event.deltaTime, 0, true ) } );
+upKey.addEventListener   ( 'holding', function( event ) { cameraControls.rotate( 0, - 0.05 * THREE.Math.DEG2RAD * event.deltaTime, true ) } );
+downKey.addEventListener ( 'holding', function( event ) { cameraControls.rotate( 0,   0.05 * THREE.Math.DEG2RAD * event.deltaTime, true ) } );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+</script>
+
+</body>
+</html>
