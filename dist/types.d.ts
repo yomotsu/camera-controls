@@ -13,7 +13,7 @@ export declare enum ACTION {
 }
 declare type mouseButtonAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 declare type mouseWheelAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
-declare type singleTouchAction = ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.NONE;
+declare type singleTouchAction = ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 declare type multiTouchAction = ACTION.TOUCH_DOLLY_TRUCK | ACTION.TOUCH_ZOOM_TRUCK | ACTION.TOUCH_DOLLY | ACTION.TOUCH_ZOOM | ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.NONE;
 export interface MouseButtons {
     left: mouseButtonAction;
