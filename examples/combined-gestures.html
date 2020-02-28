@@ -39,7 +39,6 @@ const detectDoubleTap = function() {
 
 	const now = performance.now();
 	const isDoubleTap = now - lastTapTime < doubleTapTimeout;
-
 	customPointerEvent.dispatchEvent( { type: isDoubleTap ? 'doubletap' : 'tap' } );
 	lastTapTime = now;
 
@@ -53,11 +52,13 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 customPointerEvent.addEventListener( 'doubletap', function() {
 
 	cameraControls.mouseButtons.left = CameraControls.ACTION.ZOOM;
+	cameraControls.touches.one = CameraControls.ACTION.ZOOM;
 
 } );
 customPointerEvent.addEventListener( 'tap', function() {
 
 	cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+	cameraControls.touches.one = CameraControls.ACTION.TOUCH_ROTATE;
 
 } );
 
