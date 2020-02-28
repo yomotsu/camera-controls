@@ -58,6 +58,10 @@
       ]
     }
   },
+  "eslintIgnore": [
+    "/dist/",
+    "/node_modules/"
+  ],
   "keywords": [
     "three",
     "three.js",
