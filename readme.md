@@ -19,7 +19,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
-- [combine gestures](https://yomotsu.github.io/camera-controls/examples/combine-gestures.html)
+- [combined gestures](https://yomotsu.github.io/camera-controls/examples/combined-gestures.html)
 - [keyboard events](https://yomotsu.github.io/camera-controls/examples/keyboard.html)
 - [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
@@ -109,15 +109,16 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 
 CameraControls instance emits the following events.
 To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
+To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`.
 
 | Event name       | Timing |
 | ---------------- | ------ |
 | `'controlstart'` | When the user starts to control the camera via mouse / touches. |
 | `'control'`      | When the user controls the camera (dragging). |
 | `'controlend'`   | When the user ends to control the camera. |
-| `'update'`       | When camera position is updated. |
-| `'awake'`        | When camera start moving. |
-| `'sleep'`        | When camera end moving. |
+| `'update'`       | When the camera position is updated. |
+| `'awake'`        | When the camera start moving. |
+| `'sleep'`        | When the camera end moving. |
 
 ## User input config
 
@@ -435,6 +436,24 @@ Update camera position and directions. This should be called in your tick loop a
 #### `updateCameraUp()`
 
 When you change camera-up vector, run `.updateCameraUp()` to sync.
+
+---
+
+#### `addEventListener( type: string, listener: function )`
+
+Adds the specified event listener.
+
+---
+
+#### `removeEventListener( type: string, listener: function )`
+
+Removes the specified event listener.
+
+---
+
+#### `removeAllEventListeners( type: string )`
+
+Removes all listeners for the specified type.
 
 ---
 
