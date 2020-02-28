@@ -122,6 +122,23 @@
 	        if (listeners[type].indexOf(listener) === -1)
 	            listeners[type].push(listener);
 	    };
+	    EventDispatcher.prototype.removeEventListener = function (type, listener) {
+	        var listeners = this._listeners;
+	        var listenerArray = listeners[type];
+	        if (listenerArray !== undefined) {
+	            var index = listenerArray.indexOf(listener);
+	            if (index !== -1)
+	                listenerArray.splice(index, 1);
+	        }
+	    };
+	    EventDispatcher.prototype.removeAllEventListeners = function (type) {
+	        if (!type) {
+	            this._listeners = {};
+	            return;
+	        }
+	        if (Array.isArray(this._listeners[type]))
+	            this._listeners[type].length = 0;
+	    };
 	    EventDispatcher.prototype.dispatchEvent = function (event) {
 	        var listeners = this._listeners;
 	        var listenerArray = listeners[event.type];

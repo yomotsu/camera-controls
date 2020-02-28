@@ -1,4 +1,4 @@
-import * as _THREE from 'three/src/Three.d';
+import type * as _THREE from 'three';
 import {
 	ACTION,
 	MouseButtons,
