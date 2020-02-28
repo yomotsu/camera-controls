@@ -20,6 +20,9 @@
     "three": "^0.112.1",
     "typescript": "^3.8.2"
   },
+  "peerDependencies": {
+    "three": "^0.112.1"
+  },
   "scripts": {
     "dev": "rollup --config --watch",
     "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/' && downlevel-dts . .",
@@ -56,6 +59,10 @@
       ]
     }
   },
+  "eslintIgnore": [
+    "/dist/",
+    "/node_modules/"
+  ],
   "typesVersions": {
     "<=3.4.0-0": {
       "*": [

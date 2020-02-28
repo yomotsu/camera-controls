@@ -103,7 +103,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera *. |
 
-* Be aware colliderMeshes may decrease the performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
+* Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 
 ## Events
 
@@ -116,6 +116,8 @@ To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
 | `'control'`      | When the user controls the camera (dragging). |
 | `'controlend'`   | When the user ends to control the camera. |
 | `'update'`       | When camera position is updated. |
+| `'awake'`        | When camera start moving. |
+| `'sleep'`        | When camera end moving. |
 
 ## User input config
 
