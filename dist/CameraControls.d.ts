@@ -1,4 +1,4 @@
-import * as _THREE from 'three/src/Three.d';
+import * as _THREE from 'three';
 import { ACTION, MouseButtons, Touches, FitToOption } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
