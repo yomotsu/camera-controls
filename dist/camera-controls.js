@@ -53,10 +53,20 @@
 	    ACTION[ACTION["TOUCH_DOLLY_TRUCK"] = 9] = "TOUCH_DOLLY_TRUCK";
 	    ACTION[ACTION["TOUCH_ZOOM_TRUCK"] = 10] = "TOUCH_ZOOM_TRUCK";
 	})(ACTION || (ACTION = {}));
+	var SIDE;
+	(function (SIDE) {
+	    SIDE["UP"] = "up";
+	    SIDE["DOWN"] = "down";
+	    SIDE["RIGHT"] = "right";
+	    SIDE["LEFT"] = "left";
+	    SIDE["FRONT"] = "front";
+	    SIDE["BACK"] = "back";
+	})(SIDE || (SIDE = {}));
 
 	var PI_2 = Math.PI * 2;
 	var FPS_60 = 1 / 0.016;
 	var FIT_TO_OPTION_DEFAULT = {
+	    side: SIDE.FRONT,
 	    paddingLeft: 0,
 	    paddingRight: 0,
 	    paddingBottom: 0,
@@ -619,28 +629,68 @@
 	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.fitTo = function (box3OrObject, enableTransition, options) {
+	        var _a, _b, _c, _d;
 	        if (options === void 0) { options = FIT_TO_OPTION_DEFAULT; }
 	        if (notSupportedInOrthographicCamera(this._camera, 'fitTo'))
 	            return;
+	        var side = options.side || SIDE.FRONT;
 	        var paddingLeft = options.paddingLeft || 0;
 	        var paddingRight = options.paddingRight || 0;
 	        var paddingBottom = options.paddingBottom || 0;
 	        var paddingTop = options.paddingTop || 0;
-	        var boundingBox = box3OrObject.isBox3 ? _box3.copy(box3OrObject) :
-	            _box3.setFromObject(box3OrObject);
+	        var boundingBox = box3OrObject.isBox3
+	            ? _box3.copy(box3OrObject)
+	            : _box3.setFromObject(box3OrObject);
 	        var size = boundingBox.getSize(_v3A);
-	        var boundingWidth = size.x + paddingLeft + paddingRight;
-	        var boundingHeight = size.y + paddingTop + paddingBottom;
+	        var boundingWidth = size.x;
+	        var boundingHeight = size.y;
 	        var boundingDepth = size.z;
-	        var distance = this.getDistanceToFit(boundingWidth, boundingHeight, boundingDepth);
-	        this.dollyTo(distance, enableTransition);
 	        var boundingBoxCenter = boundingBox.getCenter(_v3A);
-	        var cx = boundingBoxCenter.x - (paddingLeft * 0.5 - paddingRight * 0.5);
-	        var cy = boundingBoxCenter.y + (paddingTop * 0.5 - paddingBottom * 0.5);
+	        var cx = boundingBoxCenter.x + (paddingRight - paddingLeft) * 0.5;
+	        var cy = boundingBoxCenter.y + (paddingTop - paddingBottom) * 0.5;
 	        var cz = boundingBoxCenter.z;
+	        switch (side) {
+	            case SIDE.UP:
+	            case SIDE.DOWN:
+	                _a = [boundingDepth, boundingHeight], boundingHeight = _a[0], boundingDepth = _a[1];
+	                _b = [-cz, -cy], cy = _b[0], cz = _b[1];
+	                break;
+	            case SIDE.RIGHT:
+	            case SIDE.LEFT:
+	                _c = [boundingDepth, boundingWidth], boundingWidth = _c[0], boundingDepth = _c[1];
+	                _d = [cz, -cx], cx = _d[0], cz = _d[1];
+	                break;
+	        }
+	        var azimuthAngle = 0;
+	        var polarAngle = 0;
+	        switch (side) {
+	            case SIDE.FRONT:
+	                polarAngle = 90;
+	                break;
+	            case SIDE.BACK:
+	                polarAngle = 90;
+	                azimuthAngle = 180;
+	                break;
+	            case SIDE.UP:
+	                polarAngle = -90;
+	                break;
+	            case SIDE.DOWN:
+	                polarAngle = 180;
+	                break;
+	            case SIDE.RIGHT:
+	                polarAngle = 90;
+	                azimuthAngle = 90;
+	                break;
+	            case SIDE.LEFT:
+	                polarAngle = 90;
+	                azimuthAngle = -90;
+	                break;
+	        }
+	        var distance = this.getDistanceToFit(boundingWidth + paddingRight + paddingLeft, boundingHeight + paddingTop + paddingBottom, boundingDepth);
 	        this.moveTo(cx, cy, cz, enableTransition);
+	        this.dollyTo(distance, enableTransition);
 	        this.normalizeRotations();
-	        this.rotateTo(0, 90 * THREE.Math.DEG2RAD, enableTransition);
+	        this.rotateTo(azimuthAngle * THREE.Math.DEG2RAD, polarAngle * THREE.Math.DEG2RAD, enableTransition);
 	    };
 	    CameraControls.prototype.setLookAt = function (positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
