@@ -11,14 +11,6 @@ export declare enum ACTION {
     TOUCH_DOLLY_TRUCK = 9,
     TOUCH_ZOOM_TRUCK = 10
 }
-export declare enum SIDE {
-    UP = "up",
-    DOWN = "down",
-    RIGHT = "right",
-    LEFT = "left",
-    FRONT = "front",
-    BACK = "back"
-}
 declare type mouseButtonAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 declare type mouseWheelAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 declare type singleTouchAction = ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
@@ -35,7 +27,6 @@ export interface Touches {
     three: multiTouchAction;
 }
 export interface FitToOption {
-    side: SIDE;
     paddingLeft: number;
     paddingRight: number;
     paddingBottom: number;
