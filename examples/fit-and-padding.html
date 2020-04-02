@@ -10,13 +10,14 @@
 <div class="ruler"></div>
 
 <div class="info">
-	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
-	<button onclick="fitTo( mesh, true )">fit front side of the mesh</button><br>
-	<button onclick="fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 1, paddingTop: 2, side: 'back' } )">fit back side with padding(top: 2unit, bottom: 1unit )</button>
-	<button onclick="fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 2, paddingTop: .5, side: 'up' } )">fit up side with padding(top: 0.5unit, bottom: 2unit )</button>
-	<button onclick="fitTo( mesh, true, { paddingLeft: 4, paddingRight: 4, paddingBottom: 4, paddingTop: 4, side: 'down' } )">fit down side with padding(top: 4unit, bottom: 4unit, left: 4unit, right: 4unit )</button>
-	<button onclick="fitTo( mesh, true, { paddingLeft: 1, paddingRight: 0, side: 'right' } )">fit right side with padding(left: 1unit, right: 0unit )</button>
-	<button onclick="paddingInCssPixel( 100, 100, 200, 100, 'left' )">fit left side with padding in pixel( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
+	<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
+	<button onclick="rotateTo( 'front' ), cameraControls.reset( true )">reset</button><br>
+	<button onclick="rotateTo( 'front' ), cameraControls.fitTo( mesh, true )">fit front side of the mesh</button><br>
+	<button onclick="rotateTo( 'back' ), cameraControls.fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 1, paddingTop: 2 } )">fit back side with padding(top: 2unit, bottom: 1unit )</button>
+	<button onclick="rotateTo( 'up' ), cameraControls.fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 2, paddingTop: .5, side: 'up' } )">fit up side with padding(top: 0.5unit, bottom: 2unit )</button>
+	<button onclick="rotateTo( 'down' ), cameraControls.fitTo( mesh, true, { paddingLeft: 4, paddingRight: 4, paddingBottom: 4, paddingTop: 4, side: 'down' } )">fit down side with padding(top: 4unit, bottom: 4unit, left: 4unit, right: 4unit )</button>
+	<button onclick="rotateTo( 'right' ), cameraControls.fitTo( mesh, true, { paddingLeft: 1, paddingRight: 0 } )">fit right side with padding(left: 1unit, right: 0unit )</button>
+	<button onclick="rotateTo( 'left' ), paddingInCssPixel( 100, 100, 200, 100 )">fit left side with padding in pixel( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
 </div>
 
 <script src="https://unpkg.com/three@0.112.1/build/three.min.js"></script>
@@ -114,47 +115,53 @@ const EPSILON = 1e-5;
 
 } )();
 
-function fitTo ( box3OrMesh, enableTransition, { side = 'front', ...options } = {}) {
-	cameraControls.fitTo(box3OrMesh, enableTransition, { side, ...options });
+function rotateTo( side ) {
 
 	switch (side) {
 		case 'front':
-			gridEndPosition.set(0, 0, 1);
-			gridEndRotation.set(-Math.PI / 2, 0, 0);
+			cameraControls.rotateTo( 0, Math.PI / 2, true );
+			gridEndPosition.set( 0, 0, 1 );
+			gridEndRotation.set( - Math.PI / 2, 0, 0);
 			break;
 
 		case 'back':
-			gridEndPosition.set(0, 0, -1);
-			gridEndRotation.set(-Math.PI / 2, 0, 0);
+			cameraControls.rotateTo( Math.PI, Math.PI / 2, true );
+			gridEndPosition.set( 0, 0, - 1 );
+			gridEndRotation.set( - Math.PI / 2, 0, 0 );
 			break;
 
 		case 'up':
-			gridEndPosition.set(0, 1, 0);
-			gridEndRotation.set(0, 0, 0);
+			cameraControls.rotateTo( 0, 0, true );
+			gridEndPosition.set( 0, 1, 0 );
+			gridEndRotation.set( 0, 0, 0 );
 			break;
 
 		case 'down':
-			gridEndPosition.set(0, -1, 0);
-			gridEndRotation.set(0, 0, 0);
+			cameraControls.rotateTo( 0, Math.PI, true );
+			gridEndPosition.set( 0, - 1, 0 );
+			gridEndRotation.set( 0,   0, 0 );
 			break;
 
 		case 'right':
-			gridEndPosition.set(1, 0, 0);
-			gridEndRotation.set(-Math.PI / 2, 0, Math.PI / 2);
+			cameraControls.rotateTo( Math.PI / 2, Math.PI / 2, true );
+			gridEndPosition.set( 1, 0, 0 );
+			gridEndRotation.set( - Math.PI / 2, 0, Math.PI / 2 );
 			break;
 
 		case 'left':
-			gridEndPosition.set(-1, 0, 0);
-			gridEndRotation.set(-Math.PI / 2, 0, Math.PI / 2);
+			cameraControls.rotateTo( - Math.PI / 2, Math.PI / 2, true );
+			gridEndPosition.set( - 1, 0, 0 );
+			gridEndRotation.set( Math.PI / 2, 0, Math.PI / 2 );
 			break;
+
 	}
+
 }
 
-
-function paddingInCssPixel( top, right, bottom, left, side = 'front' ) {
+function paddingInCssPixel( top, right, bottom, left ) {
 
 	const fov = camera.fov * THREE.Math.DEG2RAD;
-	const rendererHeight = renderer.getSize().height;
+	const rendererHeight = renderer.getSize( new THREE.Vector2() ).height;
 
 	const boundingBox = new THREE.Box3().setFromObject( mesh );
 	const size = boundingBox.getSize( new THREE.Vector3() );
@@ -172,7 +179,7 @@ function paddingInCssPixel( top, right, bottom, left, side = 'front' ) {
 	for ( var i = 0; i < 10; i ++ ) {
 
 		const depthAt = distanceToFit - boundingDepth * 0.5;
-		const cssPixelToUnit = (2 * Math.tan(fov * 0.5) * Math.abs(depthAt)) / rendererHeight;
+		const cssPixelToUnit = ( 2 * Math.tan( fov * 0.5 ) * Math.abs( depthAt ) ) / rendererHeight;
 		paddingTop = top * cssPixelToUnit;
 		paddingBottom = bottom * cssPixelToUnit;
 		paddingLeft = left * cssPixelToUnit;
@@ -186,7 +193,7 @@ function paddingInCssPixel( top, right, bottom, left, side = 'front' ) {
 
 	}
 
-	fitTo( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop, side: side } );
+	cameraControls.fitTo( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop } );
 
 }
 </script>

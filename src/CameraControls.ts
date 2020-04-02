@@ -1,18 +1,18 @@
 import type * as _THREE from 'three';
 import {
 	ACTION,
-	SIDE,
 	MouseButtons,
 	Touches,
 	FitToOptions,
 } from './types';
 import {
 	PI_2,
+	PI_HALF,
 	FPS_60,
-	SIDES
 } from './constants';
 import {
 	approxZero,
+	roundToStep,
 	infinityToMaxNumber,
 	maxNumberToInfinity,
 } from './utils/math-utils';
@@ -62,7 +62,7 @@ export class CameraControls extends EventDispatcher {
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
-		_box2 = new THREE.Box3();
+		_box2 = new THREE.Box2();
 		_box3 = new THREE.Box3();
 		_plane = new THREE.Plane();
 		_quaternion = new THREE.Quaternion();
@@ -776,9 +776,6 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
-		side = SIDE.FRONT,
-		azimuthAngle = SIDES[ side ].azimuthAngle,
-		polarAngle = SIDES[ side ].polarAngle,
 		paddingLeft = 0,
 		paddingRight = 0,
 		paddingBottom = 0,
@@ -789,15 +786,17 @@ export class CameraControls extends EventDispatcher {
 
 		// TODO `Box3.isBox3: boolean` is missing in three.js. waiting for next update of three.js.
 		// see this PR: https://github.com/mrdoob/three.js/pull/18259
-		const box = ( box3OrObject as any ).isBox3
+		const aabb = ( box3OrObject as any ).isBox3
 			? _box3.copy( box3OrObject as _THREE.Box3 )
 			: _box3.setFromObject( box3OrObject as _THREE.Object3D );
 
-		const size = box.getSize( _v3A );
-		const center = box.getCenter( _v3B );
+		const size = aabb.getSize( _v3A );
+		const center = aabb.getCenter( _v3B );
 		const radius = Math.max( size.x, size.y, size.z ) / 2;
-		const theta = THREE.Math.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
-		const phi   = THREE.Math.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
+
+		// find nearest side
+		const theta = roundToStep( this._sphericalEnd.theta, PI_HALF );
+		const phi   = roundToStep( this._sphericalEnd.phi,   PI_HALF );
 
 		_sphericalA.set( radius, phi, theta );
 		const sphericalPosition = _v3C.setFromSpherical( _sphericalA ).applyQuaternion( this._yAxisUpSpaceInverse );
@@ -810,39 +809,39 @@ export class CameraControls extends EventDispatcher {
 		const rect = _box2.makeEmpty();
 
 		// left bottom back corner
-		plane.projectPoint( box.min, _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( aabb.min, _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// right bottom back corner
-		plane.projectPoint( _v3C.copy( box.min ).setX( box.max.x ), _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( _v3C.copy( aabb.min ).setX( aabb.max.x ), _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// left top back corner
-		plane.projectPoint( _v3C.copy( box.min ).setY( box.max.y ), _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( _v3C.copy( aabb.min ).setY( aabb.max.y ), _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// right top back corner
-		plane.projectPoint( _v3C.copy( box.max ).setZ( box.min.z ), _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( _v3C.copy( aabb.max ).setZ( aabb.min.z ), _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// left bottom front corner
-		plane.projectPoint( _v3C.copy( box.min ).setZ( box.max.z ), _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( _v3C.copy( aabb.min ).setZ( aabb.max.z ), _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// right bottom front corner
-		plane.projectPoint( _v3C.copy( box.max ).setY( box.min.y ), _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( _v3C.copy( aabb.max ).setY( aabb.min.y ), _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// left top front corner
-		plane.projectPoint( _v3C.copy( box.max ).setX( box.min.x ), _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( _v3C.copy( aabb.max ).setX( aabb.min.x ), _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// right top front corner
-		plane.projectPoint( box.max, _v3E ).sub( center ).applyQuaternion( rotation );
+		plane.projectPoint( aabb.max, _v3E ).sub( center ).applyQuaternion( rotation );
 		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
 
 		// offset center with paddings
-		let centerOffset = _v3C.set(
+		const centerOffset = _v3C.set(
 			( paddingRight - paddingLeft ) * 0.5,
 			( paddingTop - paddingBottom ) * 0.5,
 			0
@@ -867,7 +866,7 @@ export class CameraControls extends EventDispatcher {
 		this.dollyTo( distance, enableTransition );
 
 		this.normalizeRotations();
-		this.rotateTo( azimuthAngle, polarAngle, enableTransition );
+		this.rotateTo( theta, phi, enableTransition );
 
 	}
 

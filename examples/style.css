@@ -9,6 +9,7 @@ canvas {
 .info {
 	color: #FFF;
 	position: absolute;
+	padding: 20px 0 0 20px;
 }
 
 a {
@@ -17,4 +18,14 @@ a {
 
 label {
 	cursor: pointer;
+}
+
+.ruler {	
+	pointer-events: none;	
+	position: absolute;	
+	top: 0;	
+	left: 0;	
+	right: 0;	
+	bottom: 0;	
+	background: url( "./ruler.png" ) no-repeat 0 0;	
 }

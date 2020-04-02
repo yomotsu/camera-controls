@@ -12,20 +12,6 @@ export enum ACTION {
 	TOUCH_ZOOM_TRUCK  = 10,
 }
 
-export enum SIDE {
-	UP    = 'up',
-	DOWN  = 'down',
-	RIGHT = 'right',
-	LEFT  = 'left',
-	FRONT = 'front',
-	BACK  = 'back'
-}
-
-export interface Direction {
-	polarAngle: number
-	azimuthAngle: number
-}
-
 type mouseButtonAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 type mouseWheelAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 type singleTouchAction = ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
@@ -46,9 +32,6 @@ export interface Touches {
 }
 
 export interface FitToOptions {
-	side         : SIDE;
-	polarAngle   : number;
-	azimuthAngle : number;
 	paddingLeft  : number;
 	paddingRight : number;
 	paddingBottom: number;
