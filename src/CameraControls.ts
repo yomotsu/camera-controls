@@ -1,14 +1,15 @@
 import type * as _THREE from 'three';
 import {
 	ACTION,
+	SIDE,
 	MouseButtons,
 	Touches,
-	FitToOption,
+	FitToOptions,
 } from './types';
 import {
 	PI_2,
 	FPS_60,
-	FIT_TO_OPTION_DEFAULT,
+	SIDES
 } from './constants';
 import {
 	approxZero,
@@ -31,11 +32,16 @@ let _v2: _THREE.Vector2;
 let _v3A: _THREE.Vector3;
 let _v3B: _THREE.Vector3;
 let _v3C: _THREE.Vector3;
+let _v3D: _THREE.Vector3;
+let _v3E: _THREE.Vector3;
 let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
 let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
+let _box2: _THREE.Box2;
 let _box3: _THREE.Box3;
+let _plane: _THREE.Plane;
+let _quaternion: _THREE.Quaternion;
 let _rotationMatrix: _THREE.Matrix4;
 let _raycaster: _THREE.Raycaster;
 
@@ -50,11 +56,16 @@ export class CameraControls extends EventDispatcher {
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
+		_v3D = new THREE.Vector3();
+		_v3E = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
+		_box2 = new THREE.Box3();
 		_box3 = new THREE.Box3();
+		_plane = new THREE.Plane();
+		_quaternion = new THREE.Quaternion();
 		_rotationMatrix = new THREE.Matrix4();
 		_raycaster = new THREE.Raycaster();
 
@@ -764,36 +775,99 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, options: FitToOption = FIT_TO_OPTION_DEFAULT ): void {
+	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
+		side = SIDE.FRONT,
+		azimuthAngle = SIDES[ side ].azimuthAngle,
+		polarAngle = SIDES[ side ].polarAngle,
+		paddingLeft = 0,
+		paddingRight = 0,
+		paddingBottom = 0,
+		paddingTop = 0
+	}: Partial<FitToOptions> = {} ): void {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'fitTo' ) ) return;
 
-		const paddingLeft   = options.paddingLeft   || 0;
-		const paddingRight  = options.paddingRight  || 0;
-		const paddingBottom = options.paddingBottom || 0;
-		const paddingTop    = options.paddingTop    || 0;
-
 		// TODO `Box3.isBox3: boolean` is missing in three.js. waiting for next update of three.js.
 		// see this PR: https://github.com/mrdoob/three.js/pull/18259
-		const boundingBox =
-			( box3OrObject as any ).isBox3 ? _box3.copy( box3OrObject as _THREE.Box3 ) :
-			_box3.setFromObject( box3OrObject as _THREE.Object3D );
-		const size = boundingBox.getSize( _v3A );
-		const boundingWidth  = size.x + paddingLeft + paddingRight;
-		const boundingHeight = size.y + paddingTop  + paddingBottom;
-		const boundingDepth  = size.z;
+		const box = ( box3OrObject as any ).isBox3
+			? _box3.copy( box3OrObject as _THREE.Box3 )
+			: _box3.setFromObject( box3OrObject as _THREE.Object3D );
 
-		const distance = this.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
+		const size = box.getSize( _v3A );
+		const center = box.getCenter( _v3B );
+		const radius = Math.max( size.x, size.y, size.z ) / 2;
+		const theta = THREE.Math.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
+		const phi   = THREE.Math.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
+
+		_sphericalA.set( radius, phi, theta );
+		const sphericalPosition = _v3C.setFromSpherical( _sphericalA ).applyQuaternion( this._yAxisUpSpaceInverse );
+		const normal = _v3D.copy( sphericalPosition ).normalize();
+		const plane = _plane.setFromNormalAndCoplanarPoint( normal, _v3E.addVectors( sphericalPosition, center ) );
+		const rotation = _quaternion.setFromUnitVectors( normal, _v3E.set( 0, 0, 1 ) );
+
+		// Project bounding corners on plane and compute 2d bounding rect
+
+		const rect = _box2.makeEmpty();
+
+		// left bottom back corner
+		plane.projectPoint( box.min, _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// right bottom back corner
+		plane.projectPoint( _v3C.copy( box.min ).setX( box.max.x ), _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// left top back corner
+		plane.projectPoint( _v3C.copy( box.min ).setY( box.max.y ), _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// right top back corner
+		plane.projectPoint( _v3C.copy( box.max ).setZ( box.min.z ), _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// left bottom front corner
+		plane.projectPoint( _v3C.copy( box.min ).setZ( box.max.z ), _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// right bottom front corner
+		plane.projectPoint( _v3C.copy( box.max ).setY( box.min.y ), _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// left top front corner
+		plane.projectPoint( _v3C.copy( box.max ).setX( box.min.x ), _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// right top front corner
+		plane.projectPoint( box.max, _v3E ).sub( center ).applyQuaternion( rotation );
+		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+
+		// offset center with paddings
+		let centerOffset = _v3C.set(
+			( paddingRight - paddingLeft ) * 0.5,
+			( paddingTop - paddingBottom ) * 0.5,
+			0
+		);
+		rotation.setFromUnitVectors( _v3E.set( 0, 0, 1 ), normal );
+		center.add( centerOffset.applyQuaternion( rotation ) );
+
+		const projectedSize = _box2.getSize( _v2 );
+		const distance = this.getDistanceToFit(
+			projectedSize.x + paddingRight + paddingLeft,
+			projectedSize.y + paddingTop   + paddingBottom,
+			radius * 2
+		);
+
+		this.moveTo(
+			center.x,
+			center.y,
+			center.z,
+			enableTransition
+		);
+
 		this.dollyTo( distance, enableTransition );
 
-		const boundingBoxCenter = boundingBox.getCenter( _v3A );
-		const cx = boundingBoxCenter.x - ( paddingLeft * 0.5 - paddingRight  * 0.5 );
-		const cy = boundingBoxCenter.y + ( paddingTop  * 0.5 - paddingBottom * 0.5 );
-		const cz = boundingBoxCenter.z;
-		this.moveTo( cx, cy, cz, enableTransition );
-
 		this.normalizeRotations();
-		this.rotateTo( 0, 90 * THREE.Math.DEG2RAD, enableTransition );
+		this.rotateTo( azimuthAngle, polarAngle, enableTransition );
 
 	}
 
