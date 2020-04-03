@@ -366,7 +366,7 @@ export class CameraControls extends EventDispatcher {
 
 			const onMouseWheel = ( event: WheelEvent ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this.enabled || this.mouseButtons.wheel === ACTION.NONE ) return;
 
 				event.preventDefault();
 
