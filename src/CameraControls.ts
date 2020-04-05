@@ -835,7 +835,7 @@ export class CameraControls extends EventDispatcher {
 		bb.min.y -= paddingBottom;
 		bb.max.x += paddingRight;
 		bb.max.y += paddingTop;
-		
+
 		const bbSize = bb.getSize( _v3B );
 		const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
 		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
@@ -1175,6 +1175,8 @@ export class CameraControls extends EventDispatcher {
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),
+
+			zoom                 : this._camera.zoom,
 		} );
 
 	}
@@ -1211,6 +1213,8 @@ export class CameraControls extends EventDispatcher {
 			this._spherical.copy( this._sphericalEnd );
 
 		}
+
+		this._camera.zoom = obj.zoom;
 
 		this._needsUpdate = true;
 
