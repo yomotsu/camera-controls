@@ -265,7 +265,7 @@ Move `target` position to given point.
 
 #### `fitTo( box3OrMesh, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
 
-Fit the viewport to the object bounding box or the bounding box itself. paddings are in unit.
+Fit the viewport to the object bounding box or the bounding box itself, using the nearest axis. paddings are in unit.
 
 | Name                    | Type                         | Description |
 | ----------------------- | ---------------------------- | ----------- |
