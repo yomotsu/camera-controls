@@ -159,7 +159,7 @@ export class CameraControls extends EventDispatcher {
 		this._targetEnd = this._target.clone();
 
 		// rotation
-		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.clone().applyQuaternion( this._yAxisUpSpace ) );
+		this._spherical = new THREE.Spherical().setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
 
 		this._zoom = this._camera.zoom;
@@ -194,7 +194,7 @@ export class CameraControls extends EventDispatcher {
 			middle: ACTION.DOLLY,
 			right: ACTION.TRUCK,
 			wheel:
-				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.DOLLY :
+				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.DOLLY :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
 				ACTION.NONE,
 			// We can also add shiftLeft, altLeft and etc if someone wants...
@@ -203,7 +203,7 @@ export class CameraControls extends EventDispatcher {
 		this.touches = {
 			one: ACTION.TOUCH_ROTATE,
 			two:
-				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.TOUCH_DOLLY_TRUCK :
+				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.TOUCH_DOLLY_TRUCK :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
@@ -211,8 +211,8 @@ export class CameraControls extends EventDispatcher {
 
 		if ( this._domElement ) {
 
-			const dragStartPosition  = new THREE.Vector2() as _THREE.Vector2;
-			const lastDragPosition  = new THREE.Vector2() as _THREE.Vector2;
+			const dragStartPosition = new THREE.Vector2() as _THREE.Vector2;
+			const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
 			const dollyStart = new THREE.Vector2() as _THREE.Vector2;
 			const elementRect = new THREE.Vector4() as _THREE.Vector4;
 
