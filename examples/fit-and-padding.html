@@ -21,6 +21,7 @@
 </div>
 
 <script src="https://unpkg.com/three@0.112.1/build/three.min.js"></script>
+<script src="https://unpkg.com/@tweenjs/tween.js@18.5.0/dist/tween.umd.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -46,20 +47,13 @@ const axesHelper = new THREE.AxesHelper();
 axesHelper.material.depthTest = false;
 scene.add( axesHelper );
 
-const gridEndPosition = gridHelper.position.clone();
-const gridEndRotation = gridHelper.rotation.clone();
-
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 2, 2, 1 ),
 	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
 );
-mesh.material.depthTest = false;
 scene.add( mesh );
 
 renderer.render( scene, camera );
-
-const FPS_60 = 1 / 0.016;
-const EPSILON = 1e-5;
 
 ( function anim () {
 
@@ -70,40 +64,9 @@ const EPSILON = 1e-5;
 	// if ( elapsed > 30 ) { return; }
 
 	requestAnimationFrame( anim );
+	TWEEN.update();
 
 	if ( updated ) {
-
-		const gridLerpRatio = 1.0 - Math.exp( - cameraControls.dampingFactor * delta * FPS_60 );
-		const gridDeltaPositionX = gridEndPosition.x - gridHelper.position.x;
-		const gridDeltaPositionY = gridEndPosition.y - gridHelper.position.y;
-		const gridDeltaPositionZ = gridEndPosition.z - gridHelper.position.z;
-		const gridDeltaRotationX = gridEndRotation.x - gridHelper.rotation.x;
-		const gridDeltaRotationY = gridEndRotation.y - gridHelper.rotation.y;
-		const gridDeltaRotationZ = gridEndRotation.z - gridHelper.rotation.z;
-
-		if (
-			Math.abs( gridDeltaPositionX ) < EPSILON &&
-			Math.abs( gridDeltaPositionY ) < EPSILON &&
-			Math.abs( gridDeltaPositionZ ) < EPSILON &&
-			Math.abs( gridDeltaRotationX ) < EPSILON &&
-			Math.abs( gridDeltaRotationY ) < EPSILON &&
-			Math.abs( gridDeltaRotationZ ) < EPSILON
-		) {
-			gridHelper.position.copy(gridEndPosition)
-			gridHelper.rotation.copy(gridEndRotation)
-		} else {
-			gridHelper.position.set(
-				gridHelper.position.x + gridDeltaPositionX * gridLerpRatio,
-				gridHelper.position.y + gridDeltaPositionY * gridLerpRatio,
-				gridHelper.position.z + gridDeltaPositionZ * gridLerpRatio
-			);
-
-			gridHelper.rotation.set(
-				gridHelper.rotation.x + gridDeltaRotationX * gridLerpRatio,
-				gridHelper.rotation.y + gridDeltaRotationY * gridLerpRatio,
-				gridHelper.rotation.z + gridDeltaRotationZ * gridLerpRatio
-			);
-		}
 
 		renderer.render( scene, camera );
 		console.log( 'rendered' );
@@ -112,43 +75,47 @@ const EPSILON = 1e-5;
 
 } )();
 
+const DEG90 = Math.PI * 0.5;
+const DEG180 = Math.PI;
+
 function rotateTo( side ) {
 
-	switch (side) {
+	switch ( side ) {
+
 		case 'front':
-			cameraControls.rotateTo( 0, Math.PI / 2, true );
-			gridEndPosition.set( 0, 0, 0.5 );
-			gridEndRotation.set( - Math.PI / 2, 0, 0);
+			cameraControls.rotateTo( 0, DEG90, true );
+			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: 0, z:  0.5 }, 800 ).start();
+			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: 0 }, 800 ).start();
 			break;
 
 		case 'back':
-			cameraControls.rotateTo( Math.PI, Math.PI / 2, true );
-			gridEndPosition.set( 0, 0, - 0.5 );
-			gridEndRotation.set( - Math.PI / 2, 0, 0 );
+			cameraControls.rotateTo( DEG180, DEG90, true );
+			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: 0, z:  - 0.5 }, 800 ).start();
+			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: 0 }, 800 ).start();
 			break;
 
 		case 'up':
 			cameraControls.rotateTo( 0, 0, true );
-			gridEndPosition.set( 0, 1, 0 );
-			gridEndRotation.set( 0, 0, 0 );
+			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: 1, z: 0 }, 800 ).start();
+			new TWEEN.Tween( gridHelper.rotation ).to( { x: 0, y: 0, z: 0 }, 800 ).start();
 			break;
 
 		case 'down':
-			cameraControls.rotateTo( 0, Math.PI, true );
-			gridEndPosition.set( 0, - 1, 0 );
-			gridEndRotation.set( 0,   0, 0 );
+			cameraControls.rotateTo( 0, DEG180, true );
+			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: - 1, z: 0 }, 800 ).start();
+			new TWEEN.Tween( gridHelper.rotation ).to( { x: 0, y: 0, z: 0 }, 800 ).start();
 			break;
 
 		case 'right':
-			cameraControls.rotateTo( Math.PI / 2, Math.PI / 2, true );
-			gridEndPosition.set( 1, 0, 0 );
-			gridEndRotation.set( - Math.PI / 2, 0, Math.PI / 2 );
+			cameraControls.rotateTo( DEG90, DEG90, true );
+			new TWEEN.Tween( gridHelper.position ).to( { x: 1, y: 0, z: 0 }, 800 ).start();
+			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: DEG90 }, 800 ).start();
 			break;
 
 		case 'left':
-			cameraControls.rotateTo( - Math.PI / 2, Math.PI / 2, true );
-			gridEndPosition.set( - 1, 0, 0 );
-			gridEndRotation.set( Math.PI / 2, 0, Math.PI / 2 );
+			cameraControls.rotateTo( - DEG90, DEG90, true );
+			new TWEEN.Tween( gridHelper.position ).to( { x: - 1, y: 0, z: 0 }, 800 ).start();
+			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: DEG90 }, 800 ).start();
 			break;
 
 	}
