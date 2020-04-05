@@ -55,17 +55,15 @@
 	})(ACTION || (ACTION = {}));
 
 	var PI_2 = Math.PI * 2;
+	var PI_HALF = Math.PI / 2;
 	var FPS_60 = 1 / 0.016;
-	var FIT_TO_OPTION_DEFAULT = {
-	    paddingLeft: 0,
-	    paddingRight: 0,
-	    paddingBottom: 0,
-	    paddingTop: 0,
-	};
 
 	var EPSILON = 1e-5;
 	function approxZero(number) {
 	    return Math.abs(number) < EPSILON;
+	}
+	function roundToStep(value, step) {
+	    return Math.round(value / step) * step;
 	}
 	function infinityToMaxNumber(value) {
 	    if (isFinite(value))
@@ -159,6 +157,7 @@
 	var THREE;
 	var _ORIGIN;
 	var _AXIS_Y;
+	var _AXIS_Z;
 	var _v2;
 	var _v3A;
 	var _v3B;
@@ -167,7 +166,9 @@
 	var _yColumn;
 	var _sphericalA;
 	var _sphericalB;
-	var _box3;
+	var _box3A;
+	var _box3B;
+	var _quaternion;
 	var _rotationMatrix;
 	var _raycaster;
 	var CameraControls = (function (_super) {
@@ -329,7 +330,7 @@
 	            };
 	            var lastScrollTimeStamp_1 = -1;
 	            var onMouseWheel_1 = function (event) {
-	                if (!_this.enabled)
+	                if (!_this.enabled || _this.mouseButtons.wheel === ACTION.NONE)
 	                    return;
 	                event.preventDefault();
 	                if (_this.dollyToCursor ||
@@ -491,6 +492,7 @@
 	        THREE = libs.THREE;
 	        _ORIGIN = Object.freeze(new THREE.Vector3(0, 0, 0));
 	        _AXIS_Y = Object.freeze(new THREE.Vector3(0, 1, 0));
+	        _AXIS_Z = Object.freeze(new THREE.Vector3(0, 0, 1));
 	        _v2 = new THREE.Vector2();
 	        _v3A = new THREE.Vector3();
 	        _v3B = new THREE.Vector3();
@@ -499,7 +501,9 @@
 	        _yColumn = new THREE.Vector3();
 	        _sphericalA = new THREE.Spherical();
 	        _sphericalB = new THREE.Spherical();
-	        _box3 = new THREE.Box3();
+	        _box3A = new THREE.Box3();
+	        _box3B = new THREE.Box3();
+	        _quaternion = new THREE.Quaternion();
 	        _rotationMatrix = new THREE.Matrix4();
 	        _raycaster = new THREE.Raycaster();
 	    };
@@ -618,29 +622,45 @@
 	        }
 	        this._needsUpdate = true;
 	    };
-	    CameraControls.prototype.fitTo = function (box3OrObject, enableTransition, options) {
-	        if (options === void 0) { options = FIT_TO_OPTION_DEFAULT; }
+	    CameraControls.prototype.fitTo = function (box3OrObject, enableTransition, _a) {
+	        var _b = _a === void 0 ? {} : _a, _c = _b.paddingLeft, paddingLeft = _c === void 0 ? 0 : _c, _d = _b.paddingRight, paddingRight = _d === void 0 ? 0 : _d, _e = _b.paddingBottom, paddingBottom = _e === void 0 ? 0 : _e, _f = _b.paddingTop, paddingTop = _f === void 0 ? 0 : _f;
 	        if (notSupportedInOrthographicCamera(this._camera, 'fitTo'))
 	            return;
-	        var paddingLeft = options.paddingLeft || 0;
-	        var paddingRight = options.paddingRight || 0;
-	        var paddingBottom = options.paddingBottom || 0;
-	        var paddingTop = options.paddingTop || 0;
-	        var boundingBox = box3OrObject.isBox3 ? _box3.copy(box3OrObject) :
-	            _box3.setFromObject(box3OrObject);
-	        var size = boundingBox.getSize(_v3A);
-	        var boundingWidth = size.x + paddingLeft + paddingRight;
-	        var boundingHeight = size.y + paddingTop + paddingBottom;
-	        var boundingDepth = size.z;
-	        var distance = this.getDistanceToFit(boundingWidth, boundingHeight, boundingDepth);
+	        var aabb = box3OrObject.isBox3
+	            ? _box3A.copy(box3OrObject)
+	            : _box3A.setFromObject(box3OrObject);
+	        var theta = roundToStep(this._sphericalEnd.theta, PI_HALF);
+	        var phi = roundToStep(this._sphericalEnd.phi, PI_HALF);
+	        this.rotateTo(theta, phi, enableTransition);
+	        var normal = _v3A.setFromSpherical(this._sphericalEnd).normalize();
+	        var rotation = _quaternion.setFromUnitVectors(normal, _AXIS_Z);
+	        var bb = _box3B.makeEmpty();
+	        _v3B.copy(aabb.min).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        _v3B.copy(aabb.min).setX(aabb.max.x).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        _v3B.copy(aabb.min).setY(aabb.max.y).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        _v3B.copy(aabb.max).setZ(aabb.min.z).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        _v3B.copy(aabb.min).setZ(aabb.max.z).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        _v3B.copy(aabb.max).setY(aabb.min.y).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        _v3B.copy(aabb.max).setX(aabb.min.x).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        _v3B.copy(aabb.max).applyQuaternion(rotation);
+	        bb.expandByPoint(_v3B);
+	        rotation.setFromUnitVectors(_AXIS_Z, normal);
+	        bb.min.x -= paddingLeft;
+	        bb.min.y -= paddingBottom;
+	        bb.max.x += paddingRight;
+	        bb.max.y += paddingTop;
+	        var bbSize = bb.getSize(_v3B);
+	        var distance = this.getDistanceToFit(bbSize.x, bbSize.y, bbSize.z);
+	        var center = bb.getCenter(_v3B).applyQuaternion(rotation);
+	        this.moveTo(center.x, center.y, center.z, enableTransition);
 	        this.dollyTo(distance, enableTransition);
-	        var boundingBoxCenter = boundingBox.getCenter(_v3A);
-	        var cx = boundingBoxCenter.x - (paddingLeft * 0.5 - paddingRight * 0.5);
-	        var cy = boundingBoxCenter.y + (paddingTop * 0.5 - paddingBottom * 0.5);
-	        var cz = boundingBoxCenter.z;
-	        this.moveTo(cx, cy, cz, enableTransition);
-	        this.normalizeRotations();
-	        this.rotateTo(0, 90 * THREE.Math.DEG2RAD, enableTransition);
 	    };
 	    CameraControls.prototype.setLookAt = function (positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }

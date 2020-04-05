@@ -26,7 +26,7 @@ export interface Touches {
     two: multiTouchAction;
     three: multiTouchAction;
 }
-export interface FitToOption {
+export interface FitToOptions {
     paddingLeft: number;
     paddingRight: number;
     paddingBottom: number;
