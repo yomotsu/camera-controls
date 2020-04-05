@@ -9,19 +9,19 @@
   "types": "dist/index.d.ts",
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.13.0",
-    "@typescript-eslint/parser": "^2.13.0",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.26.0",
     "downlevel-dts": "^0.4.0",
     "eslint": "^6.8.0",
     "eslint-config-mdcs": "^4.2.3",
-    "rollup": "^1.27.14",
-    "rollup-plugin-typescript2": "^0.25.3",
-    "terser": "^4.4.3",
-    "three": "^0.112.1",
-    "typescript": "^3.8.2"
+    "rollup": "^2.3.3",
+    "rollup-plugin-typescript2": "^0.27.0",
+    "terser": "^4.6.10",
+    "three": "^0.115.0",
+    "typescript": "^3.8.3"
   },
   "peerDependencies": {
-    "three": "^0.112.1"
+    "three": "^0.115.0"
   },
   "scripts": {
     "dev": "rollup --config --watch",

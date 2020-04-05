@@ -780,9 +780,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'fitTo' ) ) return;
 
-		// TODO `Box3.isBox3: boolean` is missing in three.js. waiting for next update of three.js.
-		// see this PR: https://github.com/mrdoob/three.js/pull/18259
-		const aabb = ( box3OrObject as any ).isBox3
+		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
 			? _box3A.copy( box3OrObject as _THREE.Box3 )
 			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
 
