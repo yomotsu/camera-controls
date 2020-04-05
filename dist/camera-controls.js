@@ -859,7 +859,7 @@
 	            zoom: this._camera.zoom,
 	            target0: this._target0.toArray(),
 	            position0: this._position0.toArray(),
-	            _zoom0: this._zoom0,
+	            zoom0: this._zoom0,
 	        });
 	    };
 	    CameraControls.prototype.fromJSON = function (json, enableTransition) {
