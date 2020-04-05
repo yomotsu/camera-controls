@@ -159,7 +159,7 @@ export class CameraControls extends EventDispatcher {
 		this._targetEnd = this._target.clone();
 
 		// rotation
-		this._spherical = new THREE.Spherical().setFromVector3( this._camera.position.clone().applyQuaternion( this._yAxisUpSpace ) );
+		this._spherical = new THREE.Spherical().setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
 
 		this._zoom = this._camera.zoom;
@@ -194,7 +194,7 @@ export class CameraControls extends EventDispatcher {
 			middle: ACTION.DOLLY,
 			right: ACTION.TRUCK,
 			wheel:
-				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.DOLLY :
+				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.DOLLY :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
 				ACTION.NONE,
 			// We can also add shiftLeft, altLeft and etc if someone wants...
@@ -203,7 +203,7 @@ export class CameraControls extends EventDispatcher {
 		this.touches = {
 			one: ACTION.TOUCH_ROTATE,
 			two:
-				( this._camera as THREE.PerspectiveCamera ).isPerspectiveCamera ? ACTION.TOUCH_DOLLY_TRUCK :
+				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.TOUCH_DOLLY_TRUCK :
 				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
@@ -211,8 +211,8 @@ export class CameraControls extends EventDispatcher {
 
 		if ( this._domElement ) {
 
-			const dragStartPosition  = new THREE.Vector2() as _THREE.Vector2;
-			const lastDragPosition  = new THREE.Vector2() as _THREE.Vector2;
+			const dragStartPosition = new THREE.Vector2() as _THREE.Vector2;
+			const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
 			const dollyStart = new THREE.Vector2() as _THREE.Vector2;
 			const elementRect = new THREE.Vector4() as _THREE.Vector4;
 
@@ -835,7 +835,7 @@ export class CameraControls extends EventDispatcher {
 		bb.min.y -= paddingBottom;
 		bb.max.x += paddingRight;
 		bb.max.y += paddingTop;
-		
+
 		const bbSize = bb.getSize( _v3B );
 		const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
 		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
@@ -1152,13 +1152,15 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	toJSON() {
+	toJSON(): string {
 
 		return JSON.stringify( {
 			enabled              : this.enabled,
 
 			minDistance          : this.minDistance,
 			maxDistance          : infinityToMaxNumber( this.maxDistance ),
+			minZoom              : this.minZoom,
+			maxZoom              : infinityToMaxNumber( this.maxZoom ),
 			minPolarAngle        : this.minPolarAngle,
 			maxPolarAngle        : infinityToMaxNumber( this.maxPolarAngle ),
 			minAzimuthAngle      : infinityToMaxNumber( this.minAzimuthAngle ),
@@ -1172,22 +1174,27 @@ export class CameraControls extends EventDispatcher {
 
 			target               : this._targetEnd.toArray(),
 			position             : this._camera.position.toArray(),
+			zoom                 : this._camera.zoom,
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),
+			_zoom0               : this._zoom0,
+
 		} );
 
 	}
 
-	fromJSON( json: any, enableTransition: boolean = false ): void {
+	fromJSON( json: string, enableTransition: boolean = false ): void {
 
 		const obj = JSON.parse( json );
-		const position = ( new THREE.Vector3() as _THREE.Vector3 ).fromArray( obj.position );
+		const position = _v3A.fromArray( obj.position );
 
 		this.enabled               = obj.enabled;
 
 		this.minDistance           = obj.minDistance;
 		this.maxDistance           = maxNumberToInfinity( obj.maxDistance );
+		this.minZoom               = obj.minZoom;
+		this.maxZoom               = maxNumberToInfinity( obj.maxZoom );
 		this.minPolarAngle         = obj.minPolarAngle;
 		this.maxPolarAngle         = maxNumberToInfinity( obj.maxPolarAngle );
 		this.minAzimuthAngle       = maxNumberToInfinity( obj.minAzimuthAngle );
@@ -1201,16 +1208,12 @@ export class CameraControls extends EventDispatcher {
 
 		this._target0.fromArray( obj.target0 );
 		this._position0.fromArray( obj.position0 );
+		this._zoom0 = obj.zoom0;
 
-		this._targetEnd.fromArray( obj.target );
-		this._sphericalEnd.setFromVector3( position.sub( this._target0 ).applyQuaternion( this._yAxisUpSpace ) );
-
-		if ( ! enableTransition ) {
-
-			this._target.copy( this._targetEnd );
-			this._spherical.copy( this._sphericalEnd );
-
-		}
+		this.moveTo( obj.target[ 0 ], obj.target[ 1 ], obj.target[ 2 ], enableTransition );
+		_sphericalA.setFromVector3( position.sub( this._targetEnd ).applyQuaternion( this._yAxisUpSpace ) );
+		this.rotateTo( _sphericalA.theta, _sphericalA.phi, enableTransition );
+		this.zoomTo( obj.zoom, enableTransition );
 
 		this._needsUpdate = true;
 

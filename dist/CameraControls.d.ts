@@ -77,7 +77,7 @@ export declare class CameraControls extends EventDispatcher {
     updateCameraUp(): void;
     update(delta: number): boolean;
     toJSON(): string;
-    fromJSON(json: any, enableTransition?: boolean): void;
+    fromJSON(json: string, enableTransition?: boolean): void;
     dispose(): void;
     protected _encloseToBoundary(position: _THREE.Vector3, offset: _THREE.Vector3, friction: number): _THREE.Vector3;
     protected _updateNearPlaneCorners(): void;

@@ -207,7 +207,7 @@
 	        _this._domElement = domElement;
 	        _this._target = new THREE.Vector3();
 	        _this._targetEnd = _this._target.clone();
-	        _this._spherical = new THREE.Spherical().setFromVector3(_this._camera.position.clone().applyQuaternion(_this._yAxisUpSpace));
+	        _this._spherical = new THREE.Spherical().setFromVector3(_v3A.copy(_this._camera.position).applyQuaternion(_this._yAxisUpSpace));
 	        _this._sphericalEnd = _this._spherical.clone();
 	        _this._zoom = _this._camera.zoom;
 	        _this._zoomEnd = _this._zoom;
@@ -842,6 +842,8 @@
 	            enabled: this.enabled,
 	            minDistance: this.minDistance,
 	            maxDistance: infinityToMaxNumber(this.maxDistance),
+	            minZoom: this.minZoom,
+	            maxZoom: infinityToMaxNumber(this.maxZoom),
 	            minPolarAngle: this.minPolarAngle,
 	            maxPolarAngle: infinityToMaxNumber(this.maxPolarAngle),
 	            minAzimuthAngle: infinityToMaxNumber(this.minAzimuthAngle),
@@ -854,17 +856,21 @@
 	            verticalDragToForward: this.verticalDragToForward,
 	            target: this._targetEnd.toArray(),
 	            position: this._camera.position.toArray(),
+	            zoom: this._camera.zoom,
 	            target0: this._target0.toArray(),
 	            position0: this._position0.toArray(),
+	            _zoom0: this._zoom0,
 	        });
 	    };
 	    CameraControls.prototype.fromJSON = function (json, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
 	        var obj = JSON.parse(json);
-	        var position = new THREE.Vector3().fromArray(obj.position);
+	        var position = _v3A.fromArray(obj.position);
 	        this.enabled = obj.enabled;
 	        this.minDistance = obj.minDistance;
 	        this.maxDistance = maxNumberToInfinity(obj.maxDistance);
+	        this.minZoom = obj.minZoom;
+	        this.maxZoom = maxNumberToInfinity(obj.maxZoom);
 	        this.minPolarAngle = obj.minPolarAngle;
 	        this.maxPolarAngle = maxNumberToInfinity(obj.maxPolarAngle);
 	        this.minAzimuthAngle = maxNumberToInfinity(obj.minAzimuthAngle);
@@ -877,12 +883,11 @@
 	        this.verticalDragToForward = obj.verticalDragToForward;
 	        this._target0.fromArray(obj.target0);
 	        this._position0.fromArray(obj.position0);
-	        this._targetEnd.fromArray(obj.target);
-	        this._sphericalEnd.setFromVector3(position.sub(this._target0).applyQuaternion(this._yAxisUpSpace));
-	        if (!enableTransition) {
-	            this._target.copy(this._targetEnd);
-	            this._spherical.copy(this._sphericalEnd);
-	        }
+	        this._zoom0 = obj.zoom0;
+	        this.moveTo(obj.target[0], obj.target[1], obj.target[2], enableTransition);
+	        _sphericalA.setFromVector3(position.sub(this._targetEnd).applyQuaternion(this._yAxisUpSpace));
+	        this.rotateTo(_sphericalA.theta, _sphericalA.phi, enableTransition);
+	        this.zoomTo(obj.zoom, enableTransition);
 	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.dispose = function () {
