@@ -1178,7 +1178,7 @@ export class CameraControls extends EventDispatcher {
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),
-			_zoom0               : this._zoom0,
+			zoom0                : this._zoom0,
 
 		} );
 
