@@ -605,6 +605,26 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	get distance(): number {
+
+		return this._spherical.radius;
+
+	}
+
+	// horizontal angle
+	get azimuthAngle(): number {
+
+		return this._spherical.theta;
+
+	}
+
+	// vertical angle
+	get polarAngle(): number {
+
+		return this._spherical.phi;
+
+	}
+
 	// wrong. phi should be map to polar, but backward compatibility.
 	set phiSpeed( speed: number ) {
 
