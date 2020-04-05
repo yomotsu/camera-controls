@@ -1,9 +1,9 @@
-import type * as _THREE from 'three';
+import * as _THREE from 'three';
 import { ACTION, MouseButtons, Touches, FitToOptions } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     static install(libs: any): void;
-    static get ACTION(): Readonly<typeof ACTION>;
+    static readonly ACTION: Readonly<typeof ACTION>;
     enabled: boolean;
     minPolarAngle: number;
     maxPolarAngle: number;
@@ -48,10 +48,9 @@ export declare class CameraControls extends EventDispatcher {
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
-    set phiSpeed(speed: number);
-    set thetaSpeed(speed: number);
-    get boundaryEnclosesCamera(): boolean;
-    set boundaryEnclosesCamera(boundaryEnclosesCamera: boolean);
+    phiSpeed: number;
+    thetaSpeed: number;
+    boundaryEnclosesCamera: boolean;
     rotate(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     rotateTo(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     dolly(distance: number, enableTransition?: boolean): void;
