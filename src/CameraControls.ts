@@ -28,19 +28,17 @@ const TOUCH_DOLLY_FACTOR = 1 / 8;
 let THREE: any;
 let _ORIGIN: _THREE.Vector3;
 let _AXIS_Y: _THREE.Vector3;
+let _AXIS_Z: _THREE.Vector3;
 let _v2: _THREE.Vector2;
 let _v3A: _THREE.Vector3;
 let _v3B: _THREE.Vector3;
 let _v3C: _THREE.Vector3;
-let _v3D: _THREE.Vector3;
-let _v3E: _THREE.Vector3;
 let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
 let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
-let _box2: _THREE.Box2;
-let _box3: _THREE.Box3;
-let _plane: _THREE.Plane;
+let _box3A: _THREE.Box3;
+let _box3B: _THREE.Box3;
 let _quaternion: _THREE.Quaternion;
 let _rotationMatrix: _THREE.Matrix4;
 let _raycaster: _THREE.Raycaster;
@@ -52,19 +50,17 @@ export class CameraControls extends EventDispatcher {
 		THREE = libs.THREE;
 		_ORIGIN = Object.freeze( new THREE.Vector3( 0, 0, 0 ) );
 		_AXIS_Y = Object.freeze( new THREE.Vector3( 0, 1, 0 ) );
+		_AXIS_Z = Object.freeze( new THREE.Vector3( 0, 0, 1 ) );
 		_v2 = new THREE.Vector2();
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
-		_v3D = new THREE.Vector3();
-		_v3E = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
-		_box2 = new THREE.Box2();
-		_box3 = new THREE.Box3();
-		_plane = new THREE.Plane();
+		_box3A = new THREE.Box3();
+		_box3B = new THREE.Box3();
 		_quaternion = new THREE.Quaternion();
 		_rotationMatrix = new THREE.Matrix4();
 		_raycaster = new THREE.Raycaster();
@@ -787,86 +783,67 @@ export class CameraControls extends EventDispatcher {
 		// TODO `Box3.isBox3: boolean` is missing in three.js. waiting for next update of three.js.
 		// see this PR: https://github.com/mrdoob/three.js/pull/18259
 		const aabb = ( box3OrObject as any ).isBox3
-			? _box3.copy( box3OrObject as _THREE.Box3 )
-			: _box3.setFromObject( box3OrObject as _THREE.Object3D );
+			? _box3A.copy( box3OrObject as _THREE.Box3 )
+			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
 
-		const size = aabb.getSize( _v3A );
-		const center = aabb.getCenter( _v3B );
-		const radius = Math.max( size.x, size.y, size.z ) / 2;
-
-		// find nearest side
+		// round to closest axis ( forward | backward | right | left | top | bottom )
 		const theta = roundToStep( this._sphericalEnd.theta, PI_HALF );
 		const phi   = roundToStep( this._sphericalEnd.phi,   PI_HALF );
 
-		_sphericalA.set( radius, phi, theta );
-		const sphericalPosition = _v3C.setFromSpherical( _sphericalA ).applyQuaternion( this._yAxisUpSpaceInverse );
-		const normal = _v3D.copy( sphericalPosition ).normalize();
-		const plane = _plane.setFromNormalAndCoplanarPoint( normal, _v3E.addVectors( sphericalPosition, center ) );
-		const rotation = _quaternion.setFromUnitVectors( normal, _v3E.set( 0, 0, 1 ) );
+		this.rotateTo( theta, phi, enableTransition );
 
-		// Project bounding corners on plane and compute 2d bounding rect
+		const normal = _v3A.setFromSpherical( this._sphericalEnd ).normalize();
+		const rotation = _quaternion.setFromUnitVectors( normal, _AXIS_Z );
 
-		const rect = _box2.makeEmpty();
+		// make oriented bounding box
+		const bb = _box3B.makeEmpty();
 
 		// left bottom back corner
-		plane.projectPoint( aabb.min, _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.min ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
 		// right bottom back corner
-		plane.projectPoint( _v3C.copy( aabb.min ).setX( aabb.max.x ), _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.min ).setX( aabb.max.x ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
 		// left top back corner
-		plane.projectPoint( _v3C.copy( aabb.min ).setY( aabb.max.y ), _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.min ).setY( aabb.max.y ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
 		// right top back corner
-		plane.projectPoint( _v3C.copy( aabb.max ).setZ( aabb.min.z ), _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.max ).setZ( aabb.min.z ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
 		// left bottom front corner
-		plane.projectPoint( _v3C.copy( aabb.min ).setZ( aabb.max.z ), _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.min ).setZ( aabb.max.z ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
 		// right bottom front corner
-		plane.projectPoint( _v3C.copy( aabb.max ).setY( aabb.min.y ), _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.max ).setY( aabb.min.y ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
 		// left top front corner
-		plane.projectPoint( _v3C.copy( aabb.max ).setX( aabb.min.x ), _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.max ).setX( aabb.min.x ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
 		// right top front corner
-		plane.projectPoint( aabb.max, _v3E ).sub( center ).applyQuaternion( rotation );
-		rect.expandByPoint( _v2.set( _v3E.x, _v3E.y ) );
+		_v3B.copy( aabb.max ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
 
-		// offset center with paddings
-		const centerOffset = _v3C.set(
-			( paddingRight - paddingLeft ) * 0.5,
-			( paddingTop - paddingBottom ) * 0.5,
-			0
-		);
-		rotation.setFromUnitVectors( _v3E.set( 0, 0, 1 ), normal );
-		center.add( centerOffset.applyQuaternion( rotation ) );
+		rotation.setFromUnitVectors( _AXIS_Z, normal );
 
-		const projectedSize = _box2.getSize( _v2 );
-		const distance = this.getDistanceToFit(
-			projectedSize.x + paddingRight + paddingLeft,
-			projectedSize.y + paddingTop   + paddingBottom,
-			radius * 2
-		);
+		// add padding
+		bb.min.x -= paddingLeft;
+		bb.min.y -= paddingBottom;
+		bb.max.x += paddingRight;
+		bb.max.y += paddingTop;
+		
+		const bbSize = bb.getSize( _v3B );
+		const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
+		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
 
-		this.moveTo(
-			center.x,
-			center.y,
-			center.z,
-			enableTransition
-		);
-
+		this.moveTo( center.x, center.y, center.z, enableTransition );
 		this.dollyTo( distance, enableTransition );
-
-		this.normalizeRotations();
-		this.rotateTo( theta, phi, enableTransition );
 
 	}
 
