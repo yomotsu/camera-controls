@@ -1,9 +1,9 @@
-import * as _THREE from 'three';
+import type * as _THREE from 'three';
 import { ACTION, MouseButtons, Touches, FitToOptions } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     static install(libs: any): void;
-    static readonly ACTION: Readonly<typeof ACTION>;
+    static get ACTION(): Readonly<typeof ACTION>;
     enabled: boolean;
     minPolarAngle: number;
     maxPolarAngle: number;
@@ -48,9 +48,10 @@ export declare class CameraControls extends EventDispatcher {
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
-    phiSpeed: number;
-    thetaSpeed: number;
-    boundaryEnclosesCamera: boolean;
+    set phiSpeed(speed: number);
+    set thetaSpeed(speed: number);
+    get boundaryEnclosesCamera(): boolean;
+    set boundaryEnclosesCamera(boundaryEnclosesCamera: boolean);
     rotate(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     rotateTo(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     dolly(distance: number, enableTransition?: boolean): void;
@@ -77,7 +78,7 @@ export declare class CameraControls extends EventDispatcher {
     updateCameraUp(): void;
     update(delta: number): boolean;
     toJSON(): string;
-    fromJSON(json: any, enableTransition?: boolean): void;
+    fromJSON(json: string, enableTransition?: boolean): void;
     dispose(): void;
     protected _encloseToBoundary(position: _THREE.Vector3, offset: _THREE.Vector3, friction: number): _THREE.Vector3;
     protected _updateNearPlaneCorners(): void;

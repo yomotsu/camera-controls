@@ -1152,13 +1152,15 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	toJSON() {
+	toJSON(): string {
 
 		return JSON.stringify( {
 			enabled              : this.enabled,
 
 			minDistance          : this.minDistance,
 			maxDistance          : infinityToMaxNumber( this.maxDistance ),
+			minZoom              : this.minZoom,
+			maxZoom              : infinityToMaxNumber( this.maxZoom ),
 			minPolarAngle        : this.minPolarAngle,
 			maxPolarAngle        : infinityToMaxNumber( this.maxPolarAngle ),
 			minAzimuthAngle      : infinityToMaxNumber( this.minAzimuthAngle ),
@@ -1172,24 +1174,27 @@ export class CameraControls extends EventDispatcher {
 
 			target               : this._targetEnd.toArray(),
 			position             : this._camera.position.toArray(),
+			zoom                 : this._camera.zoom,
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),
+			_zoom0               : this._zoom0,
 
-			zoom                 : this._camera.zoom,
 		} );
 
 	}
 
-	fromJSON( json: any, enableTransition: boolean = false ): void {
+	fromJSON( json: string, enableTransition: boolean = false ): void {
 
 		const obj = JSON.parse( json );
-		const position = ( new THREE.Vector3() as _THREE.Vector3 ).fromArray( obj.position );
+		const position = _v3A.fromArray( obj.position );
 
 		this.enabled               = obj.enabled;
 
 		this.minDistance           = obj.minDistance;
 		this.maxDistance           = maxNumberToInfinity( obj.maxDistance );
+		this.minZoom               = obj.minZoom;
+		this.maxZoom               = maxNumberToInfinity( obj.maxZoom );
 		this.minPolarAngle         = obj.minPolarAngle;
 		this.maxPolarAngle         = maxNumberToInfinity( obj.maxPolarAngle );
 		this.minAzimuthAngle       = maxNumberToInfinity( obj.minAzimuthAngle );
@@ -1203,18 +1208,12 @@ export class CameraControls extends EventDispatcher {
 
 		this._target0.fromArray( obj.target0 );
 		this._position0.fromArray( obj.position0 );
+		this._zoom0 = obj.zoom0;
 
-		this._targetEnd.fromArray( obj.target );
-		this._sphericalEnd.setFromVector3( position.sub( this._target0 ).applyQuaternion( this._yAxisUpSpace ) );
-
-		if ( ! enableTransition ) {
-
-			this._target.copy( this._targetEnd );
-			this._spherical.copy( this._sphericalEnd );
-
-		}
-
-		this._camera.zoom = obj.zoom;
+		this.moveTo( obj.target[ 0 ], obj.target[ 1 ], obj.target[ 2 ], enableTransition );
+		_sphericalA.setFromVector3( position.sub( this._targetEnd ).applyQuaternion( this._yAxisUpSpace ) );
+		this.rotateTo( _sphericalA.theta, _sphericalA.phi, enableTransition );
+		this.zoomTo( obj.zoom, enableTransition );
 
 		this._needsUpdate = true;
 
