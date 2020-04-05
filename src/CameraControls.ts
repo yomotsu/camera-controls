@@ -3,15 +3,16 @@ import {
 	ACTION,
 	MouseButtons,
 	Touches,
-	FitToOption,
+	FitToOptions,
 } from './types';
 import {
 	PI_2,
+	PI_HALF,
 	FPS_60,
-	FIT_TO_OPTION_DEFAULT,
 } from './constants';
 import {
 	approxZero,
+	roundToStep,
 	infinityToMaxNumber,
 	maxNumberToInfinity,
 } from './utils/math-utils';
@@ -27,6 +28,7 @@ const TOUCH_DOLLY_FACTOR = 1 / 8;
 let THREE: any;
 let _ORIGIN: _THREE.Vector3;
 let _AXIS_Y: _THREE.Vector3;
+let _AXIS_Z: _THREE.Vector3;
 let _v2: _THREE.Vector2;
 let _v3A: _THREE.Vector3;
 let _v3B: _THREE.Vector3;
@@ -35,7 +37,9 @@ let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
 let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
-let _box3: _THREE.Box3;
+let _box3A: _THREE.Box3;
+let _box3B: _THREE.Box3;
+let _quaternion: _THREE.Quaternion;
 let _rotationMatrix: _THREE.Matrix4;
 let _raycaster: _THREE.Raycaster;
 
@@ -46,6 +50,7 @@ export class CameraControls extends EventDispatcher {
 		THREE = libs.THREE;
 		_ORIGIN = Object.freeze( new THREE.Vector3( 0, 0, 0 ) );
 		_AXIS_Y = Object.freeze( new THREE.Vector3( 0, 1, 0 ) );
+		_AXIS_Z = Object.freeze( new THREE.Vector3( 0, 0, 1 ) );
 		_v2 = new THREE.Vector2();
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
@@ -54,7 +59,9 @@ export class CameraControls extends EventDispatcher {
 		_yColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
-		_box3 = new THREE.Box3();
+		_box3A = new THREE.Box3();
+		_box3B = new THREE.Box3();
+		_quaternion = new THREE.Quaternion();
 		_rotationMatrix = new THREE.Matrix4();
 		_raycaster = new THREE.Raycaster();
 
@@ -355,7 +362,7 @@ export class CameraControls extends EventDispatcher {
 
 			const onMouseWheel = ( event: WheelEvent ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this.enabled || this.mouseButtons.wheel === ACTION.NONE ) return;
 
 				event.preventDefault();
 
@@ -764,36 +771,77 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, options: FitToOption = FIT_TO_OPTION_DEFAULT ): void {
+	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
+		paddingLeft = 0,
+		paddingRight = 0,
+		paddingBottom = 0,
+		paddingTop = 0
+	}: Partial<FitToOptions> = {} ): void {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'fitTo' ) ) return;
 
-		const paddingLeft   = options.paddingLeft   || 0;
-		const paddingRight  = options.paddingRight  || 0;
-		const paddingBottom = options.paddingBottom || 0;
-		const paddingTop    = options.paddingTop    || 0;
+		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
+			? _box3A.copy( box3OrObject as _THREE.Box3 )
+			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
 
-		// TODO `Box3.isBox3: boolean` is missing in three.js. waiting for next update of three.js.
-		// see this PR: https://github.com/mrdoob/three.js/pull/18259
-		const boundingBox =
-			( box3OrObject as any ).isBox3 ? _box3.copy( box3OrObject as _THREE.Box3 ) :
-			_box3.setFromObject( box3OrObject as _THREE.Object3D );
-		const size = boundingBox.getSize( _v3A );
-		const boundingWidth  = size.x + paddingLeft + paddingRight;
-		const boundingHeight = size.y + paddingTop  + paddingBottom;
-		const boundingDepth  = size.z;
+		// round to closest axis ( forward | backward | right | left | top | bottom )
+		const theta = roundToStep( this._sphericalEnd.theta, PI_HALF );
+		const phi   = roundToStep( this._sphericalEnd.phi,   PI_HALF );
 
-		const distance = this.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
+		this.rotateTo( theta, phi, enableTransition );
+
+		const normal = _v3A.setFromSpherical( this._sphericalEnd ).normalize();
+		const rotation = _quaternion.setFromUnitVectors( normal, _AXIS_Z );
+
+		// make oriented bounding box
+		const bb = _box3B.makeEmpty();
+
+		// left bottom back corner
+		_v3B.copy( aabb.min ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		// right bottom back corner
+		_v3B.copy( aabb.min ).setX( aabb.max.x ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		// left top back corner
+		_v3B.copy( aabb.min ).setY( aabb.max.y ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		// right top back corner
+		_v3B.copy( aabb.max ).setZ( aabb.min.z ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		// left bottom front corner
+		_v3B.copy( aabb.min ).setZ( aabb.max.z ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		// right bottom front corner
+		_v3B.copy( aabb.max ).setY( aabb.min.y ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		// left top front corner
+		_v3B.copy( aabb.max ).setX( aabb.min.x ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		// right top front corner
+		_v3B.copy( aabb.max ).applyQuaternion( rotation );
+		bb.expandByPoint( _v3B );
+
+		rotation.setFromUnitVectors( _AXIS_Z, normal );
+
+		// add padding
+		bb.min.x -= paddingLeft;
+		bb.min.y -= paddingBottom;
+		bb.max.x += paddingRight;
+		bb.max.y += paddingTop;
+		
+		const bbSize = bb.getSize( _v3B );
+		const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
+		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
+
+		this.moveTo( center.x, center.y, center.z, enableTransition );
 		this.dollyTo( distance, enableTransition );
-
-		const boundingBoxCenter = boundingBox.getCenter( _v3A );
-		const cx = boundingBoxCenter.x - ( paddingLeft * 0.5 - paddingRight  * 0.5 );
-		const cy = boundingBoxCenter.y + ( paddingTop  * 0.5 - paddingBottom * 0.5 );
-		const cz = boundingBoxCenter.z;
-		this.moveTo( cx, cy, cz, enableTransition );
-
-		this.normalizeRotations();
-		this.rotateTo( 0, 90 * THREE.Math.DEG2RAD, enableTransition );
 
 	}
 

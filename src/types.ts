@@ -31,7 +31,7 @@ export interface Touches {
 	three: multiTouchAction;
 }
 
-export interface FitToOption {
+export interface FitToOptions {
 	paddingLeft  : number;
 	paddingRight : number;
 	paddingBottom: number;

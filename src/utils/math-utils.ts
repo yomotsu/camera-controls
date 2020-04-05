@@ -6,6 +6,12 @@ export function approxZero( number: number ): boolean {
 
 }
 
+export function roundToStep( value: number, step: number ): number {
+
+	return Math.round( value / step ) * step;
+
+}
+
 export function infinityToMaxNumber( value: number ): number {
 
 	if ( isFinite( value ) ) return value;
