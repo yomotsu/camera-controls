@@ -481,3 +481,9 @@ Dispose the cameraControls instance itself, remove all eventListeners.
 ## Breaking changes
 
 @1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
+
+## Contributors	
+
+This project exists thanks to all the people who contribute.	
+
+![](https://contributors-img.web.app/image?repo=yomotsu/camera-controls)
