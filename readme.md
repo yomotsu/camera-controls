@@ -85,10 +85,13 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | Name                      | Type      | Default     | Description |
 | ------------------------- | --------- | ----------- | ----------- |
 | `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
+| `.distance`               | `number`  | N/A         | Readonly. Get the current distance. |
 | `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. |
 | `.maxDistance`            | `number`  | `Infinity`  | Maximum distance for dolly. |
+| `.polarAngle`             | `number`  | N/A         | Readonly. Get the current polarAngle in radians. |
 | `.minPolarAngle`          | `number`  | `0`         | In radians. |
 | `.maxPolarAngle`          | `number`  | `Math.PI`   | In radians. |
+| `.azimuthAngle`           | `number`  | N/A         | Readonly. Get the current azimuthAngle in radians. |
 | `.minAzimuthAngle`        | `number`  | `-Infinity` | In radians. |
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
@@ -478,9 +481,3 @@ Dispose the cameraControls instance itself, remove all eventListeners.
 ## Breaking changes
 
 @1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
-
-## Contributors
-
-This project exists thanks to all the people who contribute.
-
-![](https://contributors-img.web.app/image?repo=yomotsu/camera-controls)
