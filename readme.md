@@ -22,6 +22,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [combined gestures](https://yomotsu.github.io/camera-controls/examples/combined-gestures.html)
 - [keyboard events](https://yomotsu.github.io/camera-controls/examples/keyboard.html)
 - [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
+- [rotate with duration and easing](https://yomotsu.github.io/camera-controls/examples/easing.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 
 
@@ -85,13 +86,13 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | Name                      | Type      | Default     | Description |
 | ------------------------- | --------- | ----------- | ----------- |
 | `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
-| `.distance`               | `number`  | N/A         | Readonly. Get the current distance. |
+| `.distance`               | `number`  | N/A         | current distance. |
 | `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. |
 | `.maxDistance`            | `number`  | `Infinity`  | Maximum distance for dolly. |
-| `.polarAngle`             | `number`  | N/A         | Readonly. Get the current polarAngle in radians. |
+| `.polarAngle`             | `number`  | N/A         | current polarAngle in radians. |
 | `.minPolarAngle`          | `number`  | `0`         | In radians. |
 | `.maxPolarAngle`          | `number`  | `Math.PI`   | In radians. |
-| `.azimuthAngle`           | `number`  | N/A         | Readonly. Get the current azimuthAngle in radians. |
+| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians. |
 | `.minAzimuthAngle`        | `number`  | `-Infinity` | In radians. |
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |

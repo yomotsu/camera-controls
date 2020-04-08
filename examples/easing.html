@@ -8,12 +8,10 @@
 </head>
 <body>
 <div class="info">
-	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
-	<button onclick="moveToStartPoint()">move to the animation start point</button>
-	<br>
-	<button onclick="pathAnimation.start()">path animation</button>
-	<br>
-	<button onclick="cameraControls.reset( true )">reset</button>
+	<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
+	<button onclick="cameraControls.reset( true )">reset</button><br>
+	<button onclick="rotate45()">rotate 45 deg <b>relatively</b> with easing in 1 sec</button><br>
+	<button onclick="rotate0To120()">rotate 0 to 120 deg with easing in 3 sec</button><br>
 </div>
 
 <script src="https://unpkg.com/three@0.115.0/build/three.min.js"></script>
@@ -44,58 +42,53 @@ const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.position.y = - 1;
 scene.add( gridHelper );
 
-const curve = new THREE.CatmullRomCurve3( [
-	new THREE.Vector3( -3,  2, 1 ),
-	new THREE.Vector3(  2,  2, 0 ),
-	new THREE.Vector3(  -1, 0, 3 ),
-	new THREE.Vector3(  2, -1, 0 ),
-] );
-const points = curve.getPoints( 50 );
-const pathMesh = new THREE.Line(
-	new THREE.BufferGeometry().setFromPoints( points ),
-	new THREE.LineBasicMaterial( { color: 0x00ffff } )
-);
-scene.add( pathMesh );
 
-const _tmp = new THREE.Vector3();
-const pathAnimation = new TWEEN.Tween( { progress: 0 } )
-	.to( { progress: 1 }, 3000 )
-	.easing( TWEEN.Easing.Quadratic.Out )
-	.onStart( function() {
-		// disable user control while the animation
-		cameraControls.enabled = false;
-	} )
-	.onUpdate( function( values ) {
 
-		curve.getPoint ( values.progress, _tmp );
-		const cameraX = _tmp.x;
-		const cameraY = _tmp.y;
-		const cameraZ = _tmp.z;
-		const lookAtX = 0;
-		const lookAtY = 0;
-		const lookAtZ = 0;
+const rotate45 = function () {
 
-		cameraControls.setLookAt( 
-			cameraX,
-			cameraY,
-			cameraZ,
-			lookAtX,
-			lookAtY,
-			lookAtZ,
-			false
-		);
+	// save the start angle
+	let startAzimuthAngle = cameraControls.azimuthAngle;
+	new TWEEN.Tween( cameraControls )
+		.to( { azimuthAngle: 45 * THREE.Math.DEG2RAD + startAzimuthAngle }, 1000 )
+		.easing( TWEEN.Easing.Bounce.Out )
+		.onStart( function() {
 
-	} )
-	.onComplete( function() {
-		cameraControls.enabled = true;
-	} );
+			// disable user control while the animation
+			cameraControls.enabled = false;
 
-function moveToStartPoint() {
+		} )
+		.onComplete( function() {
 
-	curve.getPoint ( 0, _tmp );
-	cameraControls.setLookAt( _tmp.x, _tmp.y, _tmp.z, 0, 0, 0, true );
+			cameraControls.enabled = true;
+
+		} )
+		.start();
 
 }
+
+
+const rotate0To120 = function () {
+
+	cameraControls.azimuthAngle = 0;
+	
+	new TWEEN.Tween( cameraControls )
+		.to( { azimuthAngle: 120 * THREE.Math.DEG2RAD }, 3000 )
+		.easing( TWEEN.Easing.Exponential.Out )
+		.onStart( function() {
+
+			// disable user control while the animation
+			cameraControls.enabled = false;
+
+		} )
+		.onComplete( function() {
+
+			cameraControls.enabled = true;
+
+		} )
+		.start();
+
+}
+
 
 renderer.render( scene, camera );
 
