@@ -611,6 +611,19 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	set distance( distance ) {
+
+		if (
+			this._spherical.radius === distance &&
+			this._sphericalEnd.radius === distance
+		) return;
+
+		this._spherical.radius = distance;
+		this._sphericalEnd.radius = distance;
+		this._needsUpdate = true;
+
+	}
+
 	// horizontal angle
 	get azimuthAngle(): number {
 
@@ -618,10 +631,36 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	set azimuthAngle( azimuthAngle ) {
+
+		if (
+			this._spherical.theta === azimuthAngle &&
+			this._sphericalEnd.theta === azimuthAngle
+		) return;
+
+		this._spherical.theta = azimuthAngle;
+		this._sphericalEnd.theta = azimuthAngle;
+		this._needsUpdate = true;
+
+	}
+
 	// vertical angle
 	get polarAngle(): number {
 
 		return this._spherical.phi;
+
+	}
+
+	set polarAngle( polarAngle ) {
+
+		if (
+			this._spherical.phi === polarAngle &&
+			this._sphericalEnd.phi === polarAngle
+		) return;
+
+		this._spherical.phi = polarAngle;
+		this._sphericalEnd.phi = polarAngle;
+		this._needsUpdate = true;
 
 	}
 
