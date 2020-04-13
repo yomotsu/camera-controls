@@ -508,6 +508,51 @@ var CameraControls = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(CameraControls.prototype, "distance", {
+        get: function () {
+            return this._spherical.radius;
+        },
+        set: function (distance) {
+            if (this._spherical.radius === distance &&
+                this._sphericalEnd.radius === distance)
+                return;
+            this._spherical.radius = distance;
+            this._sphericalEnd.radius = distance;
+            this._needsUpdate = true;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(CameraControls.prototype, "azimuthAngle", {
+        get: function () {
+            return this._spherical.theta;
+        },
+        set: function (azimuthAngle) {
+            if (this._spherical.theta === azimuthAngle &&
+                this._sphericalEnd.theta === azimuthAngle)
+                return;
+            this._spherical.theta = azimuthAngle;
+            this._sphericalEnd.theta = azimuthAngle;
+            this._needsUpdate = true;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(CameraControls.prototype, "polarAngle", {
+        get: function () {
+            return this._spherical.phi;
+        },
+        set: function (polarAngle) {
+            if (this._spherical.phi === polarAngle &&
+                this._sphericalEnd.phi === polarAngle)
+                return;
+            this._spherical.phi = polarAngle;
+            this._sphericalEnd.phi = polarAngle;
+            this._needsUpdate = true;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(CameraControls.prototype, "phiSpeed", {
         set: function (speed) {
             console.warn('phiSpeed was renamed. use azimuthRotateSpeed instead');

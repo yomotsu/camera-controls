@@ -48,6 +48,9 @@ export declare class CameraControls extends EventDispatcher {
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
+    distance: number;
+    azimuthAngle: number;
+    polarAngle: number;
     phiSpeed: number;
     thetaSpeed: number;
     boundaryEnclosesCamera: boolean;
