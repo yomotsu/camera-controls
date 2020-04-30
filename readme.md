@@ -22,6 +22,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [combined gestures](https://yomotsu.github.io/camera-controls/examples/combined-gestures.html)
 - [keyboard events](https://yomotsu.github.io/camera-controls/examples/keyboard.html)
 - [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
+- [first-person](https://yomotsu.github.io/camera-controls/examples/first-person.html)
 - [rotate with duration and easing](https://yomotsu.github.io/camera-controls/examples/easing.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 
