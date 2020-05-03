@@ -26,7 +26,7 @@
 	<button onclick="cameraControls.zoom( -camera.zoom / 2, true )">zoom `- camera.zoom / 2`</button>
 	<br>
 	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
-	<button onclick="cameraControls.fitTo( mesh, true )">fit to the bounding box of the mesh</button>
+	<button onclick="customFitTo()">fit to the bounding box of the mesh</button>
 	<button onclick="cameraControls.reset( true )">reset</button>
 </div>
 
@@ -87,6 +87,26 @@ renderer.render( scene, camera );
 	}
 
 } )();
+
+
+mesh.geometry.computeBoundingBox();
+const meshBBSize = mesh.geometry.boundingBox.getSize( new THREE.Vector3() );
+const meshBBWidth  = meshBBSize.x;
+const meshBBHeight = meshBBSize.y;
+const meshBBDepth  = meshBBSize.z;
+
+function customFitTo() {
+
+	const distanceToFit = cameraControls.getDistanceToFit( meshBBWidth, meshBBHeight, meshBBDepth );
+	cameraControls.moveTo(
+		mesh.position.x,
+		mesh.position.y,
+		mesh.position.z + distanceToFit,
+		true
+	);
+	cameraControls.rotateTo( 0, 90 * THREE.Math.DEG2RAD, true );
+
+}
 </script>
 
 </body>
