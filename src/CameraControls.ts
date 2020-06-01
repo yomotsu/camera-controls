@@ -837,8 +837,6 @@ export class CameraControls extends EventDispatcher {
 		paddingTop = 0
 	}: Partial<FitToOptions> = {} ): void {
 
-		if ( notSupportedInOrthographicCamera( this._camera, 'fitTo' ) ) return;
-
 		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
 			? _box3A.copy( box3OrObject as _THREE.Box3 )
 			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
@@ -896,11 +894,29 @@ export class CameraControls extends EventDispatcher {
 		bb.max.y += paddingTop;
 
 		const bbSize = bb.getSize( _v3B );
-		const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
-		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
+		const center = bb.getCenter( _v3C ).applyQuaternion( rotation );
 
-		this.moveTo( center.x, center.y, center.z, enableTransition );
-		this.dollyTo( distance, enableTransition );
+		const isPerspectiveCamera  = ( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera;
+		const isOrthographicCamera = ( this._camera as THREE.OrthographicCamera ).isOrthographicCamera;
+
+		if ( isPerspectiveCamera ) {
+
+			const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
+			this.moveTo( center.x, center.y, center.z, enableTransition );
+			this.dollyTo( distance, enableTransition );
+			return;
+
+		} else if ( isOrthographicCamera ) {
+
+			const camera = ( this._camera as THREE.OrthographicCamera );
+			const width = camera.right - camera.left;
+			const height = camera.top - camera.bottom;
+			const zoom = Math.min( width / bbSize.x, height / bbSize.y );
+			this.moveTo( center.x, center.y, center.z, enableTransition );
+			this.zoomTo( zoom, enableTransition );
+			return;
+
+		}
 
 	}
 
