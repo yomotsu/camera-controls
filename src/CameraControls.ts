@@ -887,6 +887,22 @@ export class CameraControls extends EventDispatcher {
 
 		rotation.setFromUnitVectors( _AXIS_Z, normal );
 
+		const viewFromPolar = Math.abs( theta % Math.PI ) === PI_HALF;
+		const viewFromPolarRotated = viewFromPolar && Math.abs( phi % Math.PI ) !== PI_HALF;
+
+		if ( viewFromPolarRotated ) {
+
+			const bbMin = _v3A.copy( bb.min );
+			const bbMax = _v3B.copy( bb.max );
+
+			bbMin.applyAxisAngle( _AXIS_Z, PI_HALF );
+			bbMax.applyAxisAngle( _AXIS_Z, PI_HALF );
+
+			bb.min.copy( bbMin ).min( bbMax );
+			bb.max.copy( bbMax ).max( bbMin );
+
+		}
+
 		// add padding
 		bb.min.x -= paddingLeft;
 		bb.min.y -= paddingBottom;
