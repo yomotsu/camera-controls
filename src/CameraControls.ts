@@ -12,6 +12,7 @@ import {
 } from './constants';
 import {
 	approxZero,
+	approxEquals,
 	roundToStep,
 	infinityToMaxNumber,
 	maxNumberToInfinity,
@@ -39,7 +40,8 @@ let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
 let _box3A: _THREE.Box3;
 let _box3B: _THREE.Box3;
-let _quaternion: _THREE.Quaternion;
+let _quaternionA: _THREE.Quaternion;
+let _quaternionB: _THREE.Quaternion;
 let _rotationMatrix: _THREE.Matrix4;
 let _raycaster: _THREE.Raycaster;
 
@@ -61,7 +63,8 @@ export class CameraControls extends EventDispatcher {
 		_sphericalB = new THREE.Spherical();
 		_box3A = new THREE.Box3();
 		_box3B = new THREE.Box3();
-		_quaternion = new THREE.Quaternion();
+		_quaternionA = new THREE.Quaternion();
+		_quaternionB = new THREE.Quaternion();
 		_rotationMatrix = new THREE.Matrix4();
 		_raycaster = new THREE.Raycaster();
 
@@ -848,7 +851,13 @@ export class CameraControls extends EventDispatcher {
 		this.rotateTo( theta, phi, enableTransition );
 
 		const normal = _v3A.setFromSpherical( this._sphericalEnd ).normalize();
-		const rotation = _quaternion.setFromUnitVectors( normal, _AXIS_Z );
+		const rotation = _quaternionA.setFromUnitVectors( normal, _AXIS_Z );
+		const viewFromPolar = approxEquals( Math.abs( normal.y ), 1 );
+		if ( viewFromPolar ) {
+
+			rotation.multiply( _quaternionB.setFromAxisAngle( _AXIS_Y, theta ) );
+
+		}
 
 		// make oriented bounding box
 		const bb = _box3B.makeEmpty();
@@ -887,30 +896,14 @@ export class CameraControls extends EventDispatcher {
 
 		rotation.setFromUnitVectors( _AXIS_Z, normal );
 
-		const viewFromPolar = Math.abs( theta % Math.PI ) === PI_HALF;
-		const viewFromPolarRotated = viewFromPolar && Math.abs( phi % Math.PI ) !== PI_HALF;
-
-		if ( viewFromPolarRotated ) {
-
-			const bbMin = _v3A.copy( bb.min );
-			const bbMax = _v3B.copy( bb.max );
-
-			bbMin.applyAxisAngle( _AXIS_Z, PI_HALF );
-			bbMax.applyAxisAngle( _AXIS_Z, PI_HALF );
-
-			bb.min.copy( bbMin ).min( bbMax );
-			bb.max.copy( bbMax ).max( bbMin );
-
-		}
-
 		// add padding
 		bb.min.x -= paddingLeft;
 		bb.min.y -= paddingBottom;
 		bb.max.x += paddingRight;
 		bb.max.y += paddingTop;
 
-		const bbSize = bb.getSize( _v3B );
-		const center = bb.getCenter( _v3C ).applyQuaternion( rotation );
+		const bbSize = bb.getSize( _v3A );
+		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
 
 		const isPerspectiveCamera  = ( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera;
 		const isOrthographicCamera = ( this._camera as THREE.OrthographicCamera ).isOrthographicCamera;
