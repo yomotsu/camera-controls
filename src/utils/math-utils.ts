@@ -6,6 +6,12 @@ export function approxZero( number: number ): boolean {
 
 }
 
+export function approxEquals( a: number, b: number ): boolean {
+
+	return approxZero( a - b );
+
+}
+
 export function roundToStep( value: number, step: number ): number {
 
 	return Math.round( value / step ) * step;
