@@ -62,6 +62,9 @@
 	function approxZero(number) {
 	    return Math.abs(number) < EPSILON;
 	}
+	function approxEquals(a, b) {
+	    return approxZero(a - b);
+	}
 	function roundToStep(value, step) {
 	    return Math.round(value / step) * step;
 	}
@@ -168,7 +171,8 @@
 	var _sphericalB;
 	var _box3A;
 	var _box3B;
-	var _quaternion;
+	var _quaternionA;
+	var _quaternionB;
 	var _rotationMatrix;
 	var _raycaster;
 	var CameraControls = (function (_super) {
@@ -503,7 +507,8 @@
 	        _sphericalB = new THREE.Spherical();
 	        _box3A = new THREE.Box3();
 	        _box3B = new THREE.Box3();
-	        _quaternion = new THREE.Quaternion();
+	        _quaternionA = new THREE.Quaternion();
+	        _quaternionB = new THREE.Quaternion();
 	        _rotationMatrix = new THREE.Matrix4();
 	        _raycaster = new THREE.Raycaster();
 	    };
@@ -669,8 +674,6 @@
 	    };
 	    CameraControls.prototype.fitTo = function (box3OrObject, enableTransition, _a) {
 	        var _b = _a === void 0 ? {} : _a, _c = _b.paddingLeft, paddingLeft = _c === void 0 ? 0 : _c, _d = _b.paddingRight, paddingRight = _d === void 0 ? 0 : _d, _e = _b.paddingBottom, paddingBottom = _e === void 0 ? 0 : _e, _f = _b.paddingTop, paddingTop = _f === void 0 ? 0 : _f;
-	        if (notSupportedInOrthographicCamera(this._camera, 'fitTo'))
-	            return;
 	        var aabb = box3OrObject.isBox3
 	            ? _box3A.copy(box3OrObject)
 	            : _box3A.setFromObject(box3OrObject);
@@ -678,7 +681,11 @@
 	        var phi = roundToStep(this._sphericalEnd.phi, PI_HALF);
 	        this.rotateTo(theta, phi, enableTransition);
 	        var normal = _v3A.setFromSpherical(this._sphericalEnd).normalize();
-	        var rotation = _quaternion.setFromUnitVectors(normal, _AXIS_Z);
+	        var rotation = _quaternionA.setFromUnitVectors(normal, _AXIS_Z);
+	        var viewFromPolar = approxEquals(Math.abs(normal.y), 1);
+	        if (viewFromPolar) {
+	            rotation.multiply(_quaternionB.setFromAxisAngle(_AXIS_Y, theta));
+	        }
 	        var bb = _box3B.makeEmpty();
 	        _v3B.copy(aabb.min).applyQuaternion(rotation);
 	        bb.expandByPoint(_v3B);
@@ -701,11 +708,25 @@
 	        bb.min.y -= paddingBottom;
 	        bb.max.x += paddingRight;
 	        bb.max.y += paddingTop;
-	        var bbSize = bb.getSize(_v3B);
-	        var distance = this.getDistanceToFit(bbSize.x, bbSize.y, bbSize.z);
+	        var bbSize = bb.getSize(_v3A);
 	        var center = bb.getCenter(_v3B).applyQuaternion(rotation);
-	        this.moveTo(center.x, center.y, center.z, enableTransition);
-	        this.dollyTo(distance, enableTransition);
+	        var isPerspectiveCamera = this._camera.isPerspectiveCamera;
+	        var isOrthographicCamera = this._camera.isOrthographicCamera;
+	        if (isPerspectiveCamera) {
+	            var distance = this.getDistanceToFit(bbSize.x, bbSize.y, bbSize.z);
+	            this.moveTo(center.x, center.y, center.z, enableTransition);
+	            this.dollyTo(distance, enableTransition);
+	            return;
+	        }
+	        else if (isOrthographicCamera) {
+	            var camera = this._camera;
+	            var width = camera.right - camera.left;
+	            var height = camera.top - camera.bottom;
+	            var zoom = Math.min(width / bbSize.x, height / bbSize.y);
+	            this.moveTo(center.x, center.y, center.z, enableTransition);
+	            this.zoomTo(zoom, enableTransition);
+	            return;
+	        }
 	    };
 	    CameraControls.prototype.setLookAt = function (positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
