@@ -21,6 +21,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
 - [combined gestures](https://yomotsu.github.io/camera-controls/examples/combined-gestures.html)
 - [keyboard events](https://yomotsu.github.io/camera-controls/examples/keyboard.html)
+- [changing-cursor](https://yomotsu.github.io/camera-controls/examples/cursor.html)
 - [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
 - [first-person](https://yomotsu.github.io/camera-controls/examples/first-person.html)
 - [rotate with duration and easing](https://yomotsu.github.io/camera-controls/examples/easing.html) (with [tween.js](https://github.com/tweenjs/tween.js))
@@ -87,6 +88,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | Name                      | Type      | Default     | Description |
 | ------------------------- | --------- | ----------- | ----------- |
 | `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
+| `.currentAction`          | `ACTION`  | N/A         | Getter for the current `ACTION`. |
 | `.distance`               | `number`  | N/A         | current distance. |
 | `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. |
 | `.maxDistance`            | `number`  | `Infinity`  | Maximum distance for dolly. |
