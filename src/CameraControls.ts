@@ -608,6 +608,12 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	get currentAction(): ACTION {
+
+		return this._state;
+
+	}
+
 	get distance(): number {
 
 		return this._spherical.radius;
