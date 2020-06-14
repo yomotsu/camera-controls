@@ -519,6 +519,13 @@
 	        enumerable: true,
 	        configurable: true
 	    });
+	    Object.defineProperty(CameraControls.prototype, "currentAction", {
+	        get: function () {
+	            return this._state;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
 	    Object.defineProperty(CameraControls.prototype, "distance", {
 	        get: function () {
 	            return this._spherical.radius;
@@ -814,6 +821,8 @@
 	    };
 	    CameraControls.prototype.normalizeRotations = function () {
 	        this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
+	        if (this._sphericalEnd.theta < 0)
+	            this._sphericalEnd.theta += PI_2;
 	        this._spherical.theta += PI_2 * Math.round((this._sphericalEnd.theta - this._spherical.theta) / PI_2);
 	    };
 	    CameraControls.prototype.reset = function (enableTransition) {

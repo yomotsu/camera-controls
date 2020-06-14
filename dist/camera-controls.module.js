@@ -513,6 +513,13 @@ var CameraControls = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(CameraControls.prototype, "currentAction", {
+        get: function () {
+            return this._state;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(CameraControls.prototype, "distance", {
         get: function () {
             return this._spherical.radius;
@@ -808,6 +815,8 @@ var CameraControls = (function (_super) {
     };
     CameraControls.prototype.normalizeRotations = function () {
         this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
+        if (this._sphericalEnd.theta < 0)
+            this._sphericalEnd.theta += PI_2;
         this._spherical.theta += PI_2 * Math.round((this._sphericalEnd.theta - this._spherical.theta) / PI_2);
     };
     CameraControls.prototype.reset = function (enableTransition) {
