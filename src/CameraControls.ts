@@ -1089,6 +1089,7 @@ export class CameraControls extends EventDispatcher {
 	normalizeRotations(): void {
 
 		this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
+		if ( this._sphericalEnd.theta < 0 ) this._sphericalEnd.theta += PI_2;
 		this._spherical.theta += PI_2 * Math.round( ( this._sphericalEnd.theta - this._spherical.theta ) / PI_2 );
 
 	}
