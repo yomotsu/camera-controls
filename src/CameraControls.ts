@@ -4,6 +4,7 @@ import {
 	MouseButtons,
 	Touches,
 	FitToOptions,
+	CameraControlsEventMap,
 } from './types';
 import {
 	PI_2,
@@ -20,7 +21,7 @@ import {
 import { isTouchEvent } from './utils/isTouchEvent';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
-import { EventDispatcher } from './EventDispatcher';
+import { EventDispatcher, Listener } from './EventDispatcher';
 
 const isMac: boolean = /Mac/.test( navigator.platform );
 const readonlyACTION = Object.freeze( ACTION );
@@ -699,6 +700,24 @@ export class CameraControls extends EventDispatcher {
 
 		this._boundaryEnclosesCamera = boundaryEnclosesCamera;
 		this._needsUpdate = true;
+
+	}
+
+	addEventListener<K extends keyof CameraControlsEventMap>(
+		type: K,
+		listener: ( event: CameraControlsEventMap[ K ] ) => any,
+	): void {
+
+		super.addEventListener( type, listener as Listener );
+
+	}
+
+	removeEventListener<K extends keyof CameraControlsEventMap>(
+		type: K,
+		listener: ( event: CameraControlsEventMap[ K ]) => any,
+	): void {
+
+		super.removeEventListener( type, listener as Listener );
 
 	}
 
