@@ -131,6 +131,7 @@ export class CameraControls extends EventDispatcher {
 	protected _position0: _THREE.Vector3;
 	protected _zoom0: number;
 
+	protected _zoomControlAmount = 0;
 	protected _dollyControlAmount = 0;
 	protected _dollyControlCoord: _THREE.Vector2;
 
@@ -188,7 +189,6 @@ export class CameraControls extends EventDispatcher {
 		this._position0 = this._camera.position.clone();
 		this._zoom0 = this._zoom;
 
-		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
 
 		// configs
@@ -281,12 +281,21 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
-			const zoomInternal = ( delta: number /* , x: number, y: number */ ): void => {
+			const zoomInternal = ( delta: number, x: number, y: number ): void => {
 
 				const zoomScale = Math.pow( 0.95, delta * this.dollySpeed );
+				const prevZoom = this._zoom;
 
 				// for both PerspectiveCamera and OrthographicCamera
 				this.zoomTo( this._zoom * zoomScale );
+
+				if ( this.dollyToCursor ) {
+
+					this._zoomControlAmount -= this._zoom - prevZoom;
+					this._dollyControlCoord.set( x, y );
+
+				}
+
 				return;
 
 			};
@@ -413,7 +422,7 @@ export class CameraControls extends EventDispatcher {
 					}
 					case ACTION.ZOOM: {
 
-						zoomInternal( - delta /*, x, y */ );
+						zoomInternal( - delta, x, y );
 						break;
 
 					}
@@ -509,7 +518,7 @@ export class CameraControls extends EventDispatcher {
 						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 						this._state === ACTION.DOLLY ?
 							dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
+							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 						break;
 
 					}
@@ -532,7 +541,7 @@ export class CameraControls extends EventDispatcher {
 						this._state === ACTION.TOUCH_DOLLY ||
 						this._state === ACTION.TOUCH_DOLLY_TRUCK ?
 							dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
+							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
 						if (
 							this._state === ACTION.TOUCH_DOLLY_TRUCK ||
@@ -1162,7 +1171,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		if ( this._dollyControlAmount !== 0 ) {
+		if ( this._dollyControlAmount !== 0 || this._zoomControlAmount !== 0 ) {
 
 			if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
 
@@ -1173,16 +1182,19 @@ export class CameraControls extends EventDispatcher {
 				const planeY = _v3C.crossVectors( planeX, direction );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * THREE.Math.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
-				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
+				const prevZoom = this._zoomEnd - this._zoomControlAmount;
+				const dollyLerpRatio = ! this._dollyControlAmount ? 0 : ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
+				const zoomLerpRatio  = ! this._zoomControlAmount  ? 0 : ( prevZoom - this._zoomEnd ) / this._zoomEnd;
 				const cursor = _v3A.copy( this._targetEnd )
 					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
-				this._targetEnd.lerp( cursor, lerpRatio );
+				this._targetEnd.lerp( cursor, dollyLerpRatio + zoomLerpRatio );
 				this._target.copy( this._targetEnd );
 
 			}
 
 			this._dollyControlAmount = 0;
+			this._zoomControlAmount = 0;
 
 		}
 
