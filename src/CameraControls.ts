@@ -97,6 +97,7 @@ export class CameraControls extends EventDispatcher {
 	dollySpeed = 1.0;
 	truckSpeed = 2.0;
 	dollyToCursor = false;
+	zoomToCursor = false;
 	verticalDragToForward = false;
 
 	boundaryFriction = 0.0;
@@ -133,7 +134,7 @@ export class CameraControls extends EventDispatcher {
 
 	protected _zoomControlAmount = 0;
 	protected _dollyControlAmount = 0;
-	protected _dollyControlCoord: _THREE.Vector2;
+	protected _dollyOrZoomControlCoords: _THREE.Vector2;
 
 	// collisionTest uses nearPlane. ( PerspectiveCamera only )
 	protected _nearPlaneCorners: _THREE.Vector3[];
@@ -189,7 +190,7 @@ export class CameraControls extends EventDispatcher {
 		this._position0 = this._camera.position.clone();
 		this._zoom0 = this._zoom;
 
-		this._dollyControlCoord = new THREE.Vector2();
+		this._dollyOrZoomControlCoords = new THREE.Vector2();
 
 		// configs
 		this.mouseButtons = {
@@ -273,7 +274,7 @@ export class CameraControls extends EventDispatcher {
 				if ( this.dollyToCursor ) {
 
 					this._dollyControlAmount += this._sphericalEnd.radius - prevRadius;
-					this._dollyControlCoord.set( x, y );
+					this._dollyOrZoomControlCoords.set( x, y );
 
 				}
 
@@ -289,10 +290,10 @@ export class CameraControls extends EventDispatcher {
 				// for both PerspectiveCamera and OrthographicCamera
 				this.zoomTo( this._zoom * zoomScale );
 
-				if ( this.dollyToCursor ) {
+				if ( this.zoomToCursor ) {
 
 					this._zoomControlAmount -= this._zoom - prevZoom;
-					this._dollyControlCoord.set( x, y );
+					this._dollyOrZoomControlCoords.set( x, y );
 
 				}
 
@@ -380,6 +381,7 @@ export class CameraControls extends EventDispatcher {
 
 				if (
 					this.dollyToCursor ||
+					this.zoomToCursor ||
 					this.mouseButtons.wheel === ACTION.ROTATE ||
 					this.mouseButtons.wheel === ACTION.TRUCK
 				) {
@@ -395,8 +397,6 @@ export class CameraControls extends EventDispatcher {
 				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 				const deltaYFactor = isMac ? - 1 : - 3;
 				const delta = ( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor : event.deltaY / ( deltaYFactor * 10 );
-				const x = this.dollyToCursor ? ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1 : 0;
-				const y = this.dollyToCursor ? ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 
 				switch ( this.mouseButtons.wheel ) {
 
@@ -416,12 +416,16 @@ export class CameraControls extends EventDispatcher {
 
 					case ACTION.DOLLY: {
 
+						const x = this.dollyToCursor ? ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const y = this.dollyToCursor ? ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 						dollyInternal( - delta, x, y );
 						break;
 
 					}
 					case ACTION.ZOOM: {
 
+						const x = this.zoomToCursor ? ( event.clientX - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const y = this.zoomToCursor ? ( event.clientY - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 						zoomInternal( - delta, x, y );
 						break;
 
@@ -511,14 +515,20 @@ export class CameraControls extends EventDispatcher {
 						break;
 
 					}
-					case ACTION.DOLLY:
-					case ACTION.ZOOM: {
+					case ACTION.DOLLY: {
 
 						const dollyX = this.dollyToCursor ? ( dragStartPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
 						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
-						this._state === ACTION.DOLLY ?
-							dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+						dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+						break;
+
+					}
+
+					case ACTION.ZOOM: {
+
+						const zoomX = this.zoomToCursor ? ( dragStartPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+						const zoomY = this.zoomToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+						zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, zoomX, zoomY );
 						break;
 
 					}
@@ -528,6 +538,12 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.TOUCH_DOLLY_TRUCK:
 					case ACTION.TOUCH_ZOOM_TRUCK: {
 
+						const isDolly =
+							this._state === ACTION.TOUCH_DOLLY ||
+							this._state === ACTION.TOUCH_DOLLY_TRUCK;
+						const isTruck =
+							this._state === ACTION.TOUCH_DOLLY_TRUCK ||
+							this._state === ACTION.TOUCH_ZOOM_TRUCK;
 						const touchEvent = event as TouchEvent;
 						const dx = _v2.x - touchEvent.touches[ 1 ].clientX;
 						const dy = _v2.y - touchEvent.touches[ 1 ].clientY;
@@ -535,22 +551,21 @@ export class CameraControls extends EventDispatcher {
 						const dollyDelta = dollyStart.y - distance;
 						dollyStart.set( 0, distance );
 
-						const dollyX = this.dollyToCursor ? ( lastDragPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
-						const dollyY = this.dollyToCursor ? ( lastDragPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+						if ( isDolly ) {
 
-						this._state === ACTION.TOUCH_DOLLY ||
-						this._state === ACTION.TOUCH_DOLLY_TRUCK ?
-							dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+							const dollyX = this.dollyToCursor ? ( lastDragPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+							const dollyY = this.dollyToCursor ? ( lastDragPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+							dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY )
 
-						if (
-							this._state === ACTION.TOUCH_DOLLY_TRUCK ||
-							this._state === ACTION.TOUCH_ZOOM_TRUCK
-						) {
+						} else {
 
-							truckInternal( deltaX, deltaY );
+							const zoomX = this.zoomToCursor ? ( lastDragPosition.x - elementRect.x ) / elementRect.z *   2 - 1 : 0;
+							const zoomY = this.zoomToCursor ? ( lastDragPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
+							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, zoomX, zoomY );
 
 						}
+
+						if ( isTruck ) truckInternal( deltaX, deltaY );
 
 						break;
 
@@ -1186,8 +1201,8 @@ export class CameraControls extends EventDispatcher {
 				const dollyLerpRatio = ! this._dollyControlAmount ? 0 : ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const zoomLerpRatio  = ! this._zoomControlAmount  ? 0 : ( prevZoom - this._zoomEnd ) / this._zoomEnd;
 				const cursor = _v3A.copy( this._targetEnd )
-					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
-					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
+					.add( planeX.multiplyScalar( this._dollyOrZoomControlCoords.x * worldToScreen * camera.aspect ) )
+					.add( planeY.multiplyScalar( this._dollyOrZoomControlCoords.y * worldToScreen ) );
 				this._targetEnd.lerp( cursor, dollyLerpRatio + zoomLerpRatio );
 				this._target.copy( this._targetEnd );
 
@@ -1273,6 +1288,7 @@ export class CameraControls extends EventDispatcher {
 			dollySpeed           : this.dollySpeed,
 			truckSpeed           : this.truckSpeed,
 			dollyToCursor        : this.dollyToCursor,
+			zoomToCursor         : this.zoomToCursor,
 			verticalDragToForward: this.verticalDragToForward,
 
 			target               : this._targetEnd.toArray(),
@@ -1307,6 +1323,7 @@ export class CameraControls extends EventDispatcher {
 		this.dollySpeed            = obj.dollySpeed;
 		this.truckSpeed            = obj.truckSpeed;
 		this.dollyToCursor         = obj.dollyToCursor;
+		this.zoomToCursor          = obj.zoomToCursor;
 		this.verticalDragToForward = obj.verticalDragToForward;
 
 		this._target0.fromArray( obj.target0 );
