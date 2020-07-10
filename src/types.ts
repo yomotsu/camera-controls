@@ -37,3 +37,22 @@ export interface FitToOptions {
 	paddingBottom: number;
 	paddingTop   : number;
 }
+
+export interface CameraControlsEventMap {
+	update: { type: 'update' };
+	wake  : { type: 'wake' };
+	sleep : { type: 'sleep' };
+
+	controlstart: {
+		type: 'controlstart',
+		originalEvent: MouseEvent | TouchEvent | WheelEvent,
+	};
+	control: {
+		type: 'control',
+		originalEvent: MouseEvent | TouchEvent | WheelEvent,
+	};
+	controlend: {
+		type: 'controlend',
+		originalEvent: MouseEvent | TouchEvent | WheelEvent,
+	};
+}
