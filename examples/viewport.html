@@ -13,14 +13,14 @@
 		viewport example - <a href="https://github.com/yomotsu/camera-controls">camera-controls</a><br />
 	</p>
 	<p>
-		<label><input type="range" min=0 max=1 step=1E-5 value=0 oninput="viewport.x = this.value * window.innerWidth; setViewport()"> viewport x</label><br />
-		<label><input type="range" min=0 max=1 step=1E-5 value=0 oninput="viewport.y = this.value * window.innerHeight; setViewport()"> viewport y</label><br />
-		<label><input type="range" min=0 max=1 step=1E-5 value=1 oninput="viewport.z = this.value * window.innerWidth; setViewport()"> viewport width</label><br />
-		<label><input type="range" min=0 max=1 step=1E-5 value=1 oninput="viewport.w = this.value * window.innerHeight; setViewport()"> viewport height</label>
+		<label><input type="range" min="0" max="1" step="0.01" value="0" oninput="viewport.x = this.value * window.innerWidth; setViewport()"> viewport x</label><br />
+		<label><input type="range" min="0" max="1" step="0.01" value="0" oninput="viewport.y = this.value * window.innerHeight; setViewport()"> viewport y</label><br />
+		<label><input type="range" min="0" max="1" step="0.01" value="1" oninput="viewport.z = this.value * window.innerWidth; setViewport()"> viewport width</label><br />
+		<label><input type="range" min="0" max="1" step="0.01" value="1" oninput="viewport.w = this.value * window.innerHeight; setViewport()"> viewport height</label>
 	</p>
 </div>
 
-<script src="https://unpkg.com/three@0.115.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 // == basics ===================================================================================
@@ -31,24 +31,21 @@ const clock = new THREE.Clock();
 
 // == renderer =================================================================================
 
-const renderer = new THREE.WebGLRenderer( {
-	antialias: true,
-	stencil: false
-} );
+const renderer = new THREE.WebGLRenderer();
 renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 // == camera ===================================================================================
 
-const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100.0 );
-camera.position.set( 0.0, 0.0, 5.0 );
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
 
 // == scene ====================================================================================
 
 const scene = new THREE.Scene();
 
 const mesh = new THREE.Mesh(
-	new THREE.BoxGeometry( 1.0, 1.0, 1.0 ),
+	new THREE.BoxGeometry( 1, 1, 1 ),
 	new THREE.MeshBasicMaterial( {
 		color: 0xff0000,
 		wireframe: true
@@ -56,8 +53,8 @@ const mesh = new THREE.Mesh(
 );
 scene.add( mesh );
 
-const gridHelper = new THREE.GridHelper( 50.0, 50.0 );
-gridHelper.position.y = - 1.0;
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
 scene.add( gridHelper );
 
 // == camera-controls ==========================================================================
@@ -82,7 +79,7 @@ render();
 
 // == viewport =================================================================================
 
-const viewport = new THREE.Vector4( 0.0, 0.0, window.innerWidth, window.innerHeight );
+const viewport = new THREE.Vector4( 0, 0, window.innerWidth, window.innerHeight );
 function setViewport() {
 
 	camera.aspect = viewport.z / viewport.w;

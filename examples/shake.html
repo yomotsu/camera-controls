@@ -9,27 +9,12 @@
 <body>
 <div class="info">
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
-	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
-	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
-	<button onclick="cameraControls.rotate( 360 * THREE.Math.DEG2RAD, 0, true )">rotate theta 360deg</button>
-	<button onclick="cameraControls.rotate( 0, 20 * THREE.Math.DEG2RAD, true )">rotate phi 20deg</button>
-	<br>
-	<button onclick="cameraControls.truck(  1,  0, true)">truck( 1, 0 )</button>
-	<button onclick="cameraControls.truck(  0,  1, true)">truck( 0, 1 )</button>
-	<button onclick="cameraControls.truck( -1, -1, true )">truck( -1, -1 )</button>
-	<br>
-	<button onclick="cameraControls.dolly(  1, true )">dolly  1</button>
-	<button onclick="cameraControls.dolly( -1, true )">dolly -1</button>
-	<br>
-	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
-	<button onclick="cameraControls.reset( true )">reset</button>
-	<br>
-	<button onclick="cameraControls.enabled = false;">disable mouse/touch controls</button>
-	<button onclick="cameraControls.enabled = true;">enable mouse/touch controls</button>
+	<button onclick="cameraShake.play( 1, 1, 300 )">shake</button>
 </div>
 
 <script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
+<script src="./js/shake.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
 
@@ -38,9 +23,7 @@ const height = window.innerHeight;
 const clock = new THREE.Clock();
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
-
-camera.up.set( 0, 0, 1 );
-camera.position.set( 0, 5, 0 );
+camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
@@ -53,12 +36,11 @@ const mesh = new THREE.Mesh(
 );
 scene.add( mesh );
 
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
-
 const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.position.y = - 1;
 scene.add( gridHelper );
+
+const cameraShake = new CameraShake( cameraControls );
 
 renderer.render( scene, camera );
 
@@ -66,13 +48,13 @@ renderer.render( scene, camera );
 
 	const delta = clock.getDelta();
 	const elapsed = clock.getElapsedTime();
-	const needsUpdate = cameraControls.update( delta );
+	const updated = cameraControls.update( delta );
 
 	// if ( elapsed > 30 ) { return; }
 
 	requestAnimationFrame( anim );
 
-	if ( needsUpdate ) {
+	if ( updated ) {
 
 		renderer.render( scene, camera );
 		console.log( 'rendered' );
