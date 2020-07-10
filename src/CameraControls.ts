@@ -1264,8 +1264,8 @@ export class CameraControls extends EventDispatcher {
 			verticalDragToForward: this.verticalDragToForward,
 
 			target               : this._targetEnd.toArray(),
-			position             : this._camera.position.toArray(),
-			zoom                 : this._camera.zoom,
+			position             : _v3A.setFromSpherical( this._sphericalEnd ).add( this._targetEnd ).toArray(),
+			zoom                 : this._zoomEnd,
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),
