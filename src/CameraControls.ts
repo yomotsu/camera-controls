@@ -275,7 +275,7 @@ export class CameraControls extends EventDispatcher {
 				if ( this.infinityDolly && distance < this.minDistance ) {
 
 					this._camera.getWorldDirection( _v3A );
-					this._targetEnd.add( _v3A.normalize().multiplyScalar( prevRadius ) );
+					this._target.add( _v3A.normalize().multiplyScalar( prevRadius ) );
 
 				}
 

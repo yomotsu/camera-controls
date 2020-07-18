@@ -284,7 +284,7 @@
 	                _this.dollyTo(distance);
 	                if (_this.infinityDolly && distance < _this.minDistance) {
 	                    _this._camera.getWorldDirection(_v3A);
-	                    _this._targetEnd.add(_v3A.normalize().multiplyScalar(prevRadius));
+	                    _this._target.add(_v3A.normalize().multiplyScalar(prevRadius));
 	                }
 	                if (_this.dollyToCursor) {
 	                    _this._dollyControlAmount += _this._sphericalEnd.radius - prevRadius;
