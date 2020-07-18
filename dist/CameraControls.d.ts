@@ -1,5 +1,5 @@
 import * as _THREE from 'three';
-import { ACTION, MouseButtons, Touches, FitToOptions } from './types';
+import { ACTION, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     static install(libs: any): void;
@@ -11,6 +11,7 @@ export declare class CameraControls extends EventDispatcher {
     maxAzimuthAngle: number;
     minDistance: number;
     maxDistance: number;
+    infinityDolly: boolean;
     minZoom: number;
     maxZoom: number;
     dampingFactor: number;
@@ -55,6 +56,8 @@ export declare class CameraControls extends EventDispatcher {
     phiSpeed: number;
     thetaSpeed: number;
     boundaryEnclosesCamera: boolean;
+    addEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
+    removeEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
     rotate(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     rotateTo(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     dolly(distance: number, enableTransition?: boolean): void;
