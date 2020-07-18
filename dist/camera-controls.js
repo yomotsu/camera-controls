@@ -281,11 +281,11 @@
 	                var dollyScale = Math.pow(0.95, -delta * _this.dollySpeed);
 	                var distance = _this._sphericalEnd.radius * dollyScale;
 	                var prevRadius = _this._sphericalEnd.radius;
+	                _this.dollyTo(distance);
 	                if (_this.infinityDolly && distance < _this.minDistance) {
 	                    _this._camera.getWorldDirection(_v3A);
 	                    _this._targetEnd.add(_v3A.normalize().multiplyScalar(prevRadius));
 	                }
-	                _this.dollyTo(distance);
 	                if (_this.dollyToCursor) {
 	                    _this._dollyControlAmount += _this._sphericalEnd.radius - prevRadius;
 	                    _this._dollyControlCoord.set(x, y);
