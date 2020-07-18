@@ -108,9 +108,11 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
-| `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera *. |
+| `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
+|`.infinityDolly`			|`boolen`	|`false`	  | `true` to enable Infity Dolly ².	| 
 
-* Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
+1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
+2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
 
 ## Events
 
