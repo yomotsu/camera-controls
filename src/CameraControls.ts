@@ -87,6 +87,7 @@ export class CameraControls extends EventDispatcher {
 	// How far you can dolly in and out ( PerspectiveCamera only )
 	minDistance = 0;
 	maxDistance = Infinity;
+	infinityDolly = false;
 
 	minZoom = 0.01;
 	maxZoom = Infinity;
@@ -268,6 +269,13 @@ export class CameraControls extends EventDispatcher {
 				const dollyScale = Math.pow( 0.95, - delta * this.dollySpeed );
 				const distance = this._sphericalEnd.radius * dollyScale;
 				const prevRadius = this._sphericalEnd.radius;
+
+				if ( this.infinityDolly && distance < this.minDistance ) {
+
+					this._camera.getWorldDirection( _v3A );
+					this._targetEnd.add( _v3A.normalize().multiplyScalar( prevRadius ) );
+
+				}
 
 				this.dollyTo( distance );
 
@@ -714,7 +722,7 @@ export class CameraControls extends EventDispatcher {
 
 	removeEventListener<K extends keyof CameraControlsEventMap>(
 		type: K,
-		listener: ( event: CameraControlsEventMap[ K ]) => any,
+		listener: ( event: CameraControlsEventMap[ K ] ) => any,
 	): void {
 
 		super.removeEventListener( type, listener as Listener );
