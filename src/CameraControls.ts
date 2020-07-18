@@ -270,14 +270,14 @@ export class CameraControls extends EventDispatcher {
 				const distance = this._sphericalEnd.radius * dollyScale;
 				const prevRadius = this._sphericalEnd.radius;
 
+				this.dollyTo( distance );
+
 				if ( this.infinityDolly && distance < this.minDistance ) {
 
 					this._camera.getWorldDirection( _v3A );
 					this._targetEnd.add( _v3A.normalize().multiplyScalar( prevRadius ) );
 
 				}
-
-				this.dollyTo( distance );
 
 				if ( this.dollyToCursor ) {
 
