@@ -92,6 +92,7 @@ export class CameraControls extends EventDispatcher {
 
 	dampingFactor = 0.05;
 	draggingDampingFactor = 0.25;
+	dollyDampingFactor = 0.2;
 	azimuthRotateSpeed = 1.0;
 	polarRotateSpeed = 1.0;
 	dollySpeed = 1.0;
@@ -268,7 +269,7 @@ export class CameraControls extends EventDispatcher {
 				const distance = this._sphericalEnd.radius * dollyScale;
 				const prevRadius = this._sphericalEnd.radius;
 
-				this.dollyTo( distance );
+				this.dollyTo( distance, true );
 
 				if ( this.dollyToCursor ) {
 
@@ -1129,7 +1130,9 @@ export class CameraControls extends EventDispatcher {
 	update( delta: number ): boolean {
 
 		const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta * FPS_60 );
+
+		const lerpRatio      = 1.0 - Math.exp( - dampingFactor           * delta * FPS_60 );
+		const dollyLerpRatio = 1.0 - Math.exp( - this.dollyDampingFactor * delta * FPS_60 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
@@ -1146,7 +1149,7 @@ export class CameraControls extends EventDispatcher {
 		) {
 
 			this._spherical.set(
-				this._spherical.radius + deltaRadius * lerpRatio,
+				this._spherical.radius + deltaRadius * dollyLerpRatio,
 				this._spherical.phi    + deltaPhi    * lerpRatio,
 				this._spherical.theta  + deltaTheta  * lerpRatio,
 			);
