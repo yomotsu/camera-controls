@@ -126,7 +126,7 @@ To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`
 | `'control'`      | When the user controls the camera (dragging). |
 | `'controlend'`   | When the user ends to control the camera. |
 | `'update'`       | When the camera position is updated. |
-| `'wake'`        | When the camera start moving. |
+| `'wake'`         | When the camera start moving. |
 | `'sleep'`        | When the camera end moving. |
 
 ## User input config
