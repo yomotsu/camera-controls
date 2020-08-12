@@ -4,6 +4,7 @@ import {
 	MouseButtons,
 	Touches,
 	FitToOptions,
+	CameraControlsEventMap,
 } from './types';
 import {
 	PI_2,
@@ -20,7 +21,7 @@ import {
 import { isTouchEvent } from './utils/isTouchEvent';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
-import { EventDispatcher } from './EventDispatcher';
+import { EventDispatcher, Listener } from './EventDispatcher';
 
 const isMac: boolean = /Mac/.test( navigator.platform );
 const readonlyACTION = Object.freeze( ACTION );
@@ -86,6 +87,7 @@ export class CameraControls extends EventDispatcher {
 	// How far you can dolly in and out ( PerspectiveCamera only )
 	minDistance = 0;
 	maxDistance = Infinity;
+	infinityDolly = false;
 
 	minZoom = 0.01;
 	maxZoom = Infinity;
@@ -269,6 +271,14 @@ export class CameraControls extends EventDispatcher {
 				const prevRadius = this._sphericalEnd.radius;
 
 				this.dollyTo( distance );
+
+				if ( this.infinityDolly && distance < this.minDistance ) {
+
+					this._camera.getWorldDirection( _v3A );
+					this._targetEnd.add( _v3A.normalize().multiplyScalar( prevRadius ) );
+					this._target.add( _v3A.normalize().multiplyScalar( prevRadius ) );
+
+				}
 
 				if ( this.dollyToCursor ) {
 
@@ -699,6 +709,24 @@ export class CameraControls extends EventDispatcher {
 
 		this._boundaryEnclosesCamera = boundaryEnclosesCamera;
 		this._needsUpdate = true;
+
+	}
+
+	addEventListener<K extends keyof CameraControlsEventMap>(
+		type: K,
+		listener: ( event: CameraControlsEventMap[ K ] ) => any,
+	): void {
+
+		super.addEventListener( type, listener as Listener );
+
+	}
+
+	removeEventListener<K extends keyof CameraControlsEventMap>(
+		type: K,
+		listener: ( event: CameraControlsEventMap[ K ] ) => any,
+	): void {
+
+		super.removeEventListener( type, listener as Listener );
 
 	}
 
@@ -1264,8 +1292,8 @@ export class CameraControls extends EventDispatcher {
 			verticalDragToForward: this.verticalDragToForward,
 
 			target               : this._targetEnd.toArray(),
-			position             : this._camera.position.toArray(),
-			zoom                 : this._camera.zoom,
+			position             : _v3A.setFromSpherical( this._sphericalEnd ).add( this._targetEnd ).toArray(),
+			zoom                 : this._zoomEnd,
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),

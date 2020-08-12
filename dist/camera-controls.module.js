@@ -180,6 +180,7 @@ var CameraControls = (function (_super) {
         _this.maxAzimuthAngle = Infinity;
         _this.minDistance = 0;
         _this.maxDistance = Infinity;
+        _this.infinityDolly = false;
         _this.minZoom = 0.01;
         _this.maxZoom = Infinity;
         _this.dampingFactor = 0.05;
@@ -275,6 +276,11 @@ var CameraControls = (function (_super) {
                 var distance = _this._sphericalEnd.radius * dollyScale;
                 var prevRadius = _this._sphericalEnd.radius;
                 _this.dollyTo(distance);
+                if (_this.infinityDolly && distance < _this.minDistance) {
+                    _this._camera.getWorldDirection(_v3A);
+                    _this._targetEnd.add(_v3A.normalize().multiplyScalar(prevRadius));
+                    _this._target.add(_v3A.normalize().multiplyScalar(prevRadius));
+                }
                 if (_this.dollyToCursor) {
                     _this._dollyControlAmount += _this._sphericalEnd.radius - prevRadius;
                     _this._dollyControlCoord.set(x, y);
@@ -592,6 +598,12 @@ var CameraControls = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    CameraControls.prototype.addEventListener = function (type, listener) {
+        _super.prototype.addEventListener.call(this, type, listener);
+    };
+    CameraControls.prototype.removeEventListener = function (type, listener) {
+        _super.prototype.removeEventListener.call(this, type, listener);
+    };
     CameraControls.prototype.rotate = function (azimuthAngle, polarAngle, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
         this.rotateTo(this._sphericalEnd.theta + azimuthAngle, this._sphericalEnd.phi + polarAngle, enableTransition);
@@ -924,8 +936,8 @@ var CameraControls = (function (_super) {
             dollyToCursor: this.dollyToCursor,
             verticalDragToForward: this.verticalDragToForward,
             target: this._targetEnd.toArray(),
-            position: this._camera.position.toArray(),
-            zoom: this._camera.zoom,
+            position: _v3A.setFromSpherical(this._sphericalEnd).add(this._targetEnd).toArray(),
+            zoom: this._zoomEnd,
             target0: this._target0.toArray(),
             position0: this._position0.toArray(),
             zoom0: this._zoom0,
