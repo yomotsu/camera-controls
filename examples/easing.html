@@ -49,7 +49,7 @@ const rotate45 = function () {
 	// save the start angle
 	let startAzimuthAngle = cameraControls.azimuthAngle;
 	new TWEEN.Tween( cameraControls )
-		.to( { azimuthAngle: 45 * THREE.Math.DEG2RAD + startAzimuthAngle }, 1000 )
+		.to( { azimuthAngle: 45 * THREE.MathUtils.DEG2RAD + startAzimuthAngle }, 1000 )
 		.easing( TWEEN.Easing.Bounce.Out )
 		.onStart( function() {
 
@@ -72,7 +72,7 @@ const rotate0To120 = function () {
 	cameraControls.azimuthAngle = 0;
 
 	new TWEEN.Tween( cameraControls )
-		.to( { azimuthAngle: 120 * THREE.Math.DEG2RAD }, 3000 )
+		.to( { azimuthAngle: 120 * THREE.MathUtils.DEG2RAD }, 3000 )
 		.easing( TWEEN.Easing.Exponential.Out )
 		.onStart( function() {
 

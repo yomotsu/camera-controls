@@ -229,7 +229,7 @@ export class CameraControls extends EventDispatcher {
 
 					const offset = _v3A.copy( camera.position ).sub( this._target );
 					// half of the fov is center to top of screen
-					const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+					const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 					const targetDistance = offset.length() * Math.tan( fov * 0.5 );
 					const truckX    = ( this.truckSpeed * deltaX * targetDistance / elementRect.w );
 					const pedestalY = ( this.truckSpeed * deltaY * targetDistance / elementRect.w );
@@ -746,8 +746,8 @@ export class CameraControls extends EventDispatcher {
 	// polarAngle in radian
 	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): void {
 
-		const theta = THREE.Math.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
-		const phi   = THREE.Math.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
+		const theta = THREE.MathUtils.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
+		const phi   = THREE.MathUtils.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
 
 		this._sphericalEnd.theta = theta;
 		this._sphericalEnd.phi   = phi;
@@ -774,7 +774,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'dolly' ) ) return;
 
-		this._sphericalEnd.radius = THREE.Math.clamp( distance, this.minDistance, this.maxDistance );
+		this._sphericalEnd.radius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
 
 		if ( ! enableTransition ) {
 
@@ -794,7 +794,7 @@ export class CameraControls extends EventDispatcher {
 
 	zoomTo( zoom: number, enableTransition: boolean = false ): void {
 
-		this._zoomEnd = THREE.Math.clamp( zoom, this.minZoom, this.maxZoom );
+		this._zoomEnd = THREE.MathUtils.clamp( zoom, this.minZoom, this.maxZoom );
 
 		if ( ! enableTransition ) {
 
@@ -1098,7 +1098,7 @@ export class CameraControls extends EventDispatcher {
 
 		const camera = this._camera as _THREE.PerspectiveCamera;
 		const boundingRectAspect = width / height;
-		const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+		const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 		const aspect = camera.aspect;
 
 		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
@@ -1199,7 +1199,7 @@ export class CameraControls extends EventDispatcher {
 				const planeX = _v3B.copy( direction ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, direction );
-				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * THREE.Math.DEG2RAD * 0.5 );
+				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const cursor = _v3A.copy( this._targetEnd )
@@ -1391,7 +1391,7 @@ export class CameraControls extends EventDispatcher {
 
 			const camera = this._camera as _THREE.PerspectiveCamera;
 			const near = camera.near;
-			const fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+			const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 			const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
 			const widthHalf = heightHalf * camera.aspect; // near plain half width
 			this._nearPlaneCorners[ 0 ].set( - widthHalf, - heightHalf, 0 );
