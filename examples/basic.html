@@ -14,10 +14,10 @@
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 	<br>
 	<br>
-	<button onclick="cameraControls.rotate(  45 * THREE.Math.DEG2RAD, 0, true )">rotate theta 45deg</button>
-	<button onclick="cameraControls.rotate( -90 * THREE.Math.DEG2RAD, 0, true )">rotate theta -90deg</button>
-	<button onclick="cameraControls.rotate( 360 * THREE.Math.DEG2RAD, 0, true )">rotate theta 360deg</button>
-	<button onclick="cameraControls.rotate( 0, 20 * THREE.Math.DEG2RAD, true )">rotate phi 20deg</button>
+	<button onclick="cameraControls.rotate(  45 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 45deg</button>
+	<button onclick="cameraControls.rotate( -90 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta -90deg</button>
+	<button onclick="cameraControls.rotate( 360 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 360deg</button>
+	<button onclick="cameraControls.rotate( 0, 20 * THREE.MathUtils.DEG2RAD, true )">rotate phi 20deg</button>
 	<br>
 	<button onclick="cameraControls.truck(  1,  0, true)">truck( 1, 0 )</button>
 	<button onclick="cameraControls.truck(  0,  1, true)">truck( 0, 1 )</button>

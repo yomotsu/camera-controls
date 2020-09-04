@@ -5,25 +5,25 @@
  * Released under the MIT License.
  */
 /*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
+Copyright (c) Microsoft Corporation.
 
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
 
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
 /* global Reflect, Promise */
 
 var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
     return extendStatics(d, b);
 };
 
@@ -247,7 +247,7 @@ var CameraControls = (function (_super) {
                 if (_this._camera.isPerspectiveCamera) {
                     var camera_1 = _this._camera;
                     var offset = _v3A.copy(camera_1.position).sub(_this._target);
-                    var fov = camera_1.getEffectiveFOV() * THREE.Math.DEG2RAD;
+                    var fov = camera_1.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
                     var targetDistance = offset.length() * Math.tan(fov * 0.5);
                     var truckX = (_this.truckSpeed * deltaX * targetDistance / elementRect_1.w);
                     var pedestalY = (_this.truckSpeed * deltaY * targetDistance / elementRect_1.w);
@@ -516,14 +516,14 @@ var CameraControls = (function (_super) {
         get: function () {
             return readonlyACTION;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(CameraControls.prototype, "currentAction", {
         get: function () {
             return this._state;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(CameraControls.prototype, "distance", {
@@ -538,7 +538,7 @@ var CameraControls = (function (_super) {
             this._sphericalEnd.radius = distance;
             this._needsUpdate = true;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(CameraControls.prototype, "azimuthAngle", {
@@ -553,7 +553,7 @@ var CameraControls = (function (_super) {
             this._sphericalEnd.theta = azimuthAngle;
             this._needsUpdate = true;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(CameraControls.prototype, "polarAngle", {
@@ -568,7 +568,7 @@ var CameraControls = (function (_super) {
             this._sphericalEnd.phi = polarAngle;
             this._needsUpdate = true;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(CameraControls.prototype, "phiSpeed", {
@@ -576,7 +576,7 @@ var CameraControls = (function (_super) {
             console.warn('phiSpeed was renamed. use azimuthRotateSpeed instead');
             this.azimuthRotateSpeed = speed;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(CameraControls.prototype, "thetaSpeed", {
@@ -584,7 +584,7 @@ var CameraControls = (function (_super) {
             console.warn('thetaSpeed was renamed. use polarRotateSpeed instead');
             this.polarRotateSpeed = speed;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(CameraControls.prototype, "boundaryEnclosesCamera", {
@@ -595,7 +595,7 @@ var CameraControls = (function (_super) {
             this._boundaryEnclosesCamera = boundaryEnclosesCamera;
             this._needsUpdate = true;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     CameraControls.prototype.addEventListener = function (type, listener) {
@@ -610,8 +610,8 @@ var CameraControls = (function (_super) {
     };
     CameraControls.prototype.rotateTo = function (azimuthAngle, polarAngle, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
-        var theta = THREE.Math.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
-        var phi = THREE.Math.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
+        var theta = THREE.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
+        var phi = THREE.MathUtils.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
         this._sphericalEnd.theta = theta;
         this._sphericalEnd.phi = phi;
         this._sphericalEnd.makeSafe();
@@ -629,7 +629,7 @@ var CameraControls = (function (_super) {
         if (enableTransition === void 0) { enableTransition = false; }
         if (notSupportedInOrthographicCamera(this._camera, 'dolly'))
             return;
-        this._sphericalEnd.radius = THREE.Math.clamp(distance, this.minDistance, this.maxDistance);
+        this._sphericalEnd.radius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
         if (!enableTransition) {
             this._spherical.radius = this._sphericalEnd.radius;
         }
@@ -641,7 +641,7 @@ var CameraControls = (function (_super) {
     };
     CameraControls.prototype.zoomTo = function (zoom, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
-        this._zoomEnd = THREE.Math.clamp(zoom, this.minZoom, this.maxZoom);
+        this._zoomEnd = THREE.MathUtils.clamp(zoom, this.minZoom, this.maxZoom);
         if (!enableTransition) {
             this._zoom = this._zoomEnd;
         }
@@ -812,7 +812,7 @@ var CameraControls = (function (_super) {
             return this._spherical.radius;
         var camera = this._camera;
         var boundingRectAspect = width / height;
-        var fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+        var fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
         var aspect = camera.aspect;
         var heightToFit = boundingRectAspect < aspect ? height : width / aspect;
         return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
@@ -874,7 +874,7 @@ var CameraControls = (function (_super) {
                 if (planeX.lengthSq() === 0)
                     planeX.x = 1.0;
                 var planeY = _v3C.crossVectors(planeX, direction);
-                var worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * THREE.Math.DEG2RAD * 0.5);
+                var worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5);
                 var prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
                 var lerpRatio_1 = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
                 var cursor = _v3A.copy(this._targetEnd)
@@ -1003,7 +1003,7 @@ var CameraControls = (function (_super) {
         if (this._camera.isPerspectiveCamera) {
             var camera = this._camera;
             var near = camera.near;
-            var fov = camera.getEffectiveFOV() * THREE.Math.DEG2RAD;
+            var fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
             var heightHalf = Math.tan(fov * 0.5) * near;
             var widthHalf = heightHalf * camera.aspect;
             this._nearPlaneCorners[0].set(-widthHalf, -heightHalf, 0);
