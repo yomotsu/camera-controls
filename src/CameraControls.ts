@@ -24,7 +24,7 @@ import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthogra
 import { EventDispatcher, Listener } from './EventDispatcher';
 
 const isBrowser = typeof window !== void 0;
-const isMac: boolean = isBrowser && /Mac/.test( navigator.platform );
+const isMac = isBrowser && /Mac/.test( navigator.platform );
 const readonlyACTION = Object.freeze( ACTION );
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 
