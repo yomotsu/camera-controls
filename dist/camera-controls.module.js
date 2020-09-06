@@ -148,7 +148,8 @@ var EventDispatcher = (function () {
     return EventDispatcher;
 }());
 
-var isMac = /Mac/.test(navigator.platform);
+var isBrowser = typeof window !== void 0;
+var isMac = isBrowser && /Mac/.test(navigator.platform);
 var readonlyACTION = Object.freeze(ACTION);
 var TOUCH_DOLLY_FACTOR = 1 / 8;
 var THREE;
