@@ -58,6 +58,17 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 } )();
 ```
 
+### Important!
+
+You *must install* Three.js before using camera-controls. Not doing so will lead to runtime errors (undefined references to THREE).
+
+**Before creating a new CameraControls instance, call**:
+```javascript
+CameraControls.install( { THREE: THREE } )
+```
+
+You can then proceed to use CameraControls.
+
 ## Constructor
 
 `CameraControls( camera, domElement )`
