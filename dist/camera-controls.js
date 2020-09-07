@@ -154,7 +154,7 @@
 	    return EventDispatcher;
 	}());
 
-	var isBrowser = typeof window !== void 0;
+	var isBrowser = typeof window !== 'undefined';
 	var isMac = isBrowser && /Mac/.test(navigator.platform);
 	var readonlyACTION = Object.freeze(ACTION);
 	var TOUCH_DOLLY_FACTOR = 1 / 8;
