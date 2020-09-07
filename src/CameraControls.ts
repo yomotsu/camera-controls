@@ -23,7 +23,7 @@ import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
 import { EventDispatcher, Listener } from './EventDispatcher';
 
-const isBrowser = typeof window !== void 0;
+const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test( navigator.platform );
 const readonlyACTION = Object.freeze( ACTION );
 const TOUCH_DOLLY_FACTOR = 1 / 8;
