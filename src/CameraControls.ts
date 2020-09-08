@@ -153,6 +153,11 @@ export class CameraControls extends EventDispatcher {
 
 		super();
 
+		if (typeof THREE === 'undefined') { //Chech if the user has installed THREE
+			console.error("Three.js is undefined. You must first run CameraControls.install({ THREE: THREE }). Check the docs for further information.")
+			return; //Stop the execution as there will be errors
+		}
+
 		this._camera = camera;
 		this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
 		this._yAxisUpSpaceInverse = this._yAxisUpSpace.clone().inverse();

@@ -200,6 +200,10 @@ var CameraControls = (function (_super) {
         _this._boundaryEnclosesCamera = false;
         _this._needsUpdate = true;
         _this._updatedLastTime = false;
+        if (typeof THREE === 'undefined') {
+            console.error("Three.js is undefined. You must first run CameraControls.install({ THREE: THREE }). Check the docs for further information.");
+            return _this;
+        }
         _this._camera = camera;
         _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
         _this._yAxisUpSpaceInverse = _this._yAxisUpSpace.clone().inverse();
