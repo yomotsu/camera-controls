@@ -153,8 +153,11 @@ export class CameraControls extends EventDispatcher {
 
 		super();
 
-		if (typeof THREE === 'undefined') { //Chech if the user has installed THREE
-			console.error("Three.js is undefined. You must first run CameraControls.install({ THREE: THREE }). Check the docs for further information.")
+		// Check if the user has installed THREE
+		if ( typeof THREE === 'undefined' ) {
+
+			console.error( 'camera-controls: `THREE` is undefined. You must first run `CameraControls.install( { THREE: THREE } )`. Check the docs for further information.' );
+
 		}
 
 		this._camera = camera;
