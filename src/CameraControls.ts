@@ -429,6 +429,7 @@ export class CameraControls extends EventDispatcher {
 						break;
 
 					}
+
 					case ACTION.ZOOM: {
 
 						zoomInternal( - delta /*, x, y */ );
@@ -520,6 +521,7 @@ export class CameraControls extends EventDispatcher {
 						break;
 
 					}
+
 					case ACTION.DOLLY:
 					case ACTION.ZOOM: {
 
