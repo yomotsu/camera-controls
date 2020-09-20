@@ -15,6 +15,7 @@
 	<select onchange="cameraControls.mouseButtons.left = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE" selected>CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="OFFSET">CameraControls.ACTION.OFFSET</option>
 		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
 		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
@@ -24,6 +25,7 @@
 	<select onchange="cameraControls.mouseButtons.middle = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="OFFSET">CameraControls.ACTION.OFFSET</option>
 		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
 		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
@@ -33,6 +35,7 @@
 	<select onchange="cameraControls.mouseButtons.right = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK" selected>CameraControls.ACTION.TRUCK</option>
+		<option value="OFFSET">CameraControls.ACTION.OFFSET</option>
 		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
 		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
@@ -42,6 +45,7 @@
 	<select onchange="cameraControls.mouseButtons.wheel = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
 		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="OFFSET">CameraControls.ACTION.OFFSET</option>
 		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
 		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
@@ -52,6 +56,7 @@
 	<select onchange="cameraControls.touches.one = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE" selected>CameraControls.ACTION.TOUCH_ROTATE</option>
 		<option value="TRUCK">CameraControls.ACTION.TOUCH_TRUCK</option>
+		<option value="OFFSET">CameraControls.ACTION.OFFSET</option>
 		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
 		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
 		<option value="NONE">CameraControls.ACTION.NONE</option>
@@ -60,21 +65,27 @@
 	cameraControls.touches.two =
 	<select onchange="cameraControls.touches.two = CameraControls.ACTION[ this.value ]">
 		<option value="TOUCH_DOLLY_TRUCK" selected>CameraControls.ACTION.TOUCH_DOLLY_TRUCK</option>
+		<option value="TOUCH_DOLLY_OFFSET">CameraControls.ACTION.TOUCH_DOLLY_OFFSET</option>
 		<option value="TOUCH_ZOOM_TRUCK">CameraControls.ACTION.TOUCH_ZOOM_TRUCK</option>
+		<option value="TOUCH_ZOOM_OFFSET">CameraControls.ACTION.TOUCH_ZOOM_OFFSET</option>
 		<option value="TOUCH_DOLLY">CameraControls.ACTION.TOUCH_DOLLY</option>
 		<option value="TOUCH_ZOOM">CameraControls.ACTION.TOUCH_ZOOM</option>
 		<option value="TOUCH_ROTATE">CameraControls.ACTION.TOUCH_ROTATE</option>
 		<option value="TOUCH_TRUCK">CameraControls.ACTION.TOUCH_TRUCK</option>
+		<option value="TOUCH_OFFSET">CameraControls.ACTION.TOUCH_OFFSET</option>
 	</select>
 	<br>
 	cameraControls.touches.three =
 	<select onchange="cameraControls.touches.three = CameraControls.ACTION[ this.value ]">
 		<option value="TOUCH_DOLLY_TRUCK">CameraControls.ACTION.TOUCH_DOLLY_TRUCK</option>
+		<option value="TOUCH_DOLLY_OFFSET">CameraControls.ACTION.TOUCH_DOLLY_OFFSET</option>
 		<option value="TOUCH_ZOOM_TRUCK">CameraControls.ACTION.TOUCH_ZOOM_TRUCK</option>
+		<option value="TOUCH_ZOOM_OFFSET">CameraControls.ACTION.TOUCH_ZOOM_OFFSET</option>
 		<option value="TOUCH_DOLLY">CameraControls.ACTION.TOUCH_DOLLY</option>
 		<option value="TOUCH_ZOOM">CameraControls.ACTION.TOUCH_ZOOM</option>
 		<option value="TOUCH_ROTATE">CameraControls.ACTION.TOUCH_ROTATE</option>
 		<option value="TOUCH_TRUCK" selected>CameraControls.ACTION.TOUCH_TRUCK</option>
+		<option value="TOUCH_OFFSET">CameraControls.ACTION.TOUCH_OFFSET</option>
 	</select>
 </div>
 
