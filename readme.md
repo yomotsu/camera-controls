@@ -15,6 +15,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [basic](https://yomotsu.github.io/camera-controls/examples/basic.html)
 - [fit-and-padding](https://yomotsu.github.io/camera-controls/examples/fit-and-padding.html)
 - [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
+- [focal offset](https://yomotsu.github.io/camera-controls/examples/focal-offset.html)
 - [`viewport` within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
@@ -121,7 +122,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
-|`.infinityDolly`			|`boolen`	|`false`	  | `true` to enable Infity Dolly ².	| 
+| `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ². |
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
@@ -147,9 +148,9 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 
 | button to assign      | behavior |
 | --------------------- | -------- |
-| `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.wheel`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.wheel`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 
 - \* is the default.
 - The default of `mouseButtons.wheel` is:
@@ -158,9 +159,9 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 
 | fingers to assign     | behavior |
 | --------------------- | -------- |
-| `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.DOLLY` | `CameraControls.ACTION.ZOOM` | `CameraControls.ACTION.NONE` |
-| `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
-| `touches.three` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.NONE` |
+| `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.DOLLY` | `CameraControls.ACTION.ZOOM` | `CameraControls.ACTION.NONE` |
+| `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE` |
+| `touches.three` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE` |
 
 - \* is the default.
 - The default of `touches.two` and `touches.three` is:
@@ -256,6 +257,18 @@ Truck and pedestal camera using current azimuthal angle.
 | ------------------ | --------- | ----------- |
 | `x`                | `number`  | Horizontal translate amount |
 | `y`                | `number`  | Vertical translate amount |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
+
+### `setFocalOffset( x, y, enableTransition )`
+
+set focal offset using the screen parallel coordinates.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `x`                | `number`  | Horizontal offset amount |
+| `y`                | `number`  | Vertical offset amount |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -500,8 +513,8 @@ Dispose the cameraControls instance itself, remove all eventListeners.
 
 @1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
 
-## Contributors	
+## Contributors
 
-This project exists thanks to all the people who contribute.	
+This project exists thanks to all the people who contribute.
 
 ![](https://contributors-img.web.app/image?repo=yomotsu/camera-controls)

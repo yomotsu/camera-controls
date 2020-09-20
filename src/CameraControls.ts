@@ -908,20 +908,6 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	setFocalOffset( x: number, y: number, enableTransition: boolean = false ): void {
-
-		this._focalOffsetEnd.set( x, y, 0 );
-
-		if ( ! enableTransition ) {
-
-			this._focalOffset.copy( this._focalOffsetEnd );
-
-		}
-
-		this._needsUpdate = true;
-
-	}
-
 	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
 		paddingLeft = 0,
 		paddingRight = 0,
@@ -1104,6 +1090,20 @@ export class CameraControls extends EventDispatcher {
 			targetX, targetY, targetZ,
 			enableTransition,
 		);
+
+	}
+
+	setFocalOffset( x: number, y: number, enableTransition: boolean = false ): void {
+
+		this._focalOffsetEnd.set( x, y, 0 );
+
+		if ( ! enableTransition ) {
+
+			this._focalOffset.copy( this._focalOffsetEnd );
+
+		}
+
+		this._needsUpdate = true;
 
 	}
 

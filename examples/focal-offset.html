@@ -25,9 +25,6 @@
 	<br>
 	<button onclick="cameraControls.reset( true )">reset</button>
 	<button onclick="cameraControls.saveState()">saveState</button>
-	<br>
-	<button onclick="cameraControls.enabled = false;">disable mouse/touch controls</button>
-	<button onclick="cameraControls.enabled = true;">enable mouse/touch controls</button>
 </div>
 
 <script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
@@ -47,7 +44,7 @@ document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
 cameraControls.mouseButtons.right = CameraControls.ACTION.OFFSET;
-cameraControls.touches.one        = CameraControls.ACTION.OFFSET;
+cameraControls.touches.one        = CameraControls.ACTION.TOUCH_OFFSET;
 cameraControls.touches.two        = CameraControls.ACTION.TOUCH_DOLLY_OFFSET;
 cameraControls.touches.three      = CameraControls.ACTION.TOUCH_OFFSET;
 
