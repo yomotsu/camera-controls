@@ -533,11 +533,6 @@ export class CameraControls extends EventDispatcher {
 				const deltaY = lastDragPosition.y - _v2.y;
 
 				lastDragPosition.copy( _v2 );
-				const dragToOffset =
-					this._state === ACTION.TOUCH_DOLLY_OFFSET ||
-					this._state === ACTION.TOUCH_ZOOM_OFFSET ||
-					this._state === ACTION.OFFSET ||
-					this._state === ACTION.TOUCH_OFFSET;
 
 				switch ( this._state ) {
 
@@ -588,7 +583,14 @@ export class CameraControls extends EventDispatcher {
 							this._state === ACTION.TOUCH_ZOOM_TRUCK
 						) {
 
-							truckInternal( deltaX, deltaY, dragToOffset );
+							truckInternal( deltaX, deltaY, false );
+
+						} else if (
+							this._state === ACTION.TOUCH_DOLLY_OFFSET ||
+							this._state === ACTION.TOUCH_ZOOM_OFFSET
+						) {
+
+							truckInternal( deltaX, deltaY, true );
 
 						}
 
@@ -597,11 +599,17 @@ export class CameraControls extends EventDispatcher {
 					}
 
 					case ACTION.TRUCK:
-					case ACTION.TOUCH_TRUCK:
+					case ACTION.TOUCH_TRUCK: {
+
+						truckInternal( deltaX, deltaY, false );
+						break;
+
+					}
+
 					case ACTION.OFFSET:
 					case ACTION.TOUCH_OFFSET: {
 
-						truckInternal( deltaX, deltaY, dragToOffset );
+						truckInternal( deltaX, deltaY, true );
 						break;
 
 					}
