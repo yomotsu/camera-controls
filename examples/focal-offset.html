@@ -44,7 +44,7 @@ document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
 cameraControls.mouseButtons.right = CameraControls.ACTION.OFFSET;
-cameraControls.touches.one        = CameraControls.ACTION.TOUCH_OFFSET;
+cameraControls.touches.one        = CameraControls.ACTION.TOUCH_ROTATE;
 cameraControls.touches.two        = CameraControls.ACTION.TOUCH_DOLLY_OFFSET;
 cameraControls.touches.three      = CameraControls.ACTION.TOUCH_OFFSET;
 
