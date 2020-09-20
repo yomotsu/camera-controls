@@ -1232,6 +1232,8 @@ export class CameraControls extends EventDispatcher {
 			! approxZero( deltaPhi      ) ||
 			! approxZero( deltaRadius   ) ||
 			! approxZero( deltaTarget.x ) ||
+			! approxZero( deltaTarget.y ) ||
+			! approxZero( deltaTarget.z ) ||
 			! approxZero( deltaOffset.x ) ||
 			! approxZero( deltaOffset.y )
 		) {
