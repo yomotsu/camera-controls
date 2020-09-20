@@ -21,6 +21,7 @@ export declare class CameraControls extends EventDispatcher {
     dollySpeed: number;
     truckSpeed: number;
     dollyToCursor: boolean;
+    dragToOffset: boolean;
     verticalDragToForward: boolean;
     boundaryFriction: number;
     colliderMeshes: _THREE.Object3D[];
@@ -34,6 +35,8 @@ export declare class CameraControls extends EventDispatcher {
     protected _viewport: _THREE.Vector4 | null;
     protected _target: _THREE.Vector3;
     protected _targetEnd: _THREE.Vector3;
+    protected _focalOffset: _THREE.Vector3;
+    protected _focalOffsetEnd: _THREE.Vector3;
     protected _spherical: _THREE.Spherical;
     protected _sphericalEnd: _THREE.Spherical;
     protected _zoom: number;
@@ -41,6 +44,7 @@ export declare class CameraControls extends EventDispatcher {
     protected _target0: _THREE.Vector3;
     protected _position0: _THREE.Vector3;
     protected _zoom0: number;
+    protected _focalOffset0: _THREE.Vector3;
     protected _dollyControlAmount: number;
     protected _dollyControlCoord: _THREE.Vector2;
     protected _nearPlaneCorners: _THREE.Vector3[];
@@ -73,6 +77,7 @@ export declare class CameraControls extends EventDispatcher {
     lerpLookAt(positionAX: number, positionAY: number, positionAZ: number, targetAX: number, targetAY: number, targetAZ: number, positionBX: number, positionBY: number, positionBZ: number, targetBX: number, targetBY: number, targetBZ: number, t: number, enableTransition?: boolean): void;
     setPosition(positionX: number, positionY: number, positionZ: number, enableTransition?: boolean): void;
     setTarget(targetX: number, targetY: number, targetZ: number, enableTransition?: boolean): void;
+    setFocalOffset(x: number, y: number, enableTransition?: boolean): void;
     setBoundary(box3: _THREE.Box3): void;
     setViewport(viewportOrX: _THREE.Vector4 | number | null, y: number, width: number, height: number): void;
     getDistanceToFit(width: number, height: number, depth: number): number;

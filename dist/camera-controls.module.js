@@ -38,14 +38,18 @@ var ACTION;
     ACTION[ACTION["NONE"] = 0] = "NONE";
     ACTION[ACTION["ROTATE"] = 1] = "ROTATE";
     ACTION[ACTION["TRUCK"] = 2] = "TRUCK";
-    ACTION[ACTION["DOLLY"] = 3] = "DOLLY";
-    ACTION[ACTION["ZOOM"] = 4] = "ZOOM";
-    ACTION[ACTION["TOUCH_ROTATE"] = 5] = "TOUCH_ROTATE";
-    ACTION[ACTION["TOUCH_TRUCK"] = 6] = "TOUCH_TRUCK";
-    ACTION[ACTION["TOUCH_DOLLY"] = 7] = "TOUCH_DOLLY";
-    ACTION[ACTION["TOUCH_ZOOM"] = 8] = "TOUCH_ZOOM";
-    ACTION[ACTION["TOUCH_DOLLY_TRUCK"] = 9] = "TOUCH_DOLLY_TRUCK";
-    ACTION[ACTION["TOUCH_ZOOM_TRUCK"] = 10] = "TOUCH_ZOOM_TRUCK";
+    ACTION[ACTION["OFFSET"] = 3] = "OFFSET";
+    ACTION[ACTION["DOLLY"] = 4] = "DOLLY";
+    ACTION[ACTION["ZOOM"] = 5] = "ZOOM";
+    ACTION[ACTION["TOUCH_ROTATE"] = 6] = "TOUCH_ROTATE";
+    ACTION[ACTION["TOUCH_TRUCK"] = 7] = "TOUCH_TRUCK";
+    ACTION[ACTION["TOUCH_OFFSET"] = 8] = "TOUCH_OFFSET";
+    ACTION[ACTION["TOUCH_DOLLY"] = 9] = "TOUCH_DOLLY";
+    ACTION[ACTION["TOUCH_ZOOM"] = 10] = "TOUCH_ZOOM";
+    ACTION[ACTION["TOUCH_DOLLY_TRUCK"] = 11] = "TOUCH_DOLLY_TRUCK";
+    ACTION[ACTION["TOUCH_DOLLY_OFFSET"] = 12] = "TOUCH_DOLLY_OFFSET";
+    ACTION[ACTION["TOUCH_ZOOM_TRUCK"] = 13] = "TOUCH_ZOOM_TRUCK";
+    ACTION[ACTION["TOUCH_ZOOM_OFFSET"] = 14] = "TOUCH_ZOOM_OFFSET";
 })(ACTION || (ACTION = {}));
 
 var PI_2 = Math.PI * 2;
@@ -191,6 +195,7 @@ var CameraControls = (function (_super) {
         _this.dollySpeed = 1.0;
         _this.truckSpeed = 2.0;
         _this.dollyToCursor = false;
+        _this.dragToOffset = false;
         _this.verticalDragToForward = false;
         _this.boundaryFriction = 0.0;
         _this.colliderMeshes = [];
@@ -201,8 +206,7 @@ var CameraControls = (function (_super) {
         _this._needsUpdate = true;
         _this._updatedLastTime = false;
         if (typeof THREE === 'undefined') {
-            console.error("Three.js is undefined. You must first run CameraControls.install({ THREE: THREE }). Check the docs for further information.");
-            return _this;
+            console.error('camera-controls: `THREE` is undefined. You must first run `CameraControls.install( { THREE: THREE } )`. Check the docs for further information.');
         }
         _this._camera = camera;
         _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
@@ -211,6 +215,8 @@ var CameraControls = (function (_super) {
         _this._domElement = domElement;
         _this._target = new THREE.Vector3();
         _this._targetEnd = _this._target.clone();
+        _this._focalOffset = new THREE.Vector3();
+        _this._focalOffsetEnd = _this._focalOffset.clone();
         _this._spherical = new THREE.Spherical().setFromVector3(_v3A.copy(_this._camera.position).applyQuaternion(_this._yAxisUpSpace));
         _this._sphericalEnd = _this._spherical.clone();
         _this._zoom = _this._camera.zoom;
@@ -226,6 +232,7 @@ var CameraControls = (function (_super) {
         _this._target0 = _this._target.clone();
         _this._position0 = _this._camera.position.clone();
         _this._zoom0 = _this._zoom;
+        _this._focalOffset0 = _this._focalOffset.clone();
         _this._dollyControlAmount = 0;
         _this._dollyControlCoord = new THREE.Vector2();
         _this.mouseButtons = {
@@ -248,7 +255,7 @@ var CameraControls = (function (_super) {
             var lastDragPosition_1 = new THREE.Vector2();
             var dollyStart_1 = new THREE.Vector2();
             var elementRect_1 = new THREE.Vector4();
-            var truckInternal_1 = function (deltaX, deltaY) {
+            var truckInternal_1 = function (deltaX, deltaY, dragToOffset) {
                 if (_this._camera.isPerspectiveCamera) {
                     var camera_1 = _this._camera;
                     var offset = _v3A.copy(camera_1.position).sub(_this._target);
@@ -257,18 +264,24 @@ var CameraControls = (function (_super) {
                     var truckX = (_this.truckSpeed * deltaX * targetDistance / elementRect_1.w);
                     var pedestalY = (_this.truckSpeed * deltaY * targetDistance / elementRect_1.w);
                     if (_this.verticalDragToForward) {
-                        _this.truck(truckX, 0, true);
+                        dragToOffset ?
+                            _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y, true) :
+                            _this.truck(truckX, 0, true);
                         _this.forward(-pedestalY, true);
                     }
                     else {
-                        _this.truck(truckX, pedestalY, true);
+                        dragToOffset ?
+                            _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y + pedestalY, true) :
+                            _this.truck(truckX, pedestalY, true);
                     }
                 }
                 else if (_this._camera.isOrthographicCamera) {
                     var camera_2 = _this._camera;
                     var truckX = deltaX * (camera_2.right - camera_2.left) / camera_2.zoom / elementRect_1.z;
                     var pedestalY = deltaY * (camera_2.top - camera_2.bottom) / camera_2.zoom / elementRect_1.w;
-                    _this.truck(truckX, pedestalY, true);
+                    dragToOffset ?
+                        _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y + pedestalY, true) :
+                        _this.truck(truckX, pedestalY, true);
                 }
             };
             var rotateInternal_1 = function (deltaX, deltaY) {
@@ -360,7 +373,11 @@ var CameraControls = (function (_super) {
                         break;
                     }
                     case ACTION.TRUCK: {
-                        truckInternal_1(event.deltaX, event.deltaY);
+                        truckInternal_1(event.deltaX, event.deltaY, false);
+                        break;
+                    }
+                    case ACTION.OFFSET: {
+                        truckInternal_1(event.deltaX, event.deltaY, true);
                         break;
                     }
                     case ACTION.DOLLY: {
@@ -418,6 +435,10 @@ var CameraControls = (function (_super) {
                 var deltaX = lastDragPosition_1.x - _v2.x;
                 var deltaY = lastDragPosition_1.y - _v2.y;
                 lastDragPosition_1.copy(_v2);
+                var dragToOffset = _this._state === ACTION.TOUCH_DOLLY_OFFSET ||
+                    _this._state === ACTION.TOUCH_ZOOM_OFFSET ||
+                    _this._state === ACTION.OFFSET ||
+                    _this._state === ACTION.TOUCH_OFFSET;
                 switch (_this._state) {
                     case ACTION.ROTATE:
                     case ACTION.TOUCH_ROTATE: {
@@ -436,7 +457,9 @@ var CameraControls = (function (_super) {
                     case ACTION.TOUCH_DOLLY:
                     case ACTION.TOUCH_ZOOM:
                     case ACTION.TOUCH_DOLLY_TRUCK:
-                    case ACTION.TOUCH_ZOOM_TRUCK: {
+                    case ACTION.TOUCH_ZOOM_TRUCK:
+                    case ACTION.TOUCH_DOLLY_OFFSET:
+                    case ACTION.TOUCH_ZOOM_OFFSET: {
                         var touchEvent = event;
                         var dx = _v2.x - touchEvent.touches[1].clientX;
                         var dy = _v2.y - touchEvent.touches[1].clientY;
@@ -451,13 +474,15 @@ var CameraControls = (function (_super) {
                             zoomInternal_1(dollyDelta * TOUCH_DOLLY_FACTOR);
                         if (_this._state === ACTION.TOUCH_DOLLY_TRUCK ||
                             _this._state === ACTION.TOUCH_ZOOM_TRUCK) {
-                            truckInternal_1(deltaX, deltaY);
+                            truckInternal_1(deltaX, deltaY, dragToOffset);
                         }
                         break;
                     }
                     case ACTION.TRUCK:
-                    case ACTION.TOUCH_TRUCK: {
-                        truckInternal_1(deltaX, deltaY);
+                    case ACTION.TOUCH_TRUCK:
+                    case ACTION.OFFSET:
+                    case ACTION.TOUCH_OFFSET: {
+                        truckInternal_1(deltaX, deltaY, dragToOffset);
                         break;
                     }
                 }
@@ -734,6 +759,7 @@ var CameraControls = (function (_super) {
             var distance = this.getDistanceToFit(bbSize.x, bbSize.y, bbSize.z);
             this.moveTo(center.x, center.y, center.z, enableTransition);
             this.dollyTo(distance, enableTransition);
+            this.setFocalOffset(0, 0, enableTransition);
             return;
         }
         else if (isOrthographicCamera) {
@@ -743,6 +769,7 @@ var CameraControls = (function (_super) {
             var zoom = Math.min(width / bbSize.x, height / bbSize.y);
             this.moveTo(center.x, center.y, center.z, enableTransition);
             this.zoomTo(zoom, enableTransition);
+            this.setFocalOffset(0, 0, enableTransition);
             return;
         }
     };
@@ -787,6 +814,14 @@ var CameraControls = (function (_super) {
         if (enableTransition === void 0) { enableTransition = false; }
         var pos = this.getPosition(_v3A);
         this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
+    };
+    CameraControls.prototype.setFocalOffset = function (x, y, enableTransition) {
+        if (enableTransition === void 0) { enableTransition = false; }
+        this._focalOffsetEnd.set(x, y, 0);
+        if (!enableTransition) {
+            this._focalOffset.copy(this._focalOffsetEnd);
+        }
+        this._needsUpdate = true;
     };
     CameraControls.prototype.setBoundary = function (box3) {
         if (!box3) {
@@ -839,6 +874,7 @@ var CameraControls = (function (_super) {
     CameraControls.prototype.reset = function (enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
         this.setLookAt(this._position0.x, this._position0.y, this._position0.z, this._target0.x, this._target0.y, this._target0.z, enableTransition);
+        this.setFocalOffset(this._focalOffset0.x, this._focalOffset0.y, enableTransition);
         this.zoomTo(this._zoom0, enableTransition);
     };
     CameraControls.prototype.saveState = function () {
@@ -857,19 +893,22 @@ var CameraControls = (function (_super) {
         var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
         var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
         var deltaTarget = _v3A.subVectors(this._targetEnd, this._target);
+        var deltaOffset = _v3B.subVectors(this._focalOffsetEnd, this._focalOffset);
         if (!approxZero(deltaTheta) ||
             !approxZero(deltaPhi) ||
             !approxZero(deltaRadius) ||
             !approxZero(deltaTarget.x) ||
-            !approxZero(deltaTarget.y) ||
-            !approxZero(deltaTarget.z)) {
+            !approxZero(deltaOffset.x) ||
+            !approxZero(deltaOffset.y)) {
             this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
             this._target.add(deltaTarget.multiplyScalar(lerpRatio));
+            this._focalOffset.add(deltaOffset.multiplyScalar(lerpRatio));
             this._needsUpdate = true;
         }
         else {
             this._spherical.copy(this._sphericalEnd);
             this._target.copy(this._targetEnd);
+            this._focalOffset.copy(this._focalOffsetEnd);
         }
         if (this._dollyControlAmount !== 0) {
             if (this._camera.isPerspectiveCamera) {
@@ -895,6 +934,17 @@ var CameraControls = (function (_super) {
         this._spherical.makeSafe();
         this._camera.position.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).add(this._target);
         this._camera.lookAt(this._target);
+        var affectOffset = !approxZero(this._focalOffset.x) ||
+            !approxZero(this._focalOffset.y);
+        if (affectOffset) {
+            this._camera.updateMatrix();
+            _xColumn.setFromMatrixColumn(this._camera.matrix, 0);
+            _yColumn.setFromMatrixColumn(this._camera.matrix, 1);
+            _xColumn.multiplyScalar(this._focalOffset.x);
+            _yColumn.multiplyScalar(-this._focalOffset.y);
+            _v3A.copy(_xColumn).add(_yColumn);
+            this._camera.position.add(_v3A);
+        }
         if (this._boundaryEnclosesCamera) {
             this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse), 1.0);
         }
