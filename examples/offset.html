@@ -46,6 +46,10 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
+cameraControls.mouseButtons.right = CameraControls.ACTION.OFFSET;
+cameraControls.touches.one        = CameraControls.ACTION.OFFSET;
+cameraControls.touches.two        = CameraControls.ACTION.TOUCH_DOLLY_OFFSET;
+cameraControls.touches.three      = CameraControls.ACTION.TOUCH_OFFSET;
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),

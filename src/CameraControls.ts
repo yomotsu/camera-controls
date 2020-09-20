@@ -100,6 +100,7 @@ export class CameraControls extends EventDispatcher {
 	dollySpeed = 1.0;
 	truckSpeed = 2.0;
 	dollyToCursor = false;
+	dragToOffset = false;
 	verticalDragToForward = false;
 
 	boundaryFriction = 0.0;
@@ -237,7 +238,7 @@ export class CameraControls extends EventDispatcher {
 			const dollyStart = new THREE.Vector2() as _THREE.Vector2;
 			const elementRect = new THREE.Vector4() as _THREE.Vector4;
 
-			const truckInternal = ( deltaX: number, deltaY: number ): void => {
+			const truckInternal = ( deltaX: number, deltaY: number, dragToOffset: boolean ): void => {
 
 				if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
 
@@ -251,12 +252,16 @@ export class CameraControls extends EventDispatcher {
 					const pedestalY = ( this.truckSpeed * deltaY * targetDistance / elementRect.w );
 					if ( this.verticalDragToForward ) {
 
-						this.truck( truckX, 0, true );
+						dragToOffset ?
+							this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y, true ) :
+							this.truck( truckX, 0, true );
 						this.forward( - pedestalY, true );
 
 					} else {
 
-						this.truck( truckX, pedestalY, true );
+						dragToOffset ?
+							this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, true ) :
+							this.truck( truckX, pedestalY, true );
 
 					}
 
@@ -266,7 +271,9 @@ export class CameraControls extends EventDispatcher {
 					const camera = this._camera as _THREE.OrthographicCamera;
 					const truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / elementRect.z;
 					const pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / elementRect.w;
-					this.truck( truckX, pedestalY, true );
+					dragToOffset ?
+						this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, true ) :
+						this.truck( truckX, pedestalY, true );
 
 				}
 
@@ -426,7 +433,14 @@ export class CameraControls extends EventDispatcher {
 
 					case ACTION.TRUCK: {
 
-						truckInternal( event.deltaX, event.deltaY );
+						truckInternal( event.deltaX, event.deltaY, false );
+						break;
+
+					}
+
+					case ACTION.OFFSET: {
+
+						truckInternal( event.deltaX, event.deltaY, true );
 						break;
 
 					}
@@ -519,6 +533,11 @@ export class CameraControls extends EventDispatcher {
 				const deltaY = lastDragPosition.y - _v2.y;
 
 				lastDragPosition.copy( _v2 );
+				const dragToOffset =
+					this._state === ACTION.TOUCH_DOLLY_OFFSET ||
+					this._state === ACTION.TOUCH_ZOOM_OFFSET ||
+					this._state === ACTION.OFFSET ||
+					this._state === ACTION.TOUCH_OFFSET;
 
 				switch ( this._state ) {
 
@@ -545,7 +564,9 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.TOUCH_DOLLY:
 					case ACTION.TOUCH_ZOOM:
 					case ACTION.TOUCH_DOLLY_TRUCK:
-					case ACTION.TOUCH_ZOOM_TRUCK: {
+					case ACTION.TOUCH_ZOOM_TRUCK:
+					case ACTION.TOUCH_DOLLY_OFFSET:
+					case ACTION.TOUCH_ZOOM_OFFSET: {
 
 						const touchEvent = event as TouchEvent;
 						const dx = _v2.x - touchEvent.touches[ 1 ].clientX;
@@ -567,7 +588,7 @@ export class CameraControls extends EventDispatcher {
 							this._state === ACTION.TOUCH_ZOOM_TRUCK
 						) {
 
-							truckInternal( deltaX, deltaY );
+							truckInternal( deltaX, deltaY, dragToOffset );
 
 						}
 
@@ -576,9 +597,11 @@ export class CameraControls extends EventDispatcher {
 					}
 
 					case ACTION.TRUCK:
-					case ACTION.TOUCH_TRUCK: {
+					case ACTION.TOUCH_TRUCK:
+					case ACTION.OFFSET:
+					case ACTION.TOUCH_OFFSET: {
 
-						truckInternal( deltaX, deltaY );
+						truckInternal( deltaX, deltaY, dragToOffset );
 						break;
 
 					}
@@ -979,6 +1002,7 @@ export class CameraControls extends EventDispatcher {
 			const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
 			this.moveTo( center.x, center.y, center.z, enableTransition );
 			this.dollyTo( distance, enableTransition );
+			this.setFocalOffset( 0, 0, enableTransition );
 			return;
 
 		} else if ( isOrthographicCamera ) {
@@ -989,6 +1013,7 @@ export class CameraControls extends EventDispatcher {
 			const zoom = Math.min( width / bbSize.x, height / bbSize.y );
 			this.moveTo( center.x, center.y, center.z, enableTransition );
 			this.zoomTo( zoom, enableTransition );
+			this.setFocalOffset( 0, 0, enableTransition );
 			return;
 
 		}
