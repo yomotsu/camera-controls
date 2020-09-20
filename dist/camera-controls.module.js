@@ -435,10 +435,6 @@ var CameraControls = (function (_super) {
                 var deltaX = lastDragPosition_1.x - _v2.x;
                 var deltaY = lastDragPosition_1.y - _v2.y;
                 lastDragPosition_1.copy(_v2);
-                var dragToOffset = _this._state === ACTION.TOUCH_DOLLY_OFFSET ||
-                    _this._state === ACTION.TOUCH_ZOOM_OFFSET ||
-                    _this._state === ACTION.OFFSET ||
-                    _this._state === ACTION.TOUCH_OFFSET;
                 switch (_this._state) {
                     case ACTION.ROTATE:
                     case ACTION.TOUCH_ROTATE: {
@@ -474,15 +470,22 @@ var CameraControls = (function (_super) {
                             zoomInternal_1(dollyDelta * TOUCH_DOLLY_FACTOR);
                         if (_this._state === ACTION.TOUCH_DOLLY_TRUCK ||
                             _this._state === ACTION.TOUCH_ZOOM_TRUCK) {
-                            truckInternal_1(deltaX, deltaY, dragToOffset);
+                            truckInternal_1(deltaX, deltaY, false);
+                        }
+                        else if (_this._state === ACTION.TOUCH_DOLLY_OFFSET ||
+                            _this._state === ACTION.TOUCH_ZOOM_OFFSET) {
+                            truckInternal_1(deltaX, deltaY, true);
                         }
                         break;
                     }
                     case ACTION.TRUCK:
-                    case ACTION.TOUCH_TRUCK:
+                    case ACTION.TOUCH_TRUCK: {
+                        truckInternal_1(deltaX, deltaY, false);
+                        break;
+                    }
                     case ACTION.OFFSET:
                     case ACTION.TOUCH_OFFSET: {
-                        truckInternal_1(deltaX, deltaY, dragToOffset);
+                        truckInternal_1(deltaX, deltaY, true);
                         break;
                     }
                 }
@@ -898,6 +901,8 @@ var CameraControls = (function (_super) {
             !approxZero(deltaPhi) ||
             !approxZero(deltaRadius) ||
             !approxZero(deltaTarget.x) ||
+            !approxZero(deltaTarget.y) ||
+            !approxZero(deltaTarget.z) ||
             !approxZero(deltaOffset.x) ||
             !approxZero(deltaOffset.y)) {
             this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
