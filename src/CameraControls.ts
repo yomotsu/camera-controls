@@ -122,6 +122,9 @@ export class CameraControls extends EventDispatcher {
 	protected _target: _THREE.Vector3;
 	protected _targetEnd: _THREE.Vector3;
 
+	protected _focalOffset: _THREE.Vector3;
+	protected _focalOffsetEnd: _THREE.Vector3;
+
 	// rotation and dolly distance
 	protected _spherical: _THREE.Spherical;
 	protected _sphericalEnd: _THREE.Spherical;
@@ -133,6 +136,7 @@ export class CameraControls extends EventDispatcher {
 	protected _target0: _THREE.Vector3;
 	protected _position0: _THREE.Vector3;
 	protected _zoom0: number;
+	protected _focalOffset0: _THREE.Vector3;
 
 	protected _dollyControlAmount = 0;
 	protected _dollyControlCoord: _THREE.Vector2;
@@ -171,6 +175,9 @@ export class CameraControls extends EventDispatcher {
 		this._target = new THREE.Vector3();
 		this._targetEnd = this._target.clone();
 
+		this._focalOffset = new THREE.Vector3();
+		this._focalOffsetEnd = this._focalOffset.clone();
+
 		// rotation
 		this._spherical = new THREE.Spherical().setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
@@ -197,6 +204,7 @@ export class CameraControls extends EventDispatcher {
 		this._target0 = this._target.clone();
 		this._position0 = this._camera.position.clone();
 		this._zoom0 = this._zoom;
+		this._focalOffset0 = this._focalOffset.clone();
 
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
@@ -877,6 +885,20 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	setFocalOffset( x: number, y: number, enableTransition: boolean = false ): void {
+
+		this._focalOffsetEnd.set( x, y, 0 );
+
+		if ( ! enableTransition ) {
+
+			this._focalOffset.copy( this._focalOffsetEnd );
+
+		}
+
+		this._needsUpdate = true;
+
+	}
+
 	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
 		paddingLeft = 0,
 		paddingRight = 0,
@@ -1145,6 +1167,11 @@ export class CameraControls extends EventDispatcher {
 			this._target0.x, this._target0.y, this._target0.z,
 			enableTransition,
 		);
+		this.setFocalOffset(
+			this._focalOffset0.x,
+			this._focalOffset0.y,
+			enableTransition,
+		);
 		this.zoomTo( this._zoom0, enableTransition );
 
 	}
@@ -1173,14 +1200,15 @@ export class CameraControls extends EventDispatcher {
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
 		const deltaTarget = _v3A.subVectors( this._targetEnd, this._target );
+		const deltaOffset = _v3B.subVectors( this._focalOffsetEnd, this._focalOffset );
 
 		if (
 			! approxZero( deltaTheta    ) ||
 			! approxZero( deltaPhi      ) ||
 			! approxZero( deltaRadius   ) ||
 			! approxZero( deltaTarget.x ) ||
-			! approxZero( deltaTarget.y ) ||
-			! approxZero( deltaTarget.z )
+			! approxZero( deltaOffset.x ) ||
+			! approxZero( deltaOffset.y )
 		) {
 
 			this._spherical.set(
@@ -1190,6 +1218,7 @@ export class CameraControls extends EventDispatcher {
 			);
 
 			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
+			this._focalOffset.add( deltaOffset.multiplyScalar( lerpRatio ) );
 
 			this._needsUpdate = true;
 
@@ -1197,6 +1226,7 @@ export class CameraControls extends EventDispatcher {
 
 			this._spherical.copy( this._sphericalEnd );
 			this._target.copy( this._targetEnd );
+			this._focalOffset.copy( this._focalOffsetEnd );
 
 		}
 
@@ -1231,6 +1261,29 @@ export class CameraControls extends EventDispatcher {
 		this._spherical.makeSafe();
 		this._camera.position.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._target );
 		this._camera.lookAt( this._target );
+
+		// set offset after the orbit movement
+		const affectOffset =
+			! approxZero( this._focalOffset.x ) ||
+			! approxZero( this._focalOffset.y );
+		if ( affectOffset ) {
+
+			this._camera.updateMatrix();
+			_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
+			_yColumn.setFromMatrixColumn( this._camera.matrix, 1 );
+			_xColumn.multiplyScalar(   this._focalOffset.x );
+			_yColumn.multiplyScalar( - this._focalOffset.y );
+
+			// z-offset can be calculated by following but it is actually dolly.
+			// ```
+			// _zColumn.setFromMatrixColumn( this._camera.matrix, 2 );
+			// _zColumn.multiplyScalar( - this._focalOffset.z );
+			// ```
+
+			_v3A.copy( _xColumn ).add( _yColumn );
+			this._camera.position.add( _v3A );
+
+		}
 
 		if ( this._boundaryEnclosesCamera ) {
 
