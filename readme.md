@@ -4,7 +4,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 
 [![Latest NPM release](https://img.shields.io/npm/v/camera-controls.svg)](https://www.npmjs.com/package/camera-controls)
 
-## Working examples
+## Examples
 
 | camera move    | default user input (Configurable) |
 | ---            | ---                               |
@@ -25,6 +25,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [changing-cursor](https://yomotsu.github.io/camera-controls/examples/cursor.html)
 - [collision](https://yomotsu.github.io/camera-controls/examples/collision.html)
 - [first-person](https://yomotsu.github.io/camera-controls/examples/first-person.html)
+- [third-person](https://yomotsu.github.io/meshwalk/example/5_terrain.html) (with [meshwalk](https://github.com/yomotsu/meshwalk))
 - [camera shake effect](https://yomotsu.github.io/camera-controls/examples/effect-shake.html)
 - [rotate with duration and easing](https://yomotsu.github.io/camera-controls/examples/easing.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
@@ -57,6 +58,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 		renderer.render( scene, camera );
 
 	}
+
 } )();
 ```
 
@@ -66,7 +68,7 @@ You *must install* Three.js before using camera-controls. Not doing so will lead
 
 **Before creating a new CameraControls instance, call**:
 ```javascript
-CameraControls.install( { THREE: THREE } )
+CameraControls.install( { THREE: THREE } );
 ```
 
 You can then proceed to use CameraControls.
@@ -261,9 +263,9 @@ Truck and pedestal camera using current azimuthal angle.
 
 ---
 
-### `setFocalOffset( x, y, enableTransition )`
+#### `setFocalOffset( x, y, enableTransition )`
 
-set focal offset using the screen parallel coordinates.
+Set focal offset using the screen parallel coordinates. If you need z-offset, use `.dolly()` or `.dollyTo`.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
