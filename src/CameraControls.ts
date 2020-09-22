@@ -78,8 +78,6 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	enabled = true;
-
 	minPolarAngle = 0; // radians
 	maxPolarAngle = Math.PI; // radians
 	minAzimuthAngle = - Infinity; // radians
@@ -111,6 +109,9 @@ export class CameraControls extends EventDispatcher {
 	mouseButtons: MouseButtons;
 	touches: Touches;
 
+	cancel: () => void = () => {};
+
+	protected _enabled = true;
 	protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
 	protected _yAxisUpSpace: _THREE.Quaternion;
 	protected _yAxisUpSpaceInverse: _THREE.Quaternion;
@@ -324,13 +325,26 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
+			const cancelDragging = (): void => {
+
+				this._state = ACTION.NONE;
+
+				document.removeEventListener( 'mousemove', dragging );
+				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
+				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
+				document.removeEventListener( 'mouseup',  endDragging );
+				document.removeEventListener( 'touchend', endDragging );
+
+			};
+
 			const onMouseDown = ( event: MouseEvent ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this._enabled ) return;
 
 				event.preventDefault();
 
 				const prevState = this._state;
+				cancelDragging();
 
 				switch ( event.button ) {
 
@@ -361,11 +375,12 @@ export class CameraControls extends EventDispatcher {
 
 			const onTouchStart = ( event:TouchEvent ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this._enabled ) return;
 
 				event.preventDefault();
 
 				const prevState = this._state;
+				cancelDragging();
 
 				switch ( event.touches.length ) {
 
@@ -398,7 +413,7 @@ export class CameraControls extends EventDispatcher {
 
 			const onMouseWheel = ( event: WheelEvent ): void => {
 
-				if ( ! this.enabled || this.mouseButtons.wheel === ACTION.NONE ) return;
+				if ( ! this._enabled || this.mouseButtons.wheel === ACTION.NONE ) return;
 
 				event.preventDefault();
 
@@ -470,7 +485,7 @@ export class CameraControls extends EventDispatcher {
 
 			const onContextMenu = ( event: Event ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this._enabled ) return;
 
 				event.preventDefault();
 
@@ -478,7 +493,7 @@ export class CameraControls extends EventDispatcher {
 
 			const startDragging = ( event: Event ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this._enabled ) return;
 
 				event.preventDefault();
 
@@ -523,7 +538,7 @@ export class CameraControls extends EventDispatcher {
 
 			const dragging = ( event: Event ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this._enabled ) return;
 
 				event.preventDefault();
 
@@ -625,15 +640,9 @@ export class CameraControls extends EventDispatcher {
 
 			const endDragging = ( event: Event ): void => {
 
-				if ( ! this.enabled ) return;
+				if ( ! this._enabled ) return;
 
-				this._state = ACTION.NONE;
-
-				document.removeEventListener( 'mousemove', dragging );
-				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
-				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
-				document.removeEventListener( 'mouseup',  endDragging );
-				document.removeEventListener( 'touchend', endDragging );
+				cancelDragging();
 
 				this.dispatchEvent( {
 					type: 'controlend',
@@ -661,9 +670,33 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
+			this.cancel = (): void => {
+
+				cancelDragging();
+
+				this.dispatchEvent( {
+					type: 'controlend',
+					originalEvent: null,
+				} );
+
+			};
+
 		}
 
 		this.update( 0 );
+
+	}
+
+	get enabled(): boolean {
+
+		return this._enabled;
+
+	}
+
+	set enabled( enabled: boolean ) {
+
+		this._enabled = enabled;
+		if ( ! enabled ) this.cancel();
 
 	}
 
@@ -1372,7 +1405,7 @@ export class CameraControls extends EventDispatcher {
 	toJSON(): string {
 
 		return JSON.stringify( {
-			enabled              : this.enabled,
+			enabled              : this._enabled,
 
 			minDistance          : this.minDistance,
 			maxDistance          : infinityToMaxNumber( this.maxDistance ),
@@ -1406,7 +1439,7 @@ export class CameraControls extends EventDispatcher {
 		const obj = JSON.parse( json );
 		const position = _v3A.fromArray( obj.position );
 
-		this.enabled               = obj.enabled;
+		this._enabled              = obj.enabled;
 
 		this.minDistance           = obj.minDistance;
 		this.maxDistance           = maxNumberToInfinity( obj.maxDistance );
