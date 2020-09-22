@@ -229,13 +229,9 @@ Zoom in/out of camera.
 
 You can also make zoomIn function using `camera.zoom` property.
 e.g.
-```
-const zoomIn = () => {
-	cameraControls.zoom( camera.zoom / 2, true );
-}
-const zoomOut = () => {
-	cameraControls.zoom( - camera.zoom / 2, true );
-}
+```js
+const zoomIn  = () => cameraControls.zoom(   camera.zoom / 2, true );
+const zoomOut = () => cameraControls.zoom( - camera.zoom / 2, true );
 ```
 
 ---
@@ -443,7 +439,7 @@ Set current camera position as the default position
 
 ---
 
-##### `normalizeRotations()`
+#### `normalizeRotations()`
 
 Normalize camera azimuth angle rotation between 0 and 360 degrees.
 
