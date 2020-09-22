@@ -1439,7 +1439,7 @@ export class CameraControls extends EventDispatcher {
 		const obj = JSON.parse( json );
 		const position = _v3A.fromArray( obj.position );
 
-		this._enabled              = obj.enabled;
+		this.enabled               = obj.enabled;
 
 		this.minDistance           = obj.minDistance;
 		this.maxDistance           = maxNumberToInfinity( obj.maxDistance );
