@@ -259,14 +259,16 @@ Truck and pedestal camera using current azimuthal angle.
 
 ---
 
-#### `setFocalOffset( x, y, enableTransition )`
+#### `setFocalOffset( x, y, z, enableTransition )`
 
-Set focal offset using the screen parallel coordinates. If you need z-offset, use `.dolly()` or `.dollyTo`.
+Set focal offset using the screen parallel coordinates.
+`z` doesn't affect in Orthographic as with Dolly.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
 | `x`                | `number`  | Horizontal offset amount |
 | `y`                | `number`  | Vertical offset amount |
+| `z`                | `number`  | Depth offset amount. The result is the same as Dolly but unaffected by `minDistance` and `maxDistance` |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
