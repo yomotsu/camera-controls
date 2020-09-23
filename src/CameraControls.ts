@@ -38,6 +38,7 @@ let _v3B: _THREE.Vector3;
 let _v3C: _THREE.Vector3;
 let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
+let _zColumn: _THREE.Vector3;
 let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
 let _box3A: _THREE.Box3;
@@ -61,6 +62,7 @@ export class CameraControls extends EventDispatcher {
 		_v3C = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
+		_zColumn = new THREE.Vector3();
 		_sphericalA = new THREE.Spherical();
 		_sphericalB = new THREE.Spherical();
 		_box3A = new THREE.Box3();
@@ -253,14 +255,24 @@ export class CameraControls extends EventDispatcher {
 					if ( this.verticalDragToForward ) {
 
 						dragToOffset ?
-							this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y, true ) :
+							this.setFocalOffset(
+								this._focalOffsetEnd.x + truckX,
+								this._focalOffsetEnd.y,
+								this._focalOffsetEnd.z,
+								true,
+							) :
 							this.truck( truckX, 0, true );
 						this.forward( - pedestalY, true );
 
 					} else {
 
 						dragToOffset ?
-							this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, true ) :
+							this.setFocalOffset(
+								this._focalOffsetEnd.x + truckX,
+								this._focalOffsetEnd.y + pedestalY,
+								this._focalOffsetEnd.z,
+								true,
+							) :
 							this.truck( truckX, pedestalY, true );
 
 					}
@@ -272,7 +284,7 @@ export class CameraControls extends EventDispatcher {
 					const truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / elementRect.z;
 					const pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / elementRect.w;
 					dragToOffset ?
-						this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, true ) :
+						this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, this._focalOffsetEnd.z, true ) :
 						this.truck( truckX, pedestalY, true );
 
 				}
@@ -996,7 +1008,7 @@ export class CameraControls extends EventDispatcher {
 			const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
 			this.moveTo( center.x, center.y, center.z, enableTransition );
 			this.dollyTo( distance, enableTransition );
-			this.setFocalOffset( 0, 0, enableTransition );
+			this.setFocalOffset( 0, 0, 0, enableTransition );
 			return;
 
 		} else if ( isOrthographicCamera ) {
@@ -1007,7 +1019,7 @@ export class CameraControls extends EventDispatcher {
 			const zoom = Math.min( width / bbSize.x, height / bbSize.y );
 			this.moveTo( center.x, center.y, center.z, enableTransition );
 			this.zoomTo( zoom, enableTransition );
-			this.setFocalOffset( 0, 0, enableTransition );
+			this.setFocalOffset( 0, 0, 0, enableTransition );
 			return;
 
 		}
@@ -1101,9 +1113,9 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	setFocalOffset( x: number, y: number, enableTransition: boolean = false ): void {
+	setFocalOffset( x: number, y: number, z: number, enableTransition: boolean = false ): void {
 
-		this._focalOffsetEnd.set( x, y, 0 );
+		this._focalOffsetEnd.set( x, y, z );
 
 		if ( ! enableTransition ) {
 
@@ -1203,6 +1215,7 @@ export class CameraControls extends EventDispatcher {
 		this.setFocalOffset(
 			this._focalOffset0.x,
 			this._focalOffset0.y,
+			this._focalOffset0.z,
 			enableTransition,
 		);
 		this.zoomTo( this._zoom0, enableTransition );
@@ -1243,7 +1256,8 @@ export class CameraControls extends EventDispatcher {
 			! approxZero( deltaTarget.y ) ||
 			! approxZero( deltaTarget.z ) ||
 			! approxZero( deltaOffset.x ) ||
-			! approxZero( deltaOffset.y )
+			! approxZero( deltaOffset.y ) ||
+			! approxZero( deltaOffset.z )
 		) {
 
 			this._spherical.set(
@@ -1300,22 +1314,20 @@ export class CameraControls extends EventDispatcher {
 		// set offset after the orbit movement
 		const affectOffset =
 			! approxZero( this._focalOffset.x ) ||
-			! approxZero( this._focalOffset.y );
+			! approxZero( this._focalOffset.y ) ||
+			! approxZero( this._focalOffset.z );
+
 		if ( affectOffset ) {
 
 			this._camera.updateMatrix();
 			_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
 			_yColumn.setFromMatrixColumn( this._camera.matrix, 1 );
+			_zColumn.setFromMatrixColumn( this._camera.matrix, 2 );
 			_xColumn.multiplyScalar(   this._focalOffset.x );
 			_yColumn.multiplyScalar( - this._focalOffset.y );
+			_zColumn.multiplyScalar(   this._focalOffset.z ); // notice: z-offset will not affect in Orthographic.
 
-			// z-offset can be calculated by following but it is actually dolly.
-			// ```
-			// _zColumn.setFromMatrixColumn( this._camera.matrix, 2 );
-			// _zColumn.multiplyScalar( - this._focalOffset.z );
-			// ```
-
-			_v3A.copy( _xColumn ).add( _yColumn );
+			_v3A.copy( _xColumn ).add( _yColumn ).add( _zColumn );
 			this._camera.position.add( _v3A );
 
 		}
