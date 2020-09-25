@@ -1230,6 +1230,13 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	getFocalOffset( out: _THREE.Vector3 ): _THREE.Vector3 {
+
+		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
+		return _out.copy( this._focalOffsetEnd );
+
+	}
+
 	normalizeRotations(): void {
 
 		this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
@@ -1437,10 +1444,12 @@ export class CameraControls extends EventDispatcher {
 			target               : this._targetEnd.toArray(),
 			position             : _v3A.setFromSpherical( this._sphericalEnd ).add( this._targetEnd ).toArray(),
 			zoom                 : this._zoomEnd,
+			focalOffset          : this._focalOffsetEnd.toArray(),
 
 			target0              : this._target0.toArray(),
 			position0            : this._position0.toArray(),
 			zoom0                : this._zoom0,
+			focalOffset0         : this._focalOffset0.toArray(),
 
 		} );
 
@@ -1471,11 +1480,13 @@ export class CameraControls extends EventDispatcher {
 		this._target0.fromArray( obj.target0 );
 		this._position0.fromArray( obj.position0 );
 		this._zoom0 = obj.zoom0;
+		this._focalOffset0.fromArray( obj.focalOffset0 );
 
 		this.moveTo( obj.target[ 0 ], obj.target[ 1 ], obj.target[ 2 ], enableTransition );
 		_sphericalA.setFromVector3( position.sub( this._targetEnd ).applyQuaternion( this._yAxisUpSpace ) );
 		this.rotateTo( _sphericalA.theta, _sphericalA.phi, enableTransition );
 		this.zoomTo( obj.zoom, enableTransition );
+		this.setFocalOffset( obj.focalOffset[ 0 ], obj.focalOffset[ 1 ], obj.focalOffset[ 2 ], enableTransition );
 
 		this._needsUpdate = true;
 
