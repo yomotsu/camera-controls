@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="ruler"></div>
+
+<div class="info">
+	<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
+	<button onclick="fit()">fit</button>
+	<button onclick="cameraControls.reset( true )">reset</button><br>
+</div>
+
+<script src="https://unpkg.com/three@0.120.1/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.120.1/examples/js/loaders/GLTFLoader.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( width, height );
+renderer.outputEncoding = THREE.sRGBEncoding;
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+scene.add(
+	new THREE.HemisphereLight( 0x443333, 0x332222 ),
+	new THREE.AmbientLight( 0x999999 ),
+);
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+scene.add( gridHelper );
+
+const axesHelper = new THREE.AxesHelper( 2 );
+axesHelper.material.depthTest = false;
+scene.add( axesHelper );
+
+new THREE.GLTFLoader().load( './rubber-duck.glb', function ( gltf ) {
+
+	const boundingSphere = computeBoundingSphere( gltf.scene );
+	const sphereHelper = new THREE.Mesh(
+		new THREE.SphereBufferGeometry( boundingSphere.radius, 8, 8 ),
+		new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+	);
+	sphereHelper.position.copy( boundingSphere.center );
+	boundingSphere
+
+	scene.add( gltf.scene );
+	scene.add( sphereHelper );
+
+	window.fit = function() {
+
+		// https://stackoverflow.com/a/44849975
+		const distanceToFit = boundingSphere.radius / ( Math.sin( camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD / 2 ) );
+		cameraControls.moveTo(
+			boundingSphere.center.x,
+			boundingSphere.center.y,
+			boundingSphere.center.z,
+			true
+		);
+		cameraControls.dollyTo( distanceToFit, true );
+		cameraControls.setFocalOffset( 0, 0, 0, true );
+
+	}
+
+	renderer.render( scene, camera );
+
+} );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+
+const _box = new THREE.Box3();
+const _vec3 = new THREE.Vector3();
+function computeBoundingSphere( object3d ) {
+
+	// var meshCount = 0;
+	const points = [];
+	const boundingSphere = new THREE.Sphere();
+	const center = boundingSphere.center;
+
+	// find the center
+	object3d.traverse( function( object ) {
+
+		if ( ! object.isMesh ) return;
+
+		_box.expandByObject( object );
+
+	} );
+	_box.getCenter( center );
+
+	// find the radius
+	var maxRadiusSq = 0;
+	object3d.traverse( function( object ) {
+
+		if ( ! object.isMesh ) return;
+
+		const position = object.geometry.attributes.position;
+
+		for ( var i = 0, l = position.count; i < l; i ++ ) {
+
+			_vec3.fromBufferAttribute( position, i );
+			maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _vec3 ) );
+
+		}
+
+	} );
+
+	boundingSphere.radius = Math.sqrt( maxRadiusSq );
+	return boundingSphere;
+
+}
+</script>
+
+</body>
+</html>
