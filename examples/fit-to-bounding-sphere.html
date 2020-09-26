@@ -42,15 +42,11 @@ scene.add(
 const gridHelper = new THREE.GridHelper( 50, 50 );
 scene.add( gridHelper );
 
-const axesHelper = new THREE.AxesHelper( 2 );
-axesHelper.material.depthTest = false;
-scene.add( axesHelper );
-
 new THREE.GLTFLoader().load( './rubber-duck.glb', function ( gltf ) {
 
 	const boundingSphere = computeBoundingSphere( gltf.scene );
 	const sphereHelper = new THREE.Mesh(
-		new THREE.SphereBufferGeometry( boundingSphere.radius, 8, 8 ),
+		new THREE.SphereBufferGeometry( boundingSphere.radius, 16, 16 ),
 		new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
 	);
 	sphereHelper.position.copy( boundingSphere.center );
@@ -62,7 +58,11 @@ new THREE.GLTFLoader().load( './rubber-duck.glb', function ( gltf ) {
 	window.fit = function() {
 
 		// https://stackoverflow.com/a/44849975
-		const distanceToFit = boundingSphere.radius / ( Math.sin( camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD / 2 ) );
+		const vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const hFOV = 2 * Math.atan( Math.tan( vFOV * 0.5 ) * camera.aspect );
+		const fov = 1 < camera.aspect ? vFOV : hFOV;
+		const distanceToFit = boundingSphere.radius / ( Math.sin( fov * 0.5 ) );
+
 		cameraControls.moveTo(
 			boundingSphere.center.x,
 			boundingSphere.center.y,
