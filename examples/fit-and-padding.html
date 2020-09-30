@@ -12,11 +12,11 @@
 <div class="info">
 	<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
 	<button onclick="rotateTo( 'front' ), cameraControls.reset( true )">reset</button><br>
-	<button onclick="rotateTo( 'front' ), cameraControls.fitTo( mesh, true )">fit front side of the mesh</button><br>
-	<button onclick="rotateTo( 'back' ), cameraControls.fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 1, paddingTop: 2 } )">fit back side with padding(top: 2unit, bottom: 1unit )</button>
-	<button onclick="rotateTo( 'up' ), cameraControls.fitTo( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 0.5, paddingTop: 2 } )">fit up side with padding(top: 2unit, bottom: 0.5unit )</button>
-	<button onclick="rotateTo( 'down' ), cameraControls.fitTo( mesh, true, { paddingLeft: 4, paddingRight: 4, paddingBottom: 4, paddingTop: 4 } )">fit down side with padding(top: 4unit, bottom: 4unit, left: 4unit, right: 4unit )</button>
-	<button onclick="rotateTo( 'right' ), cameraControls.fitTo( mesh, true, { paddingLeft: 1, paddingRight: 0 } )">fit right side with padding(left: 1unit, right: 0unit )</button>
+	<button onclick="rotateTo( 'front' ), cameraControls.fitToBox( mesh, true )">fit front side of the mesh</button><br>
+	<button onclick="rotateTo( 'back' ), cameraControls.fitToBox( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 1, paddingTop: 2 } )">fit back side with padding(top: 2unit, bottom: 1unit )</button>
+	<button onclick="rotateTo( 'up' ), cameraControls.fitToBox( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 0.5, paddingTop: 2 } )">fit up side with padding(top: 2unit, bottom: 0.5unit )</button>
+	<button onclick="rotateTo( 'down' ), cameraControls.fitToBox( mesh, true, { paddingLeft: 4, paddingRight: 4, paddingBottom: 4, paddingTop: 4 } )">fit down side with padding(top: 4unit, bottom: 4unit, left: 4unit, right: 4unit )</button>
+	<button onclick="rotateTo( 'right' ), cameraControls.fitToBox( mesh, true, { paddingLeft: 1, paddingRight: 0 } )">fit right side with padding(left: 1unit, right: 0unit )</button>
 	<button onclick="rotateTo( 'left' ), paddingInCssPixel( 100, 100, 200, 100 )">fit left side with padding in pixel( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
 </div>
 
@@ -133,7 +133,7 @@ function paddingInCssPixel( top, right, bottom, left ) {
 	const boundingHeight = size.y;
 	const boundingDepth = size.z;
 
-	var distanceToFit = cameraControls.getDistanceToFit( boundingWidth, boundingHeight, boundingDepth );
+	var distanceToFit = cameraControls.getDistanceToFitBox( boundingWidth, boundingHeight, boundingDepth );
 	var paddingTop = 0;
 	var paddingBottom = 0;
 	var paddingLeft = 0;
@@ -149,7 +149,7 @@ function paddingInCssPixel( top, right, bottom, left ) {
 		paddingLeft = left * cssPixelToUnit;
 		paddingRight = right * cssPixelToUnit;
 
-		distanceToFit = cameraControls.getDistanceToFit(
+		distanceToFit = cameraControls.getDistanceToFitBox(
 			boundingWidth + paddingLeft + paddingRight,
 			boundingHeight + paddingTop + paddingBottom,
 			boundingDepth
@@ -157,7 +157,7 @@ function paddingInCssPixel( top, right, bottom, left ) {
 
 	}
 
-	cameraControls.fitTo( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop } );
+	cameraControls.fitToBox( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop } );
 
 }
 </script>

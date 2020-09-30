@@ -43,6 +43,7 @@ let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
 let _box3A: _THREE.Box3;
 let _box3B: _THREE.Box3;
+let _sphere: _THREE.Sphere;
 let _quaternionA: _THREE.Quaternion;
 let _quaternionB: _THREE.Quaternion;
 let _rotationMatrix: _THREE.Matrix4;
@@ -67,6 +68,7 @@ export class CameraControls extends EventDispatcher {
 		_sphericalB = new THREE.Spherical();
 		_box3A = new THREE.Box3();
 		_box3B = new THREE.Box3();
+		_sphere = new THREE.Sphere();
 		_quaternionA = new THREE.Quaternion();
 		_quaternionB = new THREE.Quaternion();
 		_rotationMatrix = new THREE.Matrix4();
@@ -961,7 +963,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
+	fitToBox( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
 		paddingLeft = 0,
 		paddingRight = 0,
 		paddingBottom = 0,
@@ -1038,7 +1040,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( isPerspectiveCamera ) {
 
-			const distance = this.getDistanceToFit( bbSize.x, bbSize.y, bbSize.z );
+			const distance = this.getDistanceToFitBox( bbSize.x, bbSize.y, bbSize.z );
 			this.moveTo( center.x, center.y, center.z, enableTransition );
 			this.dollyTo( distance, enableTransition );
 			this.setFocalOffset( 0, 0, 0, enableTransition );
@@ -1056,6 +1058,35 @@ export class CameraControls extends EventDispatcher {
 			return;
 
 		}
+
+	}
+
+	/**
+	 * @deprecated fitTo() has been renamed to fitToBox()
+	 */
+	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, fitToOptions: Partial<FitToOptions> = {} ): void {
+
+		console.warn( 'camera-controls: fitTo() has been renamed to fitToBox()' );
+		this.fitToBox( box3OrObject, enableTransition, fitToOptions );
+
+	}
+
+	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): void {
+
+		const isSphere = sphereOrMesh instanceof THREE.Sphere;
+		const boundingSphere = isSphere ?
+			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
+			createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
+		const distanceToFit = this.getDistanceToFitSphere( boundingSphere.radius );
+
+		this.moveTo(
+			boundingSphere.center.x,
+			boundingSphere.center.y,
+			boundingSphere.center.z,
+			enableTransition,
+		);
+		this.dollyTo( distanceToFit, enableTransition );
+		this.setFocalOffset( 0, 0, 0, enableTransition );
 
 	}
 
@@ -1202,7 +1233,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	getDistanceToFit( width: number, height: number, depth: number ): number {
+	getDistanceToFitBox( width: number, height: number, depth: number ): number {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFit' ) ) return this._spherical.radius;
 
@@ -1213,6 +1244,29 @@ export class CameraControls extends EventDispatcher {
 
 		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
 		return heightToFit * 0.5 / Math.tan( fov * 0.5 ) + depth * 0.5;
+
+	}
+
+	/**
+	 * @deprecated getDistanceToFit() has been renamed to getDistanceToFitBox()
+	 */
+	getDistanceToFit( width: number, height: number, depth: number ): number {
+
+		console.warn( 'camera-controls: getDistanceToFit() has been renamed to getDistanceToFitBox()' );
+		return this.getDistanceToFitBox( width, height, depth );
+
+	}
+
+	getDistanceToFitSphere( radius: number ): number {
+
+		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitSphere' ) ) return this._spherical.radius;
+
+		// https://stackoverflow.com/a/44849975
+		const camera = this._camera as _THREE.PerspectiveCamera;
+		const vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const hFOV = Math.atan( Math.tan( vFOV * 0.5 ) * camera.aspect ) * 2;
+		const fov = 1 < camera.aspect ? vFOV : hFOV;
+		return radius / ( Math.sin( fov * 0.5 ) );
 
 	}
 
@@ -1628,5 +1682,61 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	protected _removeAllEventListeners(): void {}
+
+}
+
+function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): _THREE.Sphere {
+
+	const boundingSphere = out;
+	const center = boundingSphere.center;
+
+	// find the center
+	object3d.traverse( ( object ) => {
+
+		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
+
+		_box3A.expandByObject( object );
+
+	} );
+	_box3A.getCenter( center );
+
+	// find the radius
+	let maxRadiusSq = 0;
+	object3d.traverse( ( object ) => {
+
+		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
+
+		const mesh = ( object as _THREE.Mesh );
+		const geometry = mesh.geometry.clone();
+		geometry.applyMatrix4( mesh.matrixWorld );
+
+		if ( ( mesh.geometry as _THREE.BufferGeometry ).isBufferGeometry ) {
+
+			const bufferGeometry = geometry as _THREE.BufferGeometry;
+			const position = bufferGeometry.attributes.position as _THREE.BufferAttribute;
+
+			for ( let i = 0, l = position.count; i < l; i ++ ) {
+
+				_v3A.fromBufferAttribute( position, i );
+				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
+
+			}
+
+		} else {
+
+			const vertices = ( geometry as _THREE.Geometry ).vertices;
+
+			for ( let i = 0, l = vertices.length; i < l; i ++ ) {
+
+				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( vertices[ i ] ) );
+
+			}
+
+		}
+
+	} );
+
+	boundingSphere.radius = Math.sqrt( maxRadiusSq );
+	return boundingSphere;
 
 }
