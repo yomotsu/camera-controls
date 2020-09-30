@@ -57,20 +57,7 @@ new THREE.GLTFLoader().load( './rubber-duck.glb', function ( gltf ) {
 
 	window.fit = function() {
 
-		// https://stackoverflow.com/a/44849975
-		const vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
-		const hFOV = 2 * Math.atan( Math.tan( vFOV * 0.5 ) * camera.aspect );
-		const fov = 1 < camera.aspect ? vFOV : hFOV;
-		const distanceToFit = boundingSphere.radius / ( Math.sin( fov * 0.5 ) );
-
-		cameraControls.moveTo(
-			boundingSphere.center.x,
-			boundingSphere.center.y,
-			boundingSphere.center.z,
-			true
-		);
-		cameraControls.dollyTo( distanceToFit, true );
-		cameraControls.setFocalOffset( 0, 0, 0, true );
+		cameraControls.fitToSphere( gltf.scene, true );
 
 	}
 

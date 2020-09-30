@@ -298,9 +298,9 @@ Move `target` position to given point.
 
 ---
 
-#### `fitTo( box3OrMesh, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
+#### `fitToBox( box3OrMesh, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
 
-Fit the viewport to the object bounding box or the bounding box itself, using the nearest axis. paddings are in unit.
+Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
 
 | Name                    | Type                         | Description |
 | ----------------------- | ---------------------------- | ----------- |
@@ -311,6 +311,17 @@ Fit the viewport to the object bounding box or the bounding box itself, using th
 | `options.paddingRight`  | `number`                     | Padding right. Default is `0` |
 | `options.paddingBottom` | `number`                     | Padding bottom. Default is `0` |
 | `options.paddingLeft`   | `number`                     | Padding left. Default is `0` |
+
+---
+
+#### `fitToSphere( sphereOrMesh, enableTransition )`
+
+Fit the viewport to the sphere or the bounding sphere of the object.
+
+| Name               | Type                           | Description |
+| ------------------ | ------------------------------ | ----------- |
+| `sphereOrMesh`     | `THREE.Sphere` \| `THREE.Mesh` | bounding sphere to fit the view. |
+| `enableTransition` | `boolean`                      | Whether to move smoothly or immediately |
 
 ---
 
