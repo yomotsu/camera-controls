@@ -439,7 +439,17 @@ Return its current position.
 
 #### `getTarget( out )`
 
-Return its current gazing target which is the center position of the orbit.
+Return its current gazing target, which is the center position of the orbit.
+
+| Name  | Type            | Description |
+| ----- | --------------- | ----------- |
+| `out` | `THREE.Vector3` | The receiving vector |
+
+---
+
+#### `getFocalOffset( out )`
+
+Return its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
 
 | Name  | Type            | Description |
 | ----- | --------------- | ----------- |
