@@ -974,6 +974,13 @@ export class CameraControls extends EventDispatcher {
 			? _box3A.copy( box3OrObject as _THREE.Box3 )
 			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
 
+		if ( aabb.isEmpty() )  {
+
+			console.warn( 'camera-controls: fitTo() cannot be used with an empty box. Aborting' );
+			return;
+
+		}
+
 		// round to closest axis ( forward | backward | right | left | top | bottom )
 		const theta = roundToStep( this._sphericalEnd.theta, PI_HALF );
 		const phi   = roundToStep( this._sphericalEnd.phi,   PI_HALF );
