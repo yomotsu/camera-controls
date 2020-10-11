@@ -89,6 +89,7 @@ export declare class CameraControls extends EventDispatcher {
     getDistanceToFitSphere(radius: number): number;
     getTarget(out: _THREE.Vector3): _THREE.Vector3;
     getPosition(out: _THREE.Vector3): _THREE.Vector3;
+    getFocalOffset(out: _THREE.Vector3): _THREE.Vector3;
     normalizeRotations(): void;
     reset(enableTransition?: boolean): void;
     saveState(): void;

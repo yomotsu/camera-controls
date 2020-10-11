@@ -758,6 +758,10 @@
 	        var aabb = box3OrObject.isBox3
 	            ? _box3A.copy(box3OrObject)
 	            : _box3A.setFromObject(box3OrObject);
+	        if (aabb.isEmpty()) {
+	            console.warn('camera-controls: fitTo() cannot be used with an empty box. Aborting');
+	            return;
+	        }
 	        var theta = roundToStep(this._sphericalEnd.theta, PI_HALF);
 	        var phi = roundToStep(this._sphericalEnd.phi, PI_HALF);
 	        this.rotateTo(theta, phi, enableTransition);
@@ -931,6 +935,10 @@
 	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 	        return _out.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).add(this._targetEnd);
 	    };
+	    CameraControls.prototype.getFocalOffset = function (out) {
+	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
+	        return _out.copy(this._focalOffsetEnd);
+	    };
 	    CameraControls.prototype.normalizeRotations = function () {
 	        this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
 	        if (this._sphericalEnd.theta < 0)
@@ -1065,9 +1073,11 @@
 	            target: this._targetEnd.toArray(),
 	            position: _v3A.setFromSpherical(this._sphericalEnd).add(this._targetEnd).toArray(),
 	            zoom: this._zoomEnd,
+	            focalOffset: this._focalOffsetEnd.toArray(),
 	            target0: this._target0.toArray(),
 	            position0: this._position0.toArray(),
 	            zoom0: this._zoom0,
+	            focalOffset0: this._focalOffset0.toArray(),
 	        });
 	    };
 	    CameraControls.prototype.fromJSON = function (json, enableTransition) {
@@ -1092,10 +1102,12 @@
 	        this._target0.fromArray(obj.target0);
 	        this._position0.fromArray(obj.position0);
 	        this._zoom0 = obj.zoom0;
+	        this._focalOffset0.fromArray(obj.focalOffset0);
 	        this.moveTo(obj.target[0], obj.target[1], obj.target[2], enableTransition);
 	        _sphericalA.setFromVector3(position.sub(this._targetEnd).applyQuaternion(this._yAxisUpSpace));
 	        this.rotateTo(_sphericalA.theta, _sphericalA.phi, enableTransition);
 	        this.zoomTo(obj.zoom, enableTransition);
+	        this.setFocalOffset(obj.focalOffset[0], obj.focalOffset[1], obj.focalOffset[2], enableTransition);
 	        this._needsUpdate = true;
 	    };
 	    CameraControls.prototype.dispose = function () {
