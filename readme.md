@@ -30,7 +30,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [camera shake effect](https://yomotsu.github.io/camera-controls/examples/effect-shake.html)
 - [rotate with duration and easing](https://yomotsu.github.io/camera-controls/examples/easing.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
-
+- [dragging outside the iframe](https://yomotsu.github.io/camera-controls/examples/iframe.html)
 
 ## Usage
 
