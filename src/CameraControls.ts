@@ -355,9 +355,9 @@ export class CameraControls extends EventDispatcher {
 
 				if ( ! this._enabled ) return;
 
-				event.preventDefault();
-
-				const prevState = this._state;
+				// Don't call `event.preventDefault()` on the mousedown event
+				// to keep receiving mousemove evens outside dragging iframe
+				// https://taye.me/blog/tips/2015/11/16/mouse-drag-outside-iframe/
 				cancelDragging();
 
 				switch ( event.button ) {
@@ -379,11 +379,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				if ( prevState !== this._state ) {
-
-					startDragging( event );
-
-				}
+				startDragging( event );
 
 			};
 
@@ -391,9 +387,6 @@ export class CameraControls extends EventDispatcher {
 
 				if ( ! this._enabled ) return;
 
-				event.preventDefault();
-
-				const prevState = this._state;
 				cancelDragging();
 
 				switch ( event.touches.length ) {
@@ -415,11 +408,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				if ( prevState !== this._state ) {
-
-					startDragging( event );
-
-				}
+				startDragging( event );
 
 			};
 
@@ -508,8 +497,6 @@ export class CameraControls extends EventDispatcher {
 			const startDragging = ( event: Event ): void => {
 
 				if ( ! this._enabled ) return;
-
-				event.preventDefault();
 
 				extractClientCoordFromEvent( event, _v2 );
 
