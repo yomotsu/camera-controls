@@ -323,8 +323,6 @@ var CameraControls = (function (_super) {
             var onMouseDown_1 = function (event) {
                 if (!_this._enabled)
                     return;
-                event.preventDefault();
-                var prevState = _this._state;
                 cancelDragging_1();
                 switch (event.button) {
                     case THREE.MOUSE.LEFT:
@@ -337,15 +335,11 @@ var CameraControls = (function (_super) {
                         _this._state = _this.mouseButtons.right;
                         break;
                 }
-                if (prevState !== _this._state) {
-                    startDragging_1(event);
-                }
+                startDragging_1(event);
             };
             var onTouchStart_1 = function (event) {
                 if (!_this._enabled)
                     return;
-                event.preventDefault();
-                var prevState = _this._state;
                 cancelDragging_1();
                 switch (event.touches.length) {
                     case 1:
@@ -358,9 +352,7 @@ var CameraControls = (function (_super) {
                         _this._state = _this.touches.three;
                         break;
                 }
-                if (prevState !== _this._state) {
-                    startDragging_1(event);
-                }
+                startDragging_1(event);
             };
             var lastScrollTimeStamp_1 = -1;
             var onMouseWheel_1 = function (event) {
@@ -414,7 +406,6 @@ var CameraControls = (function (_super) {
             var startDragging_1 = function (event) {
                 if (!_this._enabled)
                     return;
-                event.preventDefault();
                 extractClientCoordFromEvent(event, _v2);
                 _this._getClientRect(elementRect_1);
                 dragStartPosition_1.copy(_v2);
