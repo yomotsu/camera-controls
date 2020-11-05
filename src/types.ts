@@ -50,6 +50,9 @@ export interface FitToOptions {
 	paddingRight : number;
 	paddingBottom: number;
 	paddingTop   : number;
+	nearAxis     : boolean;	
+	theta        : number;
+	phi          : number;
 }
 
 export interface CameraControlsEventMap {

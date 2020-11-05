@@ -954,9 +954,11 @@ export class CameraControls extends EventDispatcher {
 		paddingLeft = 0,
 		paddingRight = 0,
 		paddingBottom = 0,
-		paddingTop = 0
+		paddingTop = 0,
+		nearAxis = true,
+		theta = 0,
+		phi = 0
 	}: Partial<FitToOptions> = {} ): void {
-
 		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
 			? _box3A.copy( box3OrObject as _THREE.Box3 )
 			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
@@ -968,11 +970,13 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		// round to closest axis ( forward | backward | right | left | top | bottom )
-		const theta = roundToStep( this._sphericalEnd.theta, PI_HALF );
-		const phi   = roundToStep( this._sphericalEnd.phi,   PI_HALF );
-
+		if(nearAxis){
+			// round to closest axis ( forward | backward | right | left | top | bottom )
+			theta = roundToStep( this._sphericalEnd.theta, PI_HALF );
+			phi   = roundToStep( this._sphericalEnd.phi,   PI_HALF );
+		} 
 		this.rotateTo( theta, phi, enableTransition );
+
 
 		const normal = _v3A.setFromSpherical( this._sphericalEnd ).normalize();
 		const rotation = _quaternionA.setFromUnitVectors( normal, _AXIS_Z );
