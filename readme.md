@@ -311,6 +311,9 @@ Fit the viewport to the box or the bounding box of the object, using the nearest
 | `options.paddingRight`  | `number`                     | Padding right. Default is `0` |
 | `options.paddingBottom` | `number`                     | Padding bottom. Default is `0` |
 | `options.paddingLeft`   | `number`                     | Padding left. Default is `0` |
+| `options.nearAxis`   | `boolean`                     | Whether to rotate to nearest axis. Default is `true` |
+| `options.theta`   | `number`                     | When nearAxis is false, rotate Azimuth angle to given theta. Default is 0 |
+| `options.phi`   | `number`                     | When nearAxis is false, rotate Polar angle to given phi. Default is 0 |
 
 ---
 
