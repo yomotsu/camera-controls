@@ -1,6 +1,6 @@
 {
   "name": "camera-controls",
-  "version": "1.25.1",
+  "version": "1.25.2",
   "author": "Yomotsu",
   "license": "MIT",
   "main": "dist/camera-controls.js",
