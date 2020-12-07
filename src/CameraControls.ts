@@ -21,6 +21,7 @@ import {
 import { isTouchEvent } from './utils/isTouchEvent';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
+import { quatInvertCompat } from 'utils/quatInvertCompat';
 import { EventDispatcher, Listener } from './EventDispatcher';
 
 const isBrowser = typeof window !== 'undefined';
@@ -172,7 +173,7 @@ export class CameraControls extends EventDispatcher {
 
 		this._camera = camera;
 		this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
-		this._yAxisUpSpaceInverse = this._yAxisUpSpace.clone().inverse();
+		this._yAxisUpSpaceInverse = quatInvertCompat( this._yAxisUpSpace.clone() );
 		this._state = ACTION.NONE;
 
 		this._domElement = domElement;
@@ -1321,7 +1322,7 @@ export class CameraControls extends EventDispatcher {
 	updateCameraUp(): void {
 
 		this._yAxisUpSpace.setFromUnitVectors( this._camera.up, _AXIS_Y );
-		this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ).inverse();
+		quatInvertCompat( this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ) );
 
 	}
 
