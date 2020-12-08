@@ -116,6 +116,16 @@
 	    return false;
 	}
 
+	function quatInvertCompat(target) {
+	    if (target.invert) {
+	        target.invert();
+	    }
+	    else {
+	        target.inverse();
+	    }
+	    return target;
+	}
+
 	var EventDispatcher = (function () {
 	    function EventDispatcher() {
 	        this._listeners = {};
@@ -219,7 +229,7 @@
 	        }
 	        _this._camera = camera;
 	        _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
-	        _this._yAxisUpSpaceInverse = _this._yAxisUpSpace.clone().inverse();
+	        _this._yAxisUpSpaceInverse = quatInvertCompat(_this._yAxisUpSpace.clone());
 	        _this._state = ACTION.NONE;
 	        _this._domElement = domElement;
 	        _this._target = new THREE.Vector3();
@@ -949,7 +959,7 @@
 	    };
 	    CameraControls.prototype.updateCameraUp = function () {
 	        this._yAxisUpSpace.setFromUnitVectors(this._camera.up, _AXIS_Y);
-	        this._yAxisUpSpaceInverse.copy(this._yAxisUpSpace).inverse();
+	        quatInvertCompat(this._yAxisUpSpaceInverse.copy(this._yAxisUpSpace));
 	    };
 	    CameraControls.prototype.update = function (delta) {
 	        var dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
