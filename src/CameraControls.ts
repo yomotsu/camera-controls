@@ -1,4 +1,26 @@
-import type * as _THREE from 'three';
+import {
+	Vector2,
+	Vector3,
+	Vector4,
+	Matrix4,
+	Box3,
+	Quaternion,
+	Raycaster,
+	MathUtils,
+	MOUSE,
+	
+	PerspectiveCamera,
+	OrthographicCamera,
+	
+	BufferAttribute,
+	BufferGeometry,
+	Geometry,
+	Mesh,
+	Object3D,
+	Sphere,
+	Spherical,
+
+} from 'three';
 import {
 	ACTION,
 	MouseButtons,
@@ -29,53 +51,27 @@ const isMac = isBrowser && /Mac/.test( navigator.platform );
 const readonlyACTION = Object.freeze( ACTION );
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 
-let THREE: any;
-let _ORIGIN: _THREE.Vector3;
-let _AXIS_Y: _THREE.Vector3;
-let _AXIS_Z: _THREE.Vector3;
-let _v2: _THREE.Vector2;
-let _v3A: _THREE.Vector3;
-let _v3B: _THREE.Vector3;
-let _v3C: _THREE.Vector3;
-let _xColumn: _THREE.Vector3;
-let _yColumn: _THREE.Vector3;
-let _zColumn: _THREE.Vector3;
-let _sphericalA: _THREE.Spherical;
-let _sphericalB: _THREE.Spherical;
-let _box3A: _THREE.Box3;
-let _box3B: _THREE.Box3;
-let _sphere: _THREE.Sphere;
-let _quaternionA: _THREE.Quaternion;
-let _quaternionB: _THREE.Quaternion;
-let _rotationMatrix: _THREE.Matrix4;
-let _raycaster: _THREE.Raycaster;
+let _ORIGIN = Object.freeze(new Vector3(0, 0, 0));
+let _AXIS_Y = Object.freeze(new Vector3(0, 1, 0));
+let _AXIS_Z = Object.freeze(new Vector3(0, 0, 1));
+let _v2 = new Vector2();
+let _v3A = new Vector3();
+let _v3B = new Vector3();
+let _v3C = new Vector3();
+let _xColumn = new Vector3();
+let _yColumn = new Vector3();
+let _zColumn = new Vector3();
+let _sphericalA = new Spherical();
+let _sphericalB = new Spherical();
+let _box3A = new Box3();
+let _box3B = new Box3();
+let _sphere = new Sphere();
+let _quaternionA = new Quaternion();
+let _quaternionB = new Quaternion();
+let _rotationMatrix = new Matrix4();
+let _raycaster = new Raycaster();
 
 export class CameraControls extends EventDispatcher {
-
-	static install( libs: any ): void {
-
-		THREE = libs.THREE;
-		_ORIGIN = Object.freeze( new THREE.Vector3( 0, 0, 0 ) );
-		_AXIS_Y = Object.freeze( new THREE.Vector3( 0, 1, 0 ) );
-		_AXIS_Z = Object.freeze( new THREE.Vector3( 0, 0, 1 ) );
-		_v2 = new THREE.Vector2();
-		_v3A = new THREE.Vector3();
-		_v3B = new THREE.Vector3();
-		_v3C = new THREE.Vector3();
-		_xColumn = new THREE.Vector3();
-		_yColumn = new THREE.Vector3();
-		_zColumn = new THREE.Vector3();
-		_sphericalA = new THREE.Spherical();
-		_sphericalB = new THREE.Spherical();
-		_box3A = new THREE.Box3();
-		_box3B = new THREE.Box3();
-		_sphere = new THREE.Sphere();
-		_quaternionA = new THREE.Quaternion();
-		_quaternionB = new THREE.Quaternion();
-		_rotationMatrix = new THREE.Matrix4();
-		_raycaster = new THREE.Raycaster();
-
-	}
 
 	static get ACTION(): Readonly<typeof ACTION> {
 
@@ -108,7 +104,7 @@ export class CameraControls extends EventDispatcher {
 
 	boundaryFriction = 0.0;
 
-	colliderMeshes: _THREE.Object3D[] = [];
+	colliderMeshes: Object3D[] = [];
 
 	// button configs
 	mouseButtons: MouseButtons;
@@ -117,76 +113,76 @@ export class CameraControls extends EventDispatcher {
 	cancel: () => void = () => {};
 
 	protected _enabled = true;
-	protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
-	protected _yAxisUpSpace: _THREE.Quaternion;
-	protected _yAxisUpSpaceInverse: _THREE.Quaternion;
+	protected _camera: PerspectiveCamera | OrthographicCamera;
+	protected _yAxisUpSpace: Quaternion;
+	protected _yAxisUpSpaceInverse: Quaternion;
 	protected _state: ACTION = ACTION.NONE;
 
 	protected _domElement: HTMLElement;
-	protected _viewport: _THREE.Vector4 | null = null;
+	protected _viewport: Vector4 | null = null;
 
 	// the location of focus, where the object orbits around
-	protected _target: _THREE.Vector3;
-	protected _targetEnd: _THREE.Vector3;
+	protected _target: Vector3;
+	protected _targetEnd: Vector3;
 
-	protected _focalOffset: _THREE.Vector3;
-	protected _focalOffsetEnd: _THREE.Vector3;
+	protected _focalOffset: Vector3;
+	protected _focalOffsetEnd: Vector3;
 
 	// rotation and dolly distance
-	protected _spherical: _THREE.Spherical;
-	protected _sphericalEnd: _THREE.Spherical;
+	protected _spherical: Spherical;
+	protected _sphericalEnd: Spherical;
 
 	protected _zoom: number;
 	protected _zoomEnd: number;
 
 	// reset
-	protected _target0: _THREE.Vector3;
-	protected _position0: _THREE.Vector3;
+	protected _target0: Vector3;
+	protected _position0: Vector3;
 	protected _zoom0: number;
-	protected _focalOffset0: _THREE.Vector3;
+	protected _focalOffset0: Vector3;
 
 	protected _dollyControlAmount = 0;
-	protected _dollyControlCoord: _THREE.Vector2;
+	protected _dollyControlCoord: Vector2;
 
 	// collisionTest uses nearPlane. ( PerspectiveCamera only )
-	protected _nearPlaneCorners: _THREE.Vector3[];
+	protected _nearPlaneCorners: Vector3[];
 
-	protected _boundary: _THREE.Box3;
+	protected _boundary: Box3;
 	protected _boundaryEnclosesCamera = false;
 
 	protected _needsUpdate = true;
 	protected _updatedLastTime = false;
 
 	constructor(
-		camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera,
+		camera: PerspectiveCamera | OrthographicCamera,
 		domElement: HTMLElement,
 	) {
 
 		super();
 
-		// Check if the user has installed THREE
-		if ( typeof THREE === 'undefined' ) {
+		// // Check if the user has installed THREE
+		// if ( typeof THREE === 'undefined' ) {
 
-			console.error( 'camera-controls: `THREE` is undefined. You must first run `CameraControls.install( { THREE: THREE } )`. Check the docs for further information.' );
+		// 	console.error( 'camera-controls: `THREE` is undefined. You must first run `CameraControls.install( { THREE: THREE } )`. Check the docs for further information.' );
 
-		}
+		// }
 
 		this._camera = camera;
-		this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
+		this._yAxisUpSpace = new Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
 		this._yAxisUpSpaceInverse = quatInvertCompat( this._yAxisUpSpace.clone() );
 		this._state = ACTION.NONE;
 
 		this._domElement = domElement;
 
 		// the location
-		this._target = new THREE.Vector3();
+		this._target = new Vector3();
 		this._targetEnd = this._target.clone();
 
-		this._focalOffset = new THREE.Vector3();
+		this._focalOffset = new Vector3();
 		this._focalOffsetEnd = this._focalOffset.clone();
 
 		// rotation
-		this._spherical = new THREE.Spherical().setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
+		this._spherical = new Spherical().setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
 
 		this._zoom = this._camera.zoom;
@@ -194,17 +190,17 @@ export class CameraControls extends EventDispatcher {
 
 		// collisionTest uses nearPlane.s
 		this._nearPlaneCorners = [
-			new THREE.Vector3() as _THREE.Vector3,
-			new THREE.Vector3() as _THREE.Vector3,
-			new THREE.Vector3() as _THREE.Vector3,
-			new THREE.Vector3() as _THREE.Vector3,
+			new Vector3() as Vector3,
+			new Vector3() as Vector3,
+			new Vector3() as Vector3,
+			new Vector3() as Vector3,
 		];
 		this._updateNearPlaneCorners();
 
 		// Target cannot move outside of this box
-		this._boundary = new THREE.Box3(
-			new THREE.Vector3( - Infinity, - Infinity, - Infinity ),
-			new THREE.Vector3(   Infinity,   Infinity,   Infinity ),
+		this._boundary = new Box3(
+			new Vector3( - Infinity, - Infinity, - Infinity ),
+			new Vector3(   Infinity,   Infinity,   Infinity ),
 		);
 
 		// reset
@@ -214,7 +210,7 @@ export class CameraControls extends EventDispatcher {
 		this._focalOffset0 = this._focalOffset.clone();
 
 		this._dollyControlAmount = 0;
-		this._dollyControlCoord = new THREE.Vector2();
+		this._dollyControlCoord = new Vector2();
 
 		// configs
 		this.mouseButtons = {
@@ -222,8 +218,8 @@ export class CameraControls extends EventDispatcher {
 			middle: ACTION.DOLLY,
 			right: ACTION.TRUCK,
 			wheel:
-				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.DOLLY :
-				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
+				( this._camera as PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.DOLLY :
+				( this._camera as OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
 				ACTION.NONE,
 			// We can also add shiftLeft, altLeft and etc if someone wants...
 		};
@@ -231,28 +227,28 @@ export class CameraControls extends EventDispatcher {
 		this.touches = {
 			one: ACTION.TOUCH_ROTATE,
 			two:
-				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.TOUCH_DOLLY_TRUCK :
-				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
+				( this._camera as PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.TOUCH_DOLLY_TRUCK :
+				( this._camera as OrthographicCamera ).isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
 		};
 
 		if ( this._domElement ) {
 
-			const dragStartPosition = new THREE.Vector2() as _THREE.Vector2;
-			const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
-			const dollyStart = new THREE.Vector2() as _THREE.Vector2;
-			const elementRect = new THREE.Vector4() as _THREE.Vector4;
+			const dragStartPosition = new Vector2() as Vector2;
+			const lastDragPosition = new Vector2() as Vector2;
+			const dollyStart = new Vector2() as Vector2;
+			const elementRect = new Vector4() as Vector4;
 
 			const truckInternal = ( deltaX: number, deltaY: number, dragToOffset: boolean ): void => {
 
-				if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
+				if ( ( this._camera as PerspectiveCamera ).isPerspectiveCamera ) {
 
-					const camera = this._camera as _THREE.PerspectiveCamera;
+					const camera = this._camera as PerspectiveCamera;
 
 					const offset = _v3A.copy( camera.position ).sub( this._target );
 					// half of the fov is center to top of screen
-					const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+					const fov = camera.getEffectiveFOV() * MathUtils.DEG2RAD;
 					const targetDistance = offset.length() * Math.tan( fov * 0.5 );
 					const truckX    = ( this.truckSpeed * deltaX * targetDistance / elementRect.w );
 					const pedestalY = ( this.truckSpeed * deltaY * targetDistance / elementRect.w );
@@ -281,10 +277,10 @@ export class CameraControls extends EventDispatcher {
 
 					}
 
-				} else if ( ( this._camera as _THREE.OrthographicCamera ).isOrthographicCamera ) {
+				} else if ( ( this._camera as OrthographicCamera ).isOrthographicCamera ) {
 
 					// orthographic
-					const camera = this._camera as _THREE.OrthographicCamera;
+					const camera = this._camera as OrthographicCamera;
 					const truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / elementRect.z;
 					const pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / elementRect.w;
 					dragToOffset ?
@@ -363,17 +359,17 @@ export class CameraControls extends EventDispatcher {
 
 				switch ( event.button ) {
 
-					case THREE.MOUSE.LEFT:
+					case MOUSE.LEFT:
 
 						this._state = this.mouseButtons.left;
 						break;
 
-					case THREE.MOUSE.MIDDLE:
+					case MOUSE.MIDDLE:
 
 						this._state = this.mouseButtons.middle;
 						break;
 
-					case THREE.MOUSE.RIGHT:
+					case MOUSE.RIGHT:
 
 						this._state = this.mouseButtons.right;
 						break;
@@ -830,8 +826,8 @@ export class CameraControls extends EventDispatcher {
 	// polarAngle in radian
 	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): void {
 
-		const theta = THREE.MathUtils.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
-		const phi   = THREE.MathUtils.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
+		const theta = MathUtils.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
+		const phi   = MathUtils.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
 
 		this._sphericalEnd.theta = theta;
 		this._sphericalEnd.phi   = phi;
@@ -858,7 +854,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'dolly' ) ) return;
 
-		this._sphericalEnd.radius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
+		this._sphericalEnd.radius = MathUtils.clamp( distance, this.minDistance, this.maxDistance );
 
 		if ( ! enableTransition ) {
 
@@ -878,7 +874,7 @@ export class CameraControls extends EventDispatcher {
 
 	zoomTo( zoom: number, enableTransition: boolean = false ): void {
 
-		this._zoomEnd = THREE.MathUtils.clamp( zoom, this.minZoom, this.maxZoom );
+		this._zoomEnd = MathUtils.clamp( zoom, this.minZoom, this.maxZoom );
 
 		if ( ! enableTransition ) {
 
@@ -951,16 +947,16 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	fitToBox( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
+	fitToBox( box3OrObject: Box3 | Object3D, enableTransition: boolean, {
 		paddingLeft = 0,
 		paddingRight = 0,
 		paddingBottom = 0,
 		paddingTop = 0
 	}: Partial<FitToOptions> = {} ): void {
 
-		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
-			? _box3A.copy( box3OrObject as _THREE.Box3 )
-			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
+		const aabb = ( box3OrObject as Box3 ).isBox3
+			? _box3A.copy( box3OrObject as Box3 )
+			: _box3A.setFromObject( box3OrObject as Object3D );
 
 		if ( aabb.isEmpty() )  {
 
@@ -1030,8 +1026,8 @@ export class CameraControls extends EventDispatcher {
 		const bbSize = bb.getSize( _v3A );
 		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
 
-		const isPerspectiveCamera  = ( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera;
-		const isOrthographicCamera = ( this._camera as THREE.OrthographicCamera ).isOrthographicCamera;
+		const isPerspectiveCamera  = ( this._camera as PerspectiveCamera  ).isPerspectiveCamera;
+		const isOrthographicCamera = ( this._camera as OrthographicCamera ).isOrthographicCamera;
 
 		if ( isPerspectiveCamera ) {
 
@@ -1043,7 +1039,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else if ( isOrthographicCamera ) {
 
-			const camera = ( this._camera as THREE.OrthographicCamera );
+			const camera = ( this._camera as OrthographicCamera );
 			const width = camera.right - camera.left;
 			const height = camera.top - camera.bottom;
 			const zoom = Math.min( width / bbSize.x, height / bbSize.y );
@@ -1059,19 +1055,19 @@ export class CameraControls extends EventDispatcher {
 	/**
 	 * @deprecated fitTo() has been renamed to fitToBox()
 	 */
-	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, fitToOptions: Partial<FitToOptions> = {} ): void {
+	fitTo( box3OrObject: Box3 | Object3D, enableTransition: boolean, fitToOptions: Partial<FitToOptions> = {} ): void {
 
 		console.warn( 'camera-controls: fitTo() has been renamed to fitToBox()' );
 		this.fitToBox( box3OrObject, enableTransition, fitToOptions );
 
 	}
 
-	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): void {
+	fitToSphere( sphereOrMesh: Sphere | Object3D, enableTransition: boolean ): void {
 
-		const isSphere = sphereOrMesh instanceof THREE.Sphere;
+		const isSphere = sphereOrMesh instanceof Sphere;
 		const boundingSphere = isSphere ?
-			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
-			createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
+			_sphere.copy( sphereOrMesh as Sphere ) :
+			createBoundingSphere( sphereOrMesh as Object3D, _sphere );
 		const distanceToFit = this.getDistanceToFitSphere( boundingSphere.radius );
 
 		this.moveTo(
@@ -1186,7 +1182,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	setBoundary( box3: _THREE.Box3 ): void {
+	setBoundary( box3: Box3 ): void {
 
 		if ( ! box3 ) {
 
@@ -1204,7 +1200,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	setViewport( viewportOrX: _THREE.Vector4 | number | null, y: number, width: number, height: number ): void {
+	setViewport( viewportOrX: Vector4 | number | null, y: number, width: number, height: number ): void {
 
 		if ( viewportOrX === null ) { // null
 
@@ -1214,7 +1210,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._viewport = this._viewport as _THREE.Vector4 || new THREE.Vector4() as _THREE.Vector4;
+		this._viewport = this._viewport as Vector4 || new Vector4() as Vector4;
 
 		if ( typeof viewportOrX === 'number' ) { // number
 
@@ -1232,9 +1228,9 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFit' ) ) return this._spherical.radius;
 
-		const camera = this._camera as _THREE.PerspectiveCamera;
+		const camera = this._camera as PerspectiveCamera;
 		const boundingRectAspect = width / height;
-		const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const fov = camera.getEffectiveFOV() * MathUtils.DEG2RAD;
 		const aspect = camera.aspect;
 
 		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
@@ -1257,31 +1253,31 @@ export class CameraControls extends EventDispatcher {
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitSphere' ) ) return this._spherical.radius;
 
 		// https://stackoverflow.com/a/44849975
-		const camera = this._camera as _THREE.PerspectiveCamera;
-		const vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const camera = this._camera as PerspectiveCamera;
+		const vFOV = camera.getEffectiveFOV() * MathUtils.DEG2RAD;
 		const hFOV = Math.atan( Math.tan( vFOV * 0.5 ) * camera.aspect ) * 2;
 		const fov = 1 < camera.aspect ? vFOV : hFOV;
 		return radius / ( Math.sin( fov * 0.5 ) );
 
 	}
 
-	getTarget( out: _THREE.Vector3 ): _THREE.Vector3 {
+	getTarget( out: Vector3 ): Vector3 {
 
-		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
+		const _out = !! out && out.isVector3 ? out : new Vector3() as Vector3;
 		return _out.copy( this._targetEnd );
 
 	}
 
-	getPosition( out: _THREE.Vector3 ): _THREE.Vector3 {
+	getPosition( out: Vector3 ): Vector3 {
 
-		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
+		const _out = !! out && out.isVector3 ? out : new Vector3() as Vector3;
 		return _out.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._targetEnd );
 
 	}
 
-	getFocalOffset( out: _THREE.Vector3 ): _THREE.Vector3 {
+	getFocalOffset( out: Vector3 ): Vector3 {
 
-		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
+		const _out = !! out && out.isVector3 ? out : new Vector3() as Vector3;
 		return _out.copy( this._focalOffsetEnd );
 
 	}
@@ -1370,14 +1366,14 @@ export class CameraControls extends EventDispatcher {
 
 		if ( this._dollyControlAmount !== 0 ) {
 
-			if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
+			if ( ( this._camera as PerspectiveCamera ).isPerspectiveCamera ) {
 
-				const camera = this._camera as _THREE.PerspectiveCamera;
+				const camera = this._camera as PerspectiveCamera;
 				const direction = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
 				const planeX = _v3B.copy( direction ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, direction );
-				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5 );
+				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * MathUtils.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const cursor = _v3A.copy( this._targetEnd )
@@ -1547,7 +1543,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	protected _encloseToBoundary( position: _THREE.Vector3, offset: _THREE.Vector3, friction: number ): _THREE.Vector3 {
+	protected _encloseToBoundary( position: Vector3, offset: Vector3, friction: number ): Vector3 {
 
 		const offsetLength2 = offset.lengthSq();
 
@@ -1592,9 +1588,9 @@ export class CameraControls extends EventDispatcher {
 
 		if ( ( this._camera as any ).isPerspectiveCamera )  {
 
-			const camera = this._camera as _THREE.PerspectiveCamera;
+			const camera = this._camera as PerspectiveCamera;
 			const near = camera.near;
-			const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+			const fov = camera.getEffectiveFOV() * MathUtils.DEG2RAD;
 			const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
 			const widthHalf = heightHalf * camera.aspect; // near plain half width
 			this._nearPlaneCorners[ 0 ].set( - widthHalf, - heightHalf, 0 );
@@ -1604,7 +1600,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else if ( ( this._camera as any ).isOrthographicCamera ) {
 
-			const camera = this._camera as _THREE.OrthographicCamera;
+			const camera = this._camera as OrthographicCamera;
 			const zoomInv = 1 / camera.zoom;
 			const left   = camera.left   * zoomInv;
 			const right  = camera.right  * zoomInv;
@@ -1660,9 +1656,9 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Get its client rect and package into given `THREE.Vector4` .
+	 * Get its client rect and package into given `Vector4` .
 	 */
-	protected _getClientRect( target: _THREE.Vector4 ): _THREE.Vector4 {
+	protected _getClientRect( target: Vector4 ): Vector4 {
 
 		const rect = this._domElement.getBoundingClientRect();
 
@@ -1691,7 +1687,7 @@ export class CameraControls extends EventDispatcher {
 
 }
 
-function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): _THREE.Sphere {
+function createBoundingSphere( object3d: Object3D, out: Sphere ): Sphere {
 
 	const boundingSphere = out;
 	const center = boundingSphere.center;
@@ -1699,7 +1695,7 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 	// find the center
 	object3d.traverse( ( object ) => {
 
-		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
+		if ( ! ( object as Mesh ).isMesh ) return;
 
 		_box3A.expandByObject( object );
 
@@ -1710,16 +1706,16 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 	let maxRadiusSq = 0;
 	object3d.traverse( ( object ) => {
 
-		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
+		if ( ! ( object as Mesh ).isMesh ) return;
 
-		const mesh = ( object as _THREE.Mesh );
+		const mesh = ( object as Mesh );
 		const geometry = mesh.geometry.clone();
 		geometry.applyMatrix4( mesh.matrixWorld );
 
-		if ( ( mesh.geometry as _THREE.BufferGeometry ).isBufferGeometry ) {
+		if ( ( mesh.geometry as BufferGeometry ).isBufferGeometry ) {
 
-			const bufferGeometry = geometry as _THREE.BufferGeometry;
-			const position = bufferGeometry.attributes.position as _THREE.BufferAttribute;
+			const bufferGeometry = geometry as BufferGeometry;
+			const position = bufferGeometry.attributes.position as BufferAttribute;
 
 			for ( let i = 0, l = position.count; i < l; i ++ ) {
 
@@ -1730,7 +1726,7 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 
 		} else {
 
-			const vertices = ( geometry as _THREE.Geometry ).vertices;
+			const vertices = ( geometry as Geometry ).vertices;
 
 			for ( let i = 0, l = vertices.length; i < l; i ++ ) {
 

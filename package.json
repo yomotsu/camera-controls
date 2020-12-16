@@ -7,7 +7,7 @@
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
   "types": "dist/index.d.ts",
-  "repository": "yomotsu/camera-controls",
+  "repository": "evandertoorn/camera-controls",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
