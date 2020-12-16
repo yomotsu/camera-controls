@@ -5,10 +5,10 @@
  * Released under the MIT License.
  */
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.CameraControls = factory());
-}(this, (function () { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('three')) :
+	typeof define === 'function' && define.amd ? define(['three'], factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.CameraControls = factory(global.three));
+}(this, (function (three) { 'use strict';
 
 	/*! *****************************************************************************
 	Copyright (c) Microsoft Corporation.
@@ -172,26 +172,25 @@
 	var isMac = isBrowser && /Mac/.test(navigator.platform);
 	var readonlyACTION = Object.freeze(ACTION);
 	var TOUCH_DOLLY_FACTOR = 1 / 8;
-	var THREE;
-	var _ORIGIN;
-	var _AXIS_Y;
-	var _AXIS_Z;
-	var _v2;
-	var _v3A;
-	var _v3B;
-	var _v3C;
-	var _xColumn;
-	var _yColumn;
-	var _zColumn;
-	var _sphericalA;
-	var _sphericalB;
-	var _box3A;
-	var _box3B;
-	var _sphere;
-	var _quaternionA;
-	var _quaternionB;
-	var _rotationMatrix;
-	var _raycaster;
+	var _ORIGIN = Object.freeze(new three.Vector3(0, 0, 0));
+	var _AXIS_Y = Object.freeze(new three.Vector3(0, 1, 0));
+	var _AXIS_Z = Object.freeze(new three.Vector3(0, 0, 1));
+	var _v2 = new three.Vector2();
+	var _v3A = new three.Vector3();
+	var _v3B = new three.Vector3();
+	var _v3C = new three.Vector3();
+	var _xColumn = new three.Vector3();
+	var _yColumn = new three.Vector3();
+	var _zColumn = new three.Vector3();
+	var _sphericalA = new three.Spherical();
+	var _sphericalB = new three.Spherical();
+	var _box3A = new three.Box3();
+	var _box3B = new three.Box3();
+	var _sphere = new three.Sphere();
+	var _quaternionA = new three.Quaternion();
+	var _quaternionB = new three.Quaternion();
+	var _rotationMatrix = new three.Matrix4();
+	var _raycaster = new three.Raycaster();
 	var CameraControls = (function (_super) {
 	    __extends(CameraControls, _super);
 	    function CameraControls(camera, domElement) {
@@ -224,36 +223,33 @@
 	        _this._boundaryEnclosesCamera = false;
 	        _this._needsUpdate = true;
 	        _this._updatedLastTime = false;
-	        if (typeof THREE === 'undefined') {
-	            console.error('camera-controls: `THREE` is undefined. You must first run `CameraControls.install( { THREE: THREE } )`. Check the docs for further information.');
-	        }
 	        _this._camera = camera;
-	        _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
+	        _this._yAxisUpSpace = new three.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
 	        _this._yAxisUpSpaceInverse = quatInvertCompat(_this._yAxisUpSpace.clone());
 	        _this._state = ACTION.NONE;
 	        _this._domElement = domElement;
-	        _this._target = new THREE.Vector3();
+	        _this._target = new three.Vector3();
 	        _this._targetEnd = _this._target.clone();
-	        _this._focalOffset = new THREE.Vector3();
+	        _this._focalOffset = new three.Vector3();
 	        _this._focalOffsetEnd = _this._focalOffset.clone();
-	        _this._spherical = new THREE.Spherical().setFromVector3(_v3A.copy(_this._camera.position).applyQuaternion(_this._yAxisUpSpace));
+	        _this._spherical = new three.Spherical().setFromVector3(_v3A.copy(_this._camera.position).applyQuaternion(_this._yAxisUpSpace));
 	        _this._sphericalEnd = _this._spherical.clone();
 	        _this._zoom = _this._camera.zoom;
 	        _this._zoomEnd = _this._zoom;
 	        _this._nearPlaneCorners = [
-	            new THREE.Vector3(),
-	            new THREE.Vector3(),
-	            new THREE.Vector3(),
-	            new THREE.Vector3(),
+	            new three.Vector3(),
+	            new three.Vector3(),
+	            new three.Vector3(),
+	            new three.Vector3(),
 	        ];
 	        _this._updateNearPlaneCorners();
-	        _this._boundary = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
+	        _this._boundary = new three.Box3(new three.Vector3(-Infinity, -Infinity, -Infinity), new three.Vector3(Infinity, Infinity, Infinity));
 	        _this._target0 = _this._target.clone();
 	        _this._position0 = _this._camera.position.clone();
 	        _this._zoom0 = _this._zoom;
 	        _this._focalOffset0 = _this._focalOffset.clone();
 	        _this._dollyControlAmount = 0;
-	        _this._dollyControlCoord = new THREE.Vector2();
+	        _this._dollyControlCoord = new three.Vector2();
 	        _this.mouseButtons = {
 	            left: ACTION.ROTATE,
 	            middle: ACTION.DOLLY,
@@ -270,15 +266,15 @@
 	            three: ACTION.TOUCH_TRUCK,
 	        };
 	        if (_this._domElement) {
-	            var dragStartPosition_1 = new THREE.Vector2();
-	            var lastDragPosition_1 = new THREE.Vector2();
-	            var dollyStart_1 = new THREE.Vector2();
-	            var elementRect_1 = new THREE.Vector4();
+	            var dragStartPosition_1 = new three.Vector2();
+	            var lastDragPosition_1 = new three.Vector2();
+	            var dollyStart_1 = new three.Vector2();
+	            var elementRect_1 = new three.Vector4();
 	            var truckInternal_1 = function (deltaX, deltaY, dragToOffset) {
 	                if (_this._camera.isPerspectiveCamera) {
 	                    var camera_1 = _this._camera;
 	                    var offset = _v3A.copy(camera_1.position).sub(_this._target);
-	                    var fov = camera_1.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	                    var fov = camera_1.getEffectiveFOV() * three.MathUtils.DEG2RAD;
 	                    var targetDistance = offset.length() * Math.tan(fov * 0.5);
 	                    var truckX = (_this.truckSpeed * deltaX * targetDistance / elementRect_1.w);
 	                    var pedestalY = (_this.truckSpeed * deltaY * targetDistance / elementRect_1.w);
@@ -341,13 +337,13 @@
 	                    return;
 	                cancelDragging_1();
 	                switch (event.button) {
-	                    case THREE.MOUSE.LEFT:
+	                    case three.MOUSE.LEFT:
 	                        _this._state = _this.mouseButtons.left;
 	                        break;
-	                    case THREE.MOUSE.MIDDLE:
+	                    case three.MOUSE.MIDDLE:
 	                        _this._state = _this.mouseButtons.middle;
 	                        break;
-	                    case THREE.MOUSE.RIGHT:
+	                    case three.MOUSE.RIGHT:
 	                        _this._state = _this.mouseButtons.right;
 	                        break;
 	                }
@@ -547,28 +543,6 @@
 	        _this.update(0);
 	        return _this;
 	    }
-	    CameraControls.install = function (libs) {
-	        THREE = libs.THREE;
-	        _ORIGIN = Object.freeze(new THREE.Vector3(0, 0, 0));
-	        _AXIS_Y = Object.freeze(new THREE.Vector3(0, 1, 0));
-	        _AXIS_Z = Object.freeze(new THREE.Vector3(0, 0, 1));
-	        _v2 = new THREE.Vector2();
-	        _v3A = new THREE.Vector3();
-	        _v3B = new THREE.Vector3();
-	        _v3C = new THREE.Vector3();
-	        _xColumn = new THREE.Vector3();
-	        _yColumn = new THREE.Vector3();
-	        _zColumn = new THREE.Vector3();
-	        _sphericalA = new THREE.Spherical();
-	        _sphericalB = new THREE.Spherical();
-	        _box3A = new THREE.Box3();
-	        _box3B = new THREE.Box3();
-	        _sphere = new THREE.Sphere();
-	        _quaternionA = new THREE.Quaternion();
-	        _quaternionB = new THREE.Quaternion();
-	        _rotationMatrix = new THREE.Matrix4();
-	        _raycaster = new THREE.Raycaster();
-	    };
 	    Object.defineProperty(CameraControls, "ACTION", {
 	        get: function () {
 	            return readonlyACTION;
@@ -679,8 +653,8 @@
 	    };
 	    CameraControls.prototype.rotateTo = function (azimuthAngle, polarAngle, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
-	        var theta = THREE.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
-	        var phi = THREE.MathUtils.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
+	        var theta = three.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
+	        var phi = three.MathUtils.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
 	        this._sphericalEnd.theta = theta;
 	        this._sphericalEnd.phi = phi;
 	        this._sphericalEnd.makeSafe();
@@ -698,7 +672,7 @@
 	        if (enableTransition === void 0) { enableTransition = false; }
 	        if (notSupportedInOrthographicCamera(this._camera, 'dolly'))
 	            return;
-	        this._sphericalEnd.radius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
+	        this._sphericalEnd.radius = three.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
 	        if (!enableTransition) {
 	            this._spherical.radius = this._sphericalEnd.radius;
 	        }
@@ -710,7 +684,7 @@
 	    };
 	    CameraControls.prototype.zoomTo = function (zoom, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
-	        this._zoomEnd = THREE.MathUtils.clamp(zoom, this.minZoom, this.maxZoom);
+	        this._zoomEnd = three.MathUtils.clamp(zoom, this.minZoom, this.maxZoom);
 	        if (!enableTransition) {
 	            this._zoom = this._zoomEnd;
 	        }
@@ -822,7 +796,7 @@
 	        this.fitToBox(box3OrObject, enableTransition, fitToOptions);
 	    };
 	    CameraControls.prototype.fitToSphere = function (sphereOrMesh, enableTransition) {
-	        var isSphere = sphereOrMesh instanceof THREE.Sphere;
+	        var isSphere = sphereOrMesh instanceof three.Sphere;
 	        var boundingSphere = isSphere ?
 	            _sphere.copy(sphereOrMesh) :
 	            createBoundingSphere(sphereOrMesh, _sphere);
@@ -897,7 +871,7 @@
 	            this._viewport = null;
 	            return;
 	        }
-	        this._viewport = this._viewport || new THREE.Vector4();
+	        this._viewport = this._viewport || new three.Vector4();
 	        if (typeof viewportOrX === 'number') {
 	            this._viewport.set(viewportOrX, y, width, height);
 	        }
@@ -910,7 +884,7 @@
 	            return this._spherical.radius;
 	        var camera = this._camera;
 	        var boundingRectAspect = width / height;
-	        var fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	        var fov = camera.getEffectiveFOV() * three.MathUtils.DEG2RAD;
 	        var aspect = camera.aspect;
 	        var heightToFit = boundingRectAspect < aspect ? height : width / aspect;
 	        return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
@@ -923,21 +897,21 @@
 	        if (notSupportedInOrthographicCamera(this._camera, 'getDistanceToFitSphere'))
 	            return this._spherical.radius;
 	        var camera = this._camera;
-	        var vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	        var vFOV = camera.getEffectiveFOV() * three.MathUtils.DEG2RAD;
 	        var hFOV = Math.atan(Math.tan(vFOV * 0.5) * camera.aspect) * 2;
 	        var fov = 1 < camera.aspect ? vFOV : hFOV;
 	        return radius / (Math.sin(fov * 0.5));
 	    };
 	    CameraControls.prototype.getTarget = function (out) {
-	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
+	        var _out = !!out && out.isVector3 ? out : new three.Vector3();
 	        return _out.copy(this._targetEnd);
 	    };
 	    CameraControls.prototype.getPosition = function (out) {
-	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
+	        var _out = !!out && out.isVector3 ? out : new three.Vector3();
 	        return _out.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).add(this._targetEnd);
 	    };
 	    CameraControls.prototype.getFocalOffset = function (out) {
-	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
+	        var _out = !!out && out.isVector3 ? out : new three.Vector3();
 	        return _out.copy(this._focalOffsetEnd);
 	    };
 	    CameraControls.prototype.normalizeRotations = function () {
@@ -996,7 +970,7 @@
 	                if (planeX.lengthSq() === 0)
 	                    planeX.x = 1.0;
 	                var planeY = _v3C.crossVectors(planeX, direction);
-	                var worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5);
+	                var worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * three.MathUtils.DEG2RAD * 0.5);
 	                var prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 	                var lerpRatio_1 = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
 	                var cursor = _v3A.copy(this._targetEnd)
@@ -1143,7 +1117,7 @@
 	        if (this._camera.isPerspectiveCamera) {
 	            var camera = this._camera;
 	            var near = camera.near;
-	            var fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	            var fov = camera.getEffectiveFOV() * three.MathUtils.DEG2RAD;
 	            var heightHalf = Math.tan(fov * 0.5) * near;
 	            var widthHalf = heightHalf * camera.aspect;
 	            this._nearPlaneCorners[0].set(-widthHalf, -heightHalf, 0);
