@@ -324,9 +324,13 @@
 	                }
 	                return;
 	            };
-	            var zoomInternal_1 = function (delta) {
+	            var zoomInternal_1 = function (delta, x, y) {
 	                var zoomScale = Math.pow(0.95, delta * _this.dollySpeed);
 	                _this.zoomTo(_this._zoom * zoomScale);
+	                if (_this.dollyToCursor) {
+	                    _this._dollyControlAmount = _this._zoomEnd;
+	                    _this._dollyControlCoord.set(x, y);
+	                }
 	                return;
 	            };
 	            var cancelDragging_1 = function () {
@@ -405,7 +409,7 @@
 	                        break;
 	                    }
 	                    case ACTION.ZOOM: {
-	                        zoomInternal_1(-delta);
+	                        zoomInternal_1(-delta, x, y);
 	                        break;
 	                    }
 	                }
@@ -466,7 +470,7 @@
 	                        var dollyY = _this.dollyToCursor ? (dragStartPosition_1.y - elementRect_1.y) / elementRect_1.w * -2 + 1 : 0;
 	                        _this._state === ACTION.DOLLY ?
 	                            dollyInternal_1(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
-	                            zoomInternal_1(deltaY * TOUCH_DOLLY_FACTOR);
+	                            zoomInternal_1(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
 	                        break;
 	                    }
 	                    case ACTION.TOUCH_DOLLY:
@@ -486,7 +490,7 @@
 	                        _this._state === ACTION.TOUCH_DOLLY ||
 	                            _this._state === ACTION.TOUCH_DOLLY_TRUCK ?
 	                            dollyInternal_1(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
-	                            zoomInternal_1(dollyDelta * TOUCH_DOLLY_FACTOR);
+	                            zoomInternal_1(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
 	                        if (_this._state === ACTION.TOUCH_DOLLY_TRUCK ||
 	                            _this._state === ACTION.TOUCH_ZOOM_TRUCK) {
 	                            truckInternal_1(deltaX, deltaY, false);
@@ -696,8 +700,6 @@
 	    };
 	    CameraControls.prototype.dollyTo = function (distance, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
-	        if (notSupportedInOrthographicCamera(this._camera, 'dolly'))
-	            return;
 	        this._sphericalEnd.radius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
 	        if (!enableTransition) {
 	            this._spherical.radius = this._sphericalEnd.radius;
@@ -1003,6 +1005,15 @@
 	                    .add(planeX.multiplyScalar(this._dollyControlCoord.x * worldToScreen * camera.aspect))
 	                    .add(planeY.multiplyScalar(this._dollyControlCoord.y * worldToScreen));
 	                this._targetEnd.lerp(cursor, lerpRatio_1);
+	                this._target.copy(this._targetEnd);
+	            }
+	            else if (this._camera.isOrthographicCamera) {
+	                var camera = this._camera;
+	                var worldPosition = _v3A.set(this._dollyControlCoord.x, this._dollyControlCoord.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera);
+	                var quaternion = _v3B.set(0, 0, -1).applyQuaternion(camera.quaternion);
+	                var distance = -worldPosition.dot(camera.up) / quaternion.dot(camera.up);
+	                var cursor = _v3C.copy(worldPosition).add(quaternion.multiplyScalar(distance));
+	                this._targetEnd.lerp(cursor, 1 - camera.zoom / this._dollyControlAmount);
 	                this._target.copy(this._targetEnd);
 	            }
 	            this._dollyControlAmount = 0;

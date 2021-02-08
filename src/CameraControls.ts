@@ -330,12 +330,19 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
-			const zoomInternal = ( delta: number /* , x: number, y: number */ ): void => {
+			const zoomInternal = ( delta: number, x: number, y: number): void => {
 
 				const zoomScale = Math.pow( 0.95, delta * this.dollySpeed );
 
 				// for both PerspectiveCamera and OrthographicCamera
 				this.zoomTo( this._zoom * zoomScale );
+
+				if ( this.dollyToCursor ) {
+					this._dollyControlAmount = this._zoomEnd
+					
+					this._dollyControlCoord.set( x, y );
+				}
+
 				return;
 
 			};
@@ -473,7 +480,7 @@ export class CameraControls extends EventDispatcher {
 
 					case ACTION.ZOOM: {
 
-						zoomInternal( - delta /*, x, y */ );
+						zoomInternal( - delta, x, y );
 						break;
 
 					}
@@ -568,7 +575,7 @@ export class CameraControls extends EventDispatcher {
 						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 						this._state === ACTION.DOLLY ?
 							dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
+							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 						break;
 
 					}
@@ -593,7 +600,7 @@ export class CameraControls extends EventDispatcher {
 						this._state === ACTION.TOUCH_DOLLY ||
 						this._state === ACTION.TOUCH_DOLLY_TRUCK ?
 							dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
+							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
 						if (
 							this._state === ACTION.TOUCH_DOLLY_TRUCK ||
@@ -855,8 +862,6 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	dollyTo( distance: number, enableTransition: boolean = false ): void {
-
-		if ( notSupportedInOrthographicCamera( this._camera, 'dolly' ) ) return;
 
 		this._sphericalEnd.radius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
 
@@ -1386,6 +1391,22 @@ export class CameraControls extends EventDispatcher {
 				this._targetEnd.lerp( cursor, lerpRatio );
 				this._target.copy( this._targetEnd );
 
+			} else if( (this._camera as _THREE.OrthographicCamera).isOrthographicCamera ) {
+
+				const camera = this._camera as _THREE.OrthographicCamera;
+
+				const worldPosition = _v3A.set(
+					this._dollyControlCoord.x, 
+					this._dollyControlCoord.y, 
+					(camera.near + camera.far) / (camera.near - camera.far)
+				).unproject(camera);
+
+				const quaternion = _v3B.set(0, 0, -1).applyQuaternion( camera.quaternion );
+				const distance = - worldPosition.dot( camera.up ) / quaternion.dot( camera.up )
+				const cursor = _v3C.copy( worldPosition ).add( quaternion.multiplyScalar( distance ) );
+
+				this._targetEnd.lerp(cursor, 1 - camera.zoom / this._dollyControlAmount)
+				this._target.copy(this._targetEnd);
 			}
 
 			this._dollyControlAmount = 0;
