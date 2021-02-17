@@ -1079,7 +1079,6 @@ export class CameraControls extends EventDispatcher {
 		const boundingSphere = isSphere ?
 			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
 			createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
-		const distanceToFit = this.getDistanceToFitSphere( boundingSphere.radius );
 
 		this.moveTo(
 			boundingSphere.center.x,
@@ -1087,7 +1086,23 @@ export class CameraControls extends EventDispatcher {
 			boundingSphere.center.z,
 			enableTransition,
 		);
-		this.dollyTo( distanceToFit, enableTransition );
+
+		if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
+
+			const distanceToFit = this.getDistanceToFitSphere( boundingSphere.radius );
+			this.dollyTo( distanceToFit, enableTransition );
+
+		} else if ( ( this._camera as _THREE.OrthographicCamera ).isOrthographicCamera ) {
+
+			const camera = ( this._camera as _THREE.OrthographicCamera );
+			const width = camera.right - camera.left;
+			const height = camera.top - camera.bottom;
+			const diameter = 2 * boundingSphere.radius;
+			const zoom = Math.min( width / diameter, height / diameter );
+			this.zoomTo( zoom, enableTransition );
+
+		}
+
 		this.setFocalOffset( 0, 0, 0, enableTransition );
 
 	}
