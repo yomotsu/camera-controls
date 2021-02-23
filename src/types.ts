@@ -1,3 +1,5 @@
+import type * as _THREE from 'three';
+
 export enum ACTION {
 	NONE,
 	ROTATE,
@@ -69,4 +71,16 @@ export interface CameraControlsEventMap {
 		type: 'controlend',
 		originalEvent: MouseEvent | TouchEvent | WheelEvent,
 	};
+}
+
+export function isPerspectiveCamera( camera: _THREE.Camera ): camera is _THREE.PerspectiveCamera {
+
+	return ( camera as _THREE.PerspectiveCamera  ).isPerspectiveCamera;
+
+}
+
+export function isOrthographicCamera( camera: _THREE.Camera ): camera is _THREE.OrthographicCamera {
+
+	return ( camera as _THREE.OrthographicCamera  ).isOrthographicCamera;
+
 }

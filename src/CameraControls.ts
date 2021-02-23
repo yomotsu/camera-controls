@@ -5,6 +5,8 @@ import {
 	Touches,
 	FitToOptions,
 	CameraControlsEventMap,
+	isPerspectiveCamera,
+	isOrthographicCamera,
 } from './types';
 import {
 	PI_2,
@@ -222,8 +224,8 @@ export class CameraControls extends EventDispatcher {
 			middle: ACTION.DOLLY,
 			right: ACTION.TRUCK,
 			wheel:
-				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.DOLLY :
-				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.ZOOM :
+				isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
+				isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
 				ACTION.NONE,
 			// We can also add shiftLeft, altLeft and etc if someone wants...
 		};
@@ -231,8 +233,8 @@ export class CameraControls extends EventDispatcher {
 		this.touches = {
 			one: ACTION.TOUCH_ROTATE,
 			two:
-				( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera  ? ACTION.TOUCH_DOLLY_TRUCK :
-				( this._camera as THREE.OrthographicCamera ).isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
+				isPerspectiveCamera( this._camera )  ? ACTION.TOUCH_DOLLY_TRUCK :
+				isOrthographicCamera( this._camera ) ? ACTION.TOUCH_ZOOM_TRUCK :
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
 		};
@@ -246,9 +248,9 @@ export class CameraControls extends EventDispatcher {
 
 			const truckInternal = ( deltaX: number, deltaY: number, dragToOffset: boolean ): void => {
 
-				if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
+				if ( isPerspectiveCamera( this._camera ) ) {
 
-					const camera = this._camera as _THREE.PerspectiveCamera;
+					const camera = this._camera;
 
 					const offset = _v3A.copy( camera.position ).sub( this._target );
 					// half of the fov is center to top of screen
@@ -281,10 +283,10 @@ export class CameraControls extends EventDispatcher {
 
 					}
 
-				} else if ( ( this._camera as _THREE.OrthographicCamera ).isOrthographicCamera ) {
+				} else if ( isOrthographicCamera( this._camera ) ) {
 
 					// orthographic
-					const camera = this._camera as _THREE.OrthographicCamera;
+					const camera = this._camera;
 					const truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / elementRect.z;
 					const pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / elementRect.w;
 					dragToOffset ?
@@ -330,12 +332,21 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
-			const zoomInternal = ( delta: number /* , x: number, y: number */ ): void => {
+			const zoomInternal = ( delta: number, x: number, y: number ): void => {
 
 				const zoomScale = Math.pow( 0.95, delta * this.dollySpeed );
 
 				// for both PerspectiveCamera and OrthographicCamera
 				this.zoomTo( this._zoom * zoomScale );
+
+				if ( this.dollyToCursor ) {
+
+					this._dollyControlAmount = this._zoomEnd;
+
+					this._dollyControlCoord.set( x, y );
+
+				}
+
 				return;
 
 			};
@@ -473,7 +484,7 @@ export class CameraControls extends EventDispatcher {
 
 					case ACTION.ZOOM: {
 
-						zoomInternal( - delta /*, x, y */ );
+						zoomInternal( - delta, x, y );
 						break;
 
 					}
@@ -568,7 +579,7 @@ export class CameraControls extends EventDispatcher {
 						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - elementRect.y ) / elementRect.w * - 2 + 1 : 0;
 						this._state === ACTION.DOLLY ?
 							dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
+							zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 						break;
 
 					}
@@ -593,7 +604,7 @@ export class CameraControls extends EventDispatcher {
 						this._state === ACTION.TOUCH_DOLLY ||
 						this._state === ACTION.TOUCH_DOLLY_TRUCK ?
 							dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR /*, dollyX, dollyY */ );
+							zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
 						if (
 							this._state === ACTION.TOUCH_DOLLY_TRUCK ||
@@ -856,8 +867,6 @@ export class CameraControls extends EventDispatcher {
 
 	dollyTo( distance: number, enableTransition: boolean = false ): void {
 
-		if ( notSupportedInOrthographicCamera( this._camera, 'dolly' ) ) return;
-
 		this._sphericalEnd.radius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
 
 		if ( ! enableTransition ) {
@@ -1030,10 +1039,7 @@ export class CameraControls extends EventDispatcher {
 		const bbSize = bb.getSize( _v3A );
 		const center = bb.getCenter( _v3B ).applyQuaternion( rotation );
 
-		const isPerspectiveCamera  = ( this._camera as THREE.PerspectiveCamera  ).isPerspectiveCamera;
-		const isOrthographicCamera = ( this._camera as THREE.OrthographicCamera ).isOrthographicCamera;
-
-		if ( isPerspectiveCamera ) {
+		if ( isPerspectiveCamera( this._camera ) ) {
 
 			const distance = this.getDistanceToFitBox( bbSize.x, bbSize.y, bbSize.z );
 			this.moveTo( center.x, center.y, center.z, enableTransition );
@@ -1041,9 +1047,9 @@ export class CameraControls extends EventDispatcher {
 			this.setFocalOffset( 0, 0, 0, enableTransition );
 			return;
 
-		} else if ( isOrthographicCamera ) {
+		} else if ( isOrthographicCamera( this._camera ) ) {
 
-			const camera = ( this._camera as THREE.OrthographicCamera );
+			const camera = this._camera;
 			const width = camera.right - camera.left;
 			const height = camera.top - camera.bottom;
 			const zoom = Math.min( width / bbSize.x, height / bbSize.y );
@@ -1072,7 +1078,6 @@ export class CameraControls extends EventDispatcher {
 		const boundingSphere = isSphere ?
 			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
 			createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
-		const distanceToFit = this.getDistanceToFitSphere( boundingSphere.radius );
 
 		this.moveTo(
 			boundingSphere.center.x,
@@ -1080,7 +1085,22 @@ export class CameraControls extends EventDispatcher {
 			boundingSphere.center.z,
 			enableTransition,
 		);
-		this.dollyTo( distanceToFit, enableTransition );
+
+		if ( isPerspectiveCamera( this._camera ) ) {
+
+			const distanceToFit = this.getDistanceToFitSphere( boundingSphere.radius );
+			this.dollyTo( distanceToFit, enableTransition );
+
+		} else if ( isOrthographicCamera( this._camera ) ) {
+
+			const width = this._camera.right - this._camera.left;
+			const height = this._camera.top - this._camera.bottom;
+			const diameter = 2 * boundingSphere.radius;
+			const zoom = Math.min( width / diameter, height / diameter );
+			this.zoomTo( zoom, enableTransition );
+
+		}
+
 		this.setFocalOffset( 0, 0, 0, enableTransition );
 
 	}
@@ -1232,7 +1252,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFit' ) ) return this._spherical.radius;
 
-		const camera = this._camera as _THREE.PerspectiveCamera;
+		const camera = this._camera;
 		const boundingRectAspect = width / height;
 		const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 		const aspect = camera.aspect;
@@ -1257,7 +1277,7 @@ export class CameraControls extends EventDispatcher {
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitSphere' ) ) return this._spherical.radius;
 
 		// https://stackoverflow.com/a/44849975
-		const camera = this._camera as _THREE.PerspectiveCamera;
+		const camera = this._camera;
 		const vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 		const hFOV = Math.atan( Math.tan( vFOV * 0.5 ) * camera.aspect ) * 2;
 		const fov = 1 < camera.aspect ? vFOV : hFOV;
@@ -1370,9 +1390,9 @@ export class CameraControls extends EventDispatcher {
 
 		if ( this._dollyControlAmount !== 0 ) {
 
-			if ( ( this._camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
+			if ( isPerspectiveCamera( this._camera ) ) {
 
-				const camera = this._camera as _THREE.PerspectiveCamera;
+				const camera = this._camera;
 				const direction = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
 				const planeX = _v3B.copy( direction ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
@@ -1384,6 +1404,23 @@ export class CameraControls extends EventDispatcher {
 					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
 				this._targetEnd.lerp( cursor, lerpRatio );
+				this._target.copy( this._targetEnd );
+
+			} else if ( isOrthographicCamera( this._camera ) ) {
+
+				const camera = this._camera;
+
+				const worldPosition = _v3A.set(
+					this._dollyControlCoord.x,
+					this._dollyControlCoord.y,
+					( camera.near + camera.far ) / ( camera.near - camera.far )
+				).unproject( camera );
+
+				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
+				const distance = - worldPosition.dot( camera.up ) / quaternion.dot( camera.up );
+				const cursor = _v3C.copy( worldPosition ).add( quaternion.multiplyScalar( distance ) );
+
+				this._targetEnd.lerp( cursor, 1 - camera.zoom / this._dollyControlAmount );
 				this._target.copy( this._targetEnd );
 
 			}
@@ -1590,9 +1627,9 @@ export class CameraControls extends EventDispatcher {
 
 	protected _updateNearPlaneCorners(): void {
 
-		if ( ( this._camera as any ).isPerspectiveCamera )  {
+		if ( isPerspectiveCamera( this._camera ) )  {
 
-			const camera = this._camera as _THREE.PerspectiveCamera;
+			const camera = this._camera;
 			const near = camera.near;
 			const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 			const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
@@ -1602,9 +1639,9 @@ export class CameraControls extends EventDispatcher {
 			this._nearPlaneCorners[ 2 ].set(   widthHalf,   heightHalf, 0 );
 			this._nearPlaneCorners[ 3 ].set( - widthHalf,   heightHalf, 0 );
 
-		} else if ( ( this._camera as any ).isOrthographicCamera ) {
+		} else if ( isOrthographicCamera( this._camera ) ) {
 
-			const camera = this._camera as _THREE.OrthographicCamera;
+			const camera = this._camera;
 			const zoomInv = 1 / camera.zoom;
 			const left   = camera.left   * zoomInv;
 			const right  = camera.right  * zoomInv;
