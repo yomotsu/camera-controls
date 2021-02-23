@@ -1,2 +1,2 @@
 import * as _THREE from 'three/src/Three.d';
-export declare function notSupportedInOrthographicCamera(camera: _THREE.Camera, message: string): boolean;
+export declare function notSupportedInOrthographicCamera(camera: _THREE.OrthographicCamera | _THREE.PerspectiveCamera, message: string): camera is _THREE.OrthographicCamera;

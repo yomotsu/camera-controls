@@ -51,6 +51,12 @@ var ACTION;
     ACTION[ACTION["TOUCH_ZOOM_TRUCK"] = 13] = "TOUCH_ZOOM_TRUCK";
     ACTION[ACTION["TOUCH_ZOOM_OFFSET"] = 14] = "TOUCH_ZOOM_OFFSET";
 })(ACTION || (ACTION = {}));
+function isPerspectiveCamera(camera) {
+    return camera.isPerspectiveCamera;
+}
+function isOrthographicCamera(camera) {
+    return camera.isOrthographicCamera;
+}
 
 var PI_2 = Math.PI * 2;
 var PI_HALF = Math.PI / 2;
@@ -103,7 +109,7 @@ function extractClientCoordFromEvent(event, out) {
 }
 
 function notSupportedInOrthographicCamera(camera, message) {
-    if (!camera.isPerspectiveCamera) {
+    if (isOrthographicCamera(camera)) {
         console.warn(message + " is not supported in OrthographicCamera");
         return true;
     }
@@ -252,14 +258,14 @@ var CameraControls = (function (_super) {
             left: ACTION.ROTATE,
             middle: ACTION.DOLLY,
             right: ACTION.TRUCK,
-            wheel: _this._camera.isPerspectiveCamera ? ACTION.DOLLY :
-                _this._camera.isOrthographicCamera ? ACTION.ZOOM :
+            wheel: isPerspectiveCamera(_this._camera) ? ACTION.DOLLY :
+                isOrthographicCamera(_this._camera) ? ACTION.ZOOM :
                     ACTION.NONE,
         };
         _this.touches = {
             one: ACTION.TOUCH_ROTATE,
-            two: _this._camera.isPerspectiveCamera ? ACTION.TOUCH_DOLLY_TRUCK :
-                _this._camera.isOrthographicCamera ? ACTION.TOUCH_ZOOM_TRUCK :
+            two: isPerspectiveCamera(_this._camera) ? ACTION.TOUCH_DOLLY_TRUCK :
+                isOrthographicCamera(_this._camera) ? ACTION.TOUCH_ZOOM_TRUCK :
                     ACTION.NONE,
             three: ACTION.TOUCH_TRUCK,
         };
@@ -269,7 +275,7 @@ var CameraControls = (function (_super) {
             var dollyStart_1 = new THREE.Vector2();
             var elementRect_1 = new THREE.Vector4();
             var truckInternal_1 = function (deltaX, deltaY, dragToOffset) {
-                if (_this._camera.isPerspectiveCamera) {
+                if (isPerspectiveCamera(_this._camera)) {
                     var camera_1 = _this._camera;
                     var offset = _v3A.copy(camera_1.position).sub(_this._target);
                     var fov = camera_1.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
@@ -288,7 +294,7 @@ var CameraControls = (function (_super) {
                             _this.truck(truckX, pedestalY, true);
                     }
                 }
-                else if (_this._camera.isOrthographicCamera) {
+                else if (isOrthographicCamera(_this._camera)) {
                     var camera_2 = _this._camera;
                     var truckX = deltaX * (camera_2.right - camera_2.left) / camera_2.zoom / elementRect_1.z;
                     var pedestalY = deltaY * (camera_2.top - camera_2.bottom) / camera_2.zoom / elementRect_1.w;
@@ -792,16 +798,14 @@ var CameraControls = (function (_super) {
         bb.max.y += paddingTop;
         var bbSize = bb.getSize(_v3A);
         var center = bb.getCenter(_v3B).applyQuaternion(rotation);
-        var isPerspectiveCamera = this._camera.isPerspectiveCamera;
-        var isOrthographicCamera = this._camera.isOrthographicCamera;
-        if (isPerspectiveCamera) {
+        if (isPerspectiveCamera(this._camera)) {
             var distance = this.getDistanceToFitBox(bbSize.x, bbSize.y, bbSize.z);
             this.moveTo(center.x, center.y, center.z, enableTransition);
             this.dollyTo(distance, enableTransition);
             this.setFocalOffset(0, 0, 0, enableTransition);
             return;
         }
-        else if (isOrthographicCamera) {
+        else if (isOrthographicCamera(this._camera)) {
             var camera = this._camera;
             var width = camera.right - camera.left;
             var height = camera.top - camera.bottom;
@@ -822,9 +826,18 @@ var CameraControls = (function (_super) {
         var boundingSphere = isSphere ?
             _sphere.copy(sphereOrMesh) :
             createBoundingSphere(sphereOrMesh, _sphere);
-        var distanceToFit = this.getDistanceToFitSphere(boundingSphere.radius);
         this.moveTo(boundingSphere.center.x, boundingSphere.center.y, boundingSphere.center.z, enableTransition);
-        this.dollyTo(distanceToFit, enableTransition);
+        if (isPerspectiveCamera(this._camera)) {
+            var distanceToFit = this.getDistanceToFitSphere(boundingSphere.radius);
+            this.dollyTo(distanceToFit, enableTransition);
+        }
+        else if (isOrthographicCamera(this._camera)) {
+            var width = this._camera.right - this._camera.left;
+            var height = this._camera.top - this._camera.bottom;
+            var diameter = 2 * boundingSphere.radius;
+            var zoom = Math.min(width / diameter, height / diameter);
+            this.zoomTo(zoom, enableTransition);
+        }
         this.setFocalOffset(0, 0, 0, enableTransition);
     };
     CameraControls.prototype.setLookAt = function (positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
@@ -985,7 +998,7 @@ var CameraControls = (function (_super) {
             this._focalOffset.copy(this._focalOffsetEnd);
         }
         if (this._dollyControlAmount !== 0) {
-            if (this._camera.isPerspectiveCamera) {
+            if (isPerspectiveCamera(this._camera)) {
                 var camera = this._camera;
                 var direction = _v3A.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).normalize().negate();
                 var planeX = _v3B.copy(direction).cross(camera.up).normalize();
@@ -1001,7 +1014,7 @@ var CameraControls = (function (_super) {
                 this._targetEnd.lerp(cursor, lerpRatio_1);
                 this._target.copy(this._targetEnd);
             }
-            else if (this._camera.isOrthographicCamera) {
+            else if (isOrthographicCamera(this._camera)) {
                 var camera = this._camera;
                 var worldPosition = _v3A.set(this._dollyControlCoord.x, this._dollyControlCoord.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera);
                 var quaternion = _v3B.set(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -1145,7 +1158,7 @@ var CameraControls = (function (_super) {
         }
     };
     CameraControls.prototype._updateNearPlaneCorners = function () {
-        if (this._camera.isPerspectiveCamera) {
+        if (isPerspectiveCamera(this._camera)) {
             var camera = this._camera;
             var near = camera.near;
             var fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
@@ -1156,7 +1169,7 @@ var CameraControls = (function (_super) {
             this._nearPlaneCorners[2].set(widthHalf, heightHalf, 0);
             this._nearPlaneCorners[3].set(-widthHalf, heightHalf, 0);
         }
-        else if (this._camera.isOrthographicCamera) {
+        else if (isOrthographicCamera(this._camera)) {
             var camera = this._camera;
             var zoomInv = 1 / camera.zoom;
             var left = camera.left * zoomInv;

@@ -1,3 +1,4 @@
+import * as _THREE from 'three';
 export declare enum ACTION {
     NONE = 0,
     ROTATE = 1,
@@ -59,4 +60,6 @@ export interface CameraControlsEventMap {
         originalEvent: MouseEvent | TouchEvent | WheelEvent;
     };
 }
+export declare function isPerspectiveCamera(camera: _THREE.Camera): camera is _THREE.PerspectiveCamera;
+export declare function isOrthographicCamera(camera: _THREE.Camera): camera is _THREE.OrthographicCamera;
 export {};
