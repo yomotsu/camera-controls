@@ -1,8 +1,12 @@
 import * as _THREE from 'three/src/Three.d';
+import { isOrthographicCamera } from 'types';
 
-export function notSupportedInOrthographicCamera( camera: _THREE.Camera, message: string ): boolean {
+export function notSupportedInOrthographicCamera(
+	camera: _THREE.OrthographicCamera | _THREE.PerspectiveCamera,
+	message: string
+): camera is _THREE.OrthographicCamera {
 
-	if ( ! ( camera as _THREE.PerspectiveCamera ).isPerspectiveCamera ) {
+	if ( isOrthographicCamera( camera ) ) {
 
 		console.warn( `${ message } is not supported in OrthographicCamera` );
 		return true;
