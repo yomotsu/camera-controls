@@ -1024,7 +1024,8 @@
 	                var camera = this._camera;
 	                var worldPosition = _v3A.set(this._dollyControlCoord.x, this._dollyControlCoord.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera);
 	                var quaternion = _v3B.set(0, 0, -1).applyQuaternion(camera.quaternion);
-	                var distance = -worldPosition.dot(camera.up) / quaternion.dot(camera.up);
+	                var divisor = quaternion.dot(camera.up);
+	                var distance = approxZero(divisor) ? -worldPosition.dot(camera.up) : -worldPosition.dot(camera.up) / divisor;
 	                var cursor = _v3C.copy(worldPosition).add(quaternion.multiplyScalar(distance));
 	                this._targetEnd.lerp(cursor, 1 - camera.zoom / this._dollyControlAmount);
 	                this._target.copy(this._targetEnd);
