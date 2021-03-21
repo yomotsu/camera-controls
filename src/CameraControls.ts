@@ -1417,7 +1417,9 @@ export class CameraControls extends EventDispatcher {
 				).unproject( camera );
 
 				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
-				const distance = - worldPosition.dot( camera.up ) / quaternion.dot( camera.up );
+
+				const divisor = quaternion.dot( camera.up );
+				const distance = approxZero( divisor ) ? - worldPosition.dot( camera.up ) : - worldPosition.dot( camera.up ) / divisor;
 				const cursor = _v3C.copy( worldPosition ).add( quaternion.multiplyScalar( distance ) );
 
 				this._targetEnd.lerp( cursor, 1 - camera.zoom / this._dollyControlAmount );
