@@ -357,6 +357,7 @@ export class CameraControls extends EventDispatcher {
 
 				document.removeEventListener( 'mousemove', dragging );
 				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
+				// eslint-disable-next-line no-undef
 				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
 				document.removeEventListener( 'mouseup',  endDragging );
 				document.removeEventListener( 'touchend', endDragging );
@@ -677,6 +678,7 @@ export class CameraControls extends EventDispatcher {
 				this._domElement.removeEventListener( 'contextmenu', onContextMenu );
 				document.removeEventListener( 'mousemove', dragging );
 				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
+				// eslint-disable-next-line no-undef
 				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
 				document.removeEventListener( 'mouseup', endDragging );
 				document.removeEventListener( 'touchend', endDragging );
@@ -1252,7 +1254,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFit' ) ) return this._spherical.radius;
 
-		const camera = this._camera;
+		const camera = this._camera as _THREE.PerspectiveCamera;
 		const boundingRectAspect = width / height;
 		const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 		const aspect = camera.aspect;
@@ -1277,7 +1279,7 @@ export class CameraControls extends EventDispatcher {
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitSphere' ) ) return this._spherical.radius;
 
 		// https://stackoverflow.com/a/44849975
-		const camera = this._camera;
+		const camera = this._camera as _THREE.PerspectiveCamera;
 		const vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 		const hFOV = Math.atan( Math.tan( vFOV * 0.5 ) * camera.aspect ) * 2;
 		const fov = 1 < camera.aspect ? vFOV : hFOV;
@@ -1673,7 +1675,7 @@ export class CameraControls extends EventDispatcher {
 		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
 		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( distance );
 
-		_rotationMatrix.lookAt( _ORIGIN, direction, this._camera.up );
+		_rotationMatrix.lookAt( _ORIGIN, direction, ( this._camera as _THREE.PerspectiveCamera ).up );
 
 		for ( let i = 0; i < 4; i ++ ) {
 
@@ -1769,11 +1771,13 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 
 		} else {
 
-			const vertices = ( geometry as _THREE.Geometry ).vertices;
+			const position = geometry.attributes.position;
+			const vector = new THREE.Vector3();
 
-			for ( let i = 0, l = vertices.length; i < l; i ++ ) {
+			for ( let i = 0, l = position.count; i < l; i ++ ) {
 
-				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( vertices[ i ] ) );
+				vector.fromBufferAttribute( position, i );
+				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( vector ) );
 
 			}
 
