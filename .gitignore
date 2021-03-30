@@ -8,3 +8,4 @@ npm-debug.log*
 *.map
 
 node_modules
+yarn.lock
