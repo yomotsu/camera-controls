@@ -1,4 +1,4 @@
-import * as _THREE  from 'three/src/Three.d';
+import * as _THREE  from 'three';
 import { isTouchEvent } from './isTouchEvent';
 
 export function extractClientCoordFromEvent( event: Event, out: _THREE.Vector2 ) {

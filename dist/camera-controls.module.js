@@ -1250,9 +1250,11 @@ function createBoundingSphere(object3d, out) {
             }
         }
         else {
-            var vertices = geometry.vertices;
-            for (var i = 0, l = vertices.length; i < l; i++) {
-                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(vertices[i]));
+            var position = geometry.attributes.position;
+            var vector = new THREE.Vector3();
+            for (var i = 0, l = position.count; i < l; i++) {
+                vector.fromBufferAttribute(position, i);
+                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(vector));
             }
         }
     });
