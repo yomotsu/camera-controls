@@ -666,18 +666,22 @@ export class CameraControls extends EventDispatcher {
 			};
 
 			this._domElement.addEventListener( 'mousedown', onMouseDown );
-			this._domElement.addEventListener( 'touchstart', onTouchStart );
-			this._domElement.addEventListener( 'wheel', onMouseWheel );
+			this._domElement.addEventListener( 'touchstart', onTouchStart, { passive: true } );
+			this._domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
 			this._domElement.addEventListener( 'contextmenu', onContextMenu );
 
 			this._removeAllEventListeners = (): void => {
 
 				this._domElement.removeEventListener( 'mousedown', onMouseDown );
-				this._domElement.removeEventListener( 'touchstart', onTouchStart );
-				this._domElement.removeEventListener( 'wheel', onMouseWheel );
+				// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#matching_event_listeners_for_removal
+				// > it's probably wise to use the same values used for the call to `addEventListener()` when calling `removeEventListener()`
+				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
+				// eslint-disable-next-line no-undef
+				this._domElement.removeEventListener( 'touchstart', onTouchStart, { passive: true } as AddEventListenerOptions );
+				// eslint-disable-next-line no-undef
+				this._domElement.removeEventListener( 'wheel', onMouseWheel, { passive: false } as AddEventListenerOptions );
 				this._domElement.removeEventListener( 'contextmenu', onContextMenu );
 				document.removeEventListener( 'mousemove', dragging );
-				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
 				// eslint-disable-next-line no-undef
 				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
 				document.removeEventListener( 'mouseup', endDragging );
