@@ -1,4 +1,4 @@
-import type * as _THREE from 'three';
+import * as _THREE from 'three';
 export declare enum ACTION {
     NONE = 0,
     ROTATE = 1,

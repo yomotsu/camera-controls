@@ -28,6 +28,8 @@ var extendStatics = function(d, b) {
 };
 
 function __extends(d, b) {
+    if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
     extendStatics(d, b);
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -527,13 +529,13 @@ var CameraControls = (function (_super) {
                 });
             };
             _this._domElement.addEventListener('mousedown', onMouseDown_1);
-            _this._domElement.addEventListener('touchstart', onTouchStart_1);
-            _this._domElement.addEventListener('wheel', onMouseWheel_1);
+            _this._domElement.addEventListener('touchstart', onTouchStart_1, { passive: true });
+            _this._domElement.addEventListener('wheel', onMouseWheel_1, { passive: false });
             _this._domElement.addEventListener('contextmenu', onContextMenu_1);
             _this._removeAllEventListeners = function () {
                 _this._domElement.removeEventListener('mousedown', onMouseDown_1);
-                _this._domElement.removeEventListener('touchstart', onTouchStart_1);
-                _this._domElement.removeEventListener('wheel', onMouseWheel_1);
+                _this._domElement.removeEventListener('touchstart', onTouchStart_1, { passive: true });
+                _this._domElement.removeEventListener('wheel', onMouseWheel_1, { passive: false });
                 _this._domElement.removeEventListener('contextmenu', onContextMenu_1);
                 document.removeEventListener('mousemove', dragging_1);
                 document.removeEventListener('touchmove', dragging_1, { passive: false });
