@@ -355,12 +355,12 @@ export class CameraControls extends EventDispatcher {
 
 				this._state = ACTION.NONE;
 
-				document.removeEventListener( 'mousemove', dragging );
+				_this._domElement.removeEventListener( 'mousemove', dragging );
 				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
 				// eslint-disable-next-line no-undef
-				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
-				document.removeEventListener( 'mouseup',  endDragging );
-				document.removeEventListener( 'touchend', endDragging );
+				_this._domElement.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
+				_this._domElement.removeEventListener( 'mouseup',  endDragging );
+				_this._domElement.removeEventListener( 'touchend', endDragging );
 
 			};
 
@@ -538,10 +538,10 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				document.addEventListener( 'mousemove', dragging );
-				document.addEventListener( 'touchmove', dragging, { passive: false } );
-				document.addEventListener( 'mouseup', endDragging );
-				document.addEventListener( 'touchend', endDragging );
+				_this._domElement.addEventListener( 'mousemove', dragging );
+				_this._domElement.addEventListener( 'touchmove', dragging, { passive: false } );
+				_this._domElement.addEventListener( 'mouseup', endDragging );
+				_this._domElement.addEventListener( 'touchend', endDragging );
 
 				this.dispatchEvent( {
 					type: 'controlstart',
@@ -681,11 +681,11 @@ export class CameraControls extends EventDispatcher {
 				// eslint-disable-next-line no-undef
 				this._domElement.removeEventListener( 'wheel', onMouseWheel, { passive: false } as AddEventListenerOptions );
 				this._domElement.removeEventListener( 'contextmenu', onContextMenu );
-				document.removeEventListener( 'mousemove', dragging );
+				_this._domElement.removeEventListener( 'mousemove', dragging );
 				// eslint-disable-next-line no-undef
-				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
-				document.removeEventListener( 'mouseup', endDragging );
-				document.removeEventListener( 'touchend', endDragging );
+				_this._domElement.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
+				_this._domElement.removeEventListener( 'mouseup', endDragging );
+				_this._domElement.removeEventListener( 'touchend', endDragging );
 
 			};
 
