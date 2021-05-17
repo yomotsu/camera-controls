@@ -455,7 +455,8 @@ var CameraControls = (function (_super) {
             var dragging_1 = function (event) {
                 if (!_this._enabled)
                     return;
-                event.preventDefault();
+                if (event.cancelable)
+                    event.preventDefault();
                 extractClientCoordFromEvent(event, _v2);
                 var deltaX = lastDragPosition_1.x - _v2.x;
                 var deltaY = lastDragPosition_1.y - _v2.y;
