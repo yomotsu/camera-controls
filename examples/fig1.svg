@@ -5,8 +5,8 @@
 	xmlns="http://www.w3.org/2000/svg"
 >
 	<filter id="outline">
-		<feMorphology in="SourceAlpha" result="DILATED" operator="dilate" radius="4"></feMorphology>
-		<feFlood flood-color="#fff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+		<feMorphology in="SourceAlpha" result="DILATED" operator="dilate" radius="2"></feMorphology>
+		<feFlood flood-color="#fff" flood-opacity="0.7" result="OUTLINE_COLOR"></feFlood>
 		<feComposite in="OUTLINE_COLOR" in2="DILATED" operator="in" result="OUTLINE"></feComposite>
 		<feMerge>
 			<feMergeNode in="OUTLINE" />
