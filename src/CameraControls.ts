@@ -553,8 +553,8 @@ export class CameraControls extends EventDispatcher {
 			const dragging = ( event: Event ): void => {
 
 				if ( ! this._enabled ) return;
-
-				event.preventDefault();
+				
+				if ( event.cancelable ) event.preventDefault();
 
 				extractClientCoordFromEvent( event, _v2 );
 
