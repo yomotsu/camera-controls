@@ -554,9 +554,7 @@ export class CameraControls extends EventDispatcher {
 
 				if ( ! this._enabled ) return;
 				
-				if (event.cancelable) {
-					event.preventDefault();
-				}
+				if ( event.cancelable ) event.preventDefault();
 
 				extractClientCoordFromEvent( event, _v2 );
 
