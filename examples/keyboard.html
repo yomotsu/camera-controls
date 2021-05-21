@@ -45,14 +45,14 @@ const KEYCODE = {
 	ARROW_DOWN : 40,
 };
 
-const wKey = new holdEvent.KeyboardKeyHold( KEYCODE.W, 100 );
-const aKey = new holdEvent.KeyboardKeyHold( KEYCODE.A, 100 );
-const sKey = new holdEvent.KeyboardKeyHold( KEYCODE.S, 100 );
-const dKey = new holdEvent.KeyboardKeyHold( KEYCODE.D, 100 );
-aKey.addEventListener( 'holding', function( event ) { cameraControls.truck( - 0.01 * event.deltaTime, 0, true ) } );
-dKey.addEventListener( 'holding', function( event ) { cameraControls.truck(   0.01 * event.deltaTime, 0, true ) } );
-wKey.addEventListener( 'holding', function( event ) { cameraControls.forward(   0.01 * event.deltaTime, true ) } );
-sKey.addEventListener( 'holding', function( event ) { cameraControls.forward( - 0.01 * event.deltaTime, true ) } );
+const wKey = new holdEvent.KeyboardKeyHold( KEYCODE.W, 16.666 );
+const aKey = new holdEvent.KeyboardKeyHold( KEYCODE.A, 16.666 );
+const sKey = new holdEvent.KeyboardKeyHold( KEYCODE.S, 16.666 );
+const dKey = new holdEvent.KeyboardKeyHold( KEYCODE.D, 16.666 );
+aKey.addEventListener( 'holding', function( event ) { cameraControls.truck( - 0.01 * event.deltaTime, 0, false ) } );
+dKey.addEventListener( 'holding', function( event ) { cameraControls.truck(   0.01 * event.deltaTime, 0, false ) } );
+wKey.addEventListener( 'holding', function( event ) { cameraControls.forward(   0.01 * event.deltaTime, false ) } );
+sKey.addEventListener( 'holding', function( event ) { cameraControls.forward( - 0.01 * event.deltaTime, false ) } );
 
 const leftKey  = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_LEFT,  100 );
 const rightKey = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_RIGHT, 100 );
