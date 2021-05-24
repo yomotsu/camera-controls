@@ -65,7 +65,7 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 
 ### Important!
 
-You *must install* Three.js before using camera-controls. Not doing so will lead to runtime errors (undefined references to THREE).
+You *must install* three.js before using camera-controls. Not doing so will lead to runtime errors (undefined references to THREE).
 
 **Before creating a new CameraControls instance, call**:
 ```javascript
@@ -73,6 +73,43 @@ CameraControls.install( { THREE: THREE } );
 ```
 
 You can then proceed to use CameraControls.
+
+Note: If you don't want to use full of three.js (tree-shaking for example), make a subset to install.
+
+```js
+import {
+	MOUSE,
+	Vector2,
+	Vector3,
+	Vector4,
+	Quaternion,
+	Matrix4,
+	Spherical,
+	Box3,
+	Sphere,
+	Raycaster,
+	MathUtils,
+} from 'three';
+
+const subsetTHREE = {
+	MOUSE     : MOUSE,
+	Vector2   : Vector2,
+	Vector3   : Vector3,
+	Vector4   : Vector4,
+	Quaternion: Quaternion,
+	Matrix4   : Matrix4,
+	Spherical : Spherical,
+	Box3      : Box3,
+	Sphere    : Sphere,
+	Raycaster : Raycaster,
+	MathUtils : {
+		DEG2RAD: MathUtils.DEG2RAD,
+		clamp: MathUtils.clamp,
+	},
+};
+
+CameraControls.install( { THREE: subsetTHREE } );
+```
 
 ## Constructor
 
