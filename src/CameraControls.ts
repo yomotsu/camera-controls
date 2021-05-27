@@ -400,9 +400,11 @@ export class CameraControls extends EventDispatcher {
 
 				if ( ! this._enabled ) return;
 
+				let touches: Touch[] = touchList( event );
+
 				cancelDragging();
 
-				switch ( event.touches.length ) {
+				switch ( touches.length ) {
 
 					case 1:
 
@@ -511,28 +513,29 @@ export class CameraControls extends EventDispatcher {
 
 				if ( ! this._enabled ) return;
 
-				extractClientCoordFromEvent( event, _v2 );
+				extractClientCoordFromEvent( event, _v2, this._domElement );
 
 				this._getClientRect( elementRect );
 				dragStartPosition.copy( _v2 );
 				lastDragPosition.copy( _v2 );
 
-				const isMultiTouch = isTouchEvent( event ) && ( event as TouchEvent ).touches.length >= 2;
+
+				const isMultiTouch = isTouchEvent( event ) && touchList( event as TouchEvent ).length >= 2;
 
 				if ( isMultiTouch ) {
 
-					const touchEvent = event as TouchEvent;
+					const touches = touchList( event as TouchEvent );
 
 					// 2 finger pinch
-					const dx = _v2.x - touchEvent.touches[ 1 ].clientX;
-					const dy = _v2.y - touchEvent.touches[ 1 ].clientY;
+					const dx = _v2.x - touches[ 1 ].clientX;
+					const dy = _v2.y - touches[ 1 ].clientY;
 					const distance = Math.sqrt( dx * dx + dy * dy );
 
 					dollyStart.set( 0, distance );
 
 					// center coords of 2 finger truck
-					const x = ( touchEvent.touches[ 0 ].clientX + touchEvent.touches[ 1 ].clientX ) * 0.5;
-					const y = ( touchEvent.touches[ 0 ].clientY + touchEvent.touches[ 1 ].clientY ) * 0.5;
+					const x = ( touches[ 0 ].clientX + touches[ 1 ].clientX ) * 0.5;
+					const y = ( touches[ 0 ].clientY + touches[ 1 ].clientY ) * 0.5;
 
 					lastDragPosition.set( x, y );
 
@@ -553,10 +556,10 @@ export class CameraControls extends EventDispatcher {
 			const dragging = ( event: Event ): void => {
 
 				if ( ! this._enabled ) return;
-				
+
 				if ( event.cancelable ) event.preventDefault();
 
-				extractClientCoordFromEvent( event, _v2 );
+				extractClientCoordFromEvent( event, _v2, this._domElement );
 
 				const deltaX = lastDragPosition.x - _v2.x;
 				const deltaY = lastDragPosition.y - _v2.y;
@@ -592,9 +595,9 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.TOUCH_DOLLY_OFFSET:
 					case ACTION.TOUCH_ZOOM_OFFSET: {
 
-						const touchEvent = event as TouchEvent;
-						const dx = _v2.x - touchEvent.touches[ 1 ].clientX;
-						const dy = _v2.y - touchEvent.touches[ 1 ].clientY;
+						const touches = touchList( event as TouchEvent );
+						const dx = _v2.x - touches[ 1 ].clientX;
+						const dy = _v2.y - touches[ 1 ].clientY;
 						const distance = Math.sqrt( dx * dx + dy * dy );
 						const dollyDelta = dollyStart.y - distance;
 						dollyStart.set( 0, distance );
@@ -662,6 +665,24 @@ export class CameraControls extends EventDispatcher {
 					type: 'controlend',
 					originalEvent: event,
 				} );
+
+			};
+
+			const touchList = ( event: TouchEvent ): Touch[] => {
+
+				let touches: Touch[] = [];
+				for ( let index = 0; index < event.touches.length; index ++ ) {
+
+					let touch = event.touches[ index ];
+					if ( touch.target === this._domElement ) {
+
+						touches.push( touch );
+
+					}
+
+				}
+
+				return touches;
 
 			};
 

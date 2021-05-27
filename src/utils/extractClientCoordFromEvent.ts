@@ -1,23 +1,34 @@
 import * as _THREE  from 'three';
 import { isTouchEvent } from './isTouchEvent';
 
-export function extractClientCoordFromEvent( event: Event, out: _THREE.Vector2 ) {
+export function extractClientCoordFromEvent( event: Event, out: _THREE.Vector2, domElement: HTMLElement ) {
 
 	out.set( 0, 0 );
 
 	if ( isTouchEvent( event ) ) {
 
 		const touchEvent = event as TouchEvent;
+		let touches: Touch[] = [];
+		for ( let index = 0; index < touchEvent.touches.length; index ++ ) {
 
-		for ( let i = 0; i < touchEvent.touches.length; i ++ ) {
+			let touch = touchEvent.touches[ index ];
+			if ( touch.target === domElement ) {
 
-			out.x += touchEvent.touches[ i ].clientX;
-			out.y += touchEvent.touches[ i ].clientY;
+				touches.push( touch );
+
+			}
 
 		}
 
-		out.x /= touchEvent.touches.length;
-		out.y /= touchEvent.touches.length;
+		for ( let i = 0; i < touches.length; i ++ ) {
+
+			out.x += touches[ i ].clientX;
+			out.y += touches[ i ].clientY;
+
+		}
+
+		out.x /= touches.length;
+		out.y /= touches.length;
 
 		return out;
 
