@@ -157,10 +157,10 @@ export class CameraControls extends EventDispatcher {
 	protected _needsUpdate = true;
 	protected _updatedLastTime = false;
 
-	protected _dragStartPosition: _THREE.Vector2;
-	protected _lastDragPosition: _THREE.Vector2;
-	protected _dollyStart: _THREE.Vector2;
-	protected _elementRect: _THREE.Vector4;
+	private _dragStartPosition: _THREE.Vector2;
+	private _lastDragPosition: _THREE.Vector2;
+	private _dollyStart: _THREE.Vector2;
+	private _elementRect: _THREE.Vector4;
 
 	constructor(
 		camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera,
