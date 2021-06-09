@@ -151,7 +151,7 @@ export class CameraControls extends EventDispatcher {
 	protected _dollyControlCoord: _THREE.Vector2;
 
 	// collisionTest uses nearPlane. ( PerspectiveCamera only )
-	protected _nearPlaneCorners: _THREE.Vector3[];
+	protected _nearPlaneCorners: [ _THREE.Vector3, _THREE.Vector3, _THREE.Vector3, _THREE.Vector3 ];
 
 	protected _boundary: _THREE.Box3;
 	protected _boundaryEnclosesCamera = false;
@@ -197,10 +197,10 @@ export class CameraControls extends EventDispatcher {
 
 		// collisionTest uses nearPlane.s
 		this._nearPlaneCorners = [
-			new THREE.Vector3() as _THREE.Vector3,
-			new THREE.Vector3() as _THREE.Vector3,
-			new THREE.Vector3() as _THREE.Vector3,
-			new THREE.Vector3() as _THREE.Vector3,
+			new THREE.Vector3(),
+			new THREE.Vector3(),
+			new THREE.Vector3(),
+			new THREE.Vector3(),
 		];
 		this._updateNearPlaneCorners();
 
@@ -681,23 +681,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	// wrong. phi should be map to polar, but backward compatibility.
-	set phiSpeed( speed: number ) {
-
-		console.warn( 'phiSpeed was renamed. use azimuthRotateSpeed instead' );
-		this.azimuthRotateSpeed = speed;
-
-	}
-
-	// wrong. theta should be map to azimuth, but backward compatibility.
-	set thetaSpeed( speed: number ) {
-
-		console.warn( 'thetaSpeed was renamed. use polarRotateSpeed instead' );
-		this.polarRotateSpeed = speed;
-
-	}
-
-	get boundaryEnclosesCamera() {
+	get boundaryEnclosesCamera(): boolean {
 
 		return this._boundaryEnclosesCamera;
 
@@ -1137,7 +1121,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._viewport = this._viewport as _THREE.Vector4 || new THREE.Vector4() as _THREE.Vector4;
+		this._viewport = this._viewport || new THREE.Vector4() as _THREE.Vector4;
 
 		if ( typeof viewportOrX === 'number' ) { // number
 
