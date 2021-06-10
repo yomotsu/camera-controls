@@ -13,6 +13,8 @@
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 	<br>
+	<label><input type="checkbox" onchange="cameraControls.infinityDolly = this.checked">infinity dolly</label>
+	<br>
 	<br>
 	<button onclick="cameraControls.rotate(  45 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 45deg</button>
 	<button onclick="cameraControls.rotate( -90 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta -90deg</button>
@@ -25,6 +27,8 @@
 	<br>
 	<button onclick="cameraControls.dolly(  1, true )">dolly  1</button>
 	<button onclick="cameraControls.dolly( -1, true )">dolly -1</button>
+	<br>
+	<label><input oninput="cameraControls.minDistance = this.value" type="number">Min Distance</label>
 	<br>
 	<button onclick="cameraControls.zoom( camera.zoom / 2, true )">zoom `camera.zoom / 2`</button>
 	<button onclick="cameraControls.zoom( -camera.zoom / 2, true )">zoom `- camera.zoom / 2`</button>
@@ -45,7 +49,7 @@
 	<button onclick="cameraControls.enabled = true;">enable mouse/touch controls</button>
 </div>
 
-<script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );

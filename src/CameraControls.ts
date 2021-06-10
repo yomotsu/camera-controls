@@ -1641,6 +1641,13 @@ export class CameraControls extends EventDispatcher {
 		if ( this.dollyToCursor ) {
 
 			this._dollyControlAmount += this._sphericalEnd.radius - prevRadius;
+
+			if( this.infinityDolly && distance < this.minDistance ) {
+
+				this._dollyControlAmount -= prevRadius
+			
+			}
+
 			this._dollyControlCoord.set( x, y );
 
 		}
