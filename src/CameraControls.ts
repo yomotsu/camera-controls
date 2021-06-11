@@ -1137,12 +1137,11 @@ export class CameraControls extends EventDispatcher {
 
 	getDistanceToFitBox( width: number, height: number, depth: number ): number {
 
-		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFit' ) ) return this._spherical.radius;
+		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitBox' ) ) return this._spherical.radius;
 
-		const camera = this._camera as _THREE.PerspectiveCamera;
 		const boundingRectAspect = width / height;
-		const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
-		const aspect = camera.aspect;
+		const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const aspect = this._camera.aspect;
 
 		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
 		return heightToFit * 0.5 / Math.tan( fov * 0.5 ) + depth * 0.5;
@@ -1164,10 +1163,9 @@ export class CameraControls extends EventDispatcher {
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitSphere' ) ) return this._spherical.radius;
 
 		// https://stackoverflow.com/a/44849975
-		const camera = this._camera as _THREE.PerspectiveCamera;
-		const vFOV = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
-		const hFOV = Math.atan( Math.tan( vFOV * 0.5 ) * camera.aspect ) * 2;
-		const fov = 1 < camera.aspect ? vFOV : hFOV;
+		const vFOV = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const hFOV = Math.atan( Math.tan( vFOV * 0.5 ) * this._camera.aspect ) * 2;
+		const fov = 1 < this._camera.aspect ? vFOV : hFOV;
 		return radius / ( Math.sin( fov * 0.5 ) );
 
 	}
@@ -1551,11 +1549,9 @@ export class CameraControls extends EventDispatcher {
 
 		if ( isPerspectiveCamera( this._camera ) ) {
 
-			const camera = this._camera;
-
-			const offset = _v3A.copy( camera.position ).sub( this._target );
+			const offset = _v3A.copy( this._camera.position ).sub( this._target );
 			// half of the fov is center to top of screen
-			const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+			const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 			const targetDistance = offset.length() * Math.tan( fov * 0.5 );
 			const truckX    = ( this.truckSpeed * deltaX * targetDistance / this._elementRect.w );
 			const pedestalY = ( this.truckSpeed * deltaY * targetDistance / this._elementRect.w );
@@ -1673,7 +1669,7 @@ export class CameraControls extends EventDispatcher {
 		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
 		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( distance );
 
-		_rotationMatrix.lookAt( _ORIGIN, direction, ( this._camera as _THREE.PerspectiveCamera ).up );
+		_rotationMatrix.lookAt( _ORIGIN, direction, this._camera.up );
 
 		for ( let i = 0; i < 4; i ++ ) {
 
@@ -1755,9 +1751,9 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 		const geometry = mesh.geometry.clone();
 		geometry.applyMatrix4( mesh.matrixWorld );
 
-		if ( ( mesh.geometry as _THREE.BufferGeometry ).isBufferGeometry ) {
+		if ( geometry.isBufferGeometry ) {
 
-			const bufferGeometry = geometry as _THREE.BufferGeometry;
+			const bufferGeometry = geometry;
 			const position = bufferGeometry.attributes.position as _THREE.BufferAttribute;
 
 			for ( let i = 0, l = position.count; i < l; i ++ ) {
@@ -1769,6 +1765,8 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 
 		} else {
 
+			// for old three.js, which supports both BufferGeometry and Geometry
+			// this condition block will be removed in the near future.
 			const position = geometry.attributes.position;
 			const vector = new THREE.Vector3();
 
