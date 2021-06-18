@@ -754,7 +754,25 @@ export class CameraControls extends EventDispatcher {
 
 	dollyTo( distance: number, enableTransition: boolean = false ): void {
 
-		this._sphericalEnd.radius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
+		const lastRadius = this._sphericalEnd.radius;
+		const newRadius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
+		const hasCollider = this.colliderMeshes.length >= 1;
+
+		if ( hasCollider ) {
+
+			const maxDistanceByCollisionTest = this._collisionTest();
+			const isCollided = approxEquals( maxDistanceByCollisionTest, this._spherical.radius );
+			const isDollyIn = lastRadius > newRadius;
+
+			if ( ! isDollyIn && isCollided ) return;
+
+			this._sphericalEnd.radius = Math.min( newRadius, maxDistanceByCollisionTest );
+
+		} else {
+
+			this._sphericalEnd.radius = newRadius;
+
+		}
 
 		if ( ! enableTransition ) {
 
@@ -1622,10 +1640,10 @@ export class CameraControls extends EventDispatcher {
 
 			this._dollyControlAmount += this._sphericalEnd.radius - prevRadius;
 
-			if( this.infinityDolly && distance < this.minDistance ) {
+			if ( this.infinityDolly && distance < this.minDistance ) {
 
-				this._dollyControlAmount -= prevRadius
-			
+				this._dollyControlAmount -= prevRadius;
+
 			}
 
 			this._dollyControlCoord.set( x, y );
@@ -1665,9 +1683,8 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, '_collisionTest' ) ) return distance;
 
-		distance = this._spherical.radius;
 		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
-		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( distance );
+		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( this._spherical.radius );
 
 		_rotationMatrix.lookAt( _ORIGIN, direction, this._camera.up );
 
@@ -1678,7 +1695,7 @@ export class CameraControls extends EventDispatcher {
 
 			const origin = _v3C.addVectors( this._target, nearPlaneCorner );
 			_raycaster.set( origin, direction );
-			_raycaster.far = distance;
+			_raycaster.far = this._spherical.radius + 1;
 
 			const intersects = _raycaster.intersectObjects( this.colliderMeshes );
 
