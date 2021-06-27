@@ -61,6 +61,7 @@ export declare class CameraControls extends EventDispatcher {
     protected _elementRect: _THREE.Vector4;
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
     enabled: boolean;
+    camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
     readonly currentAction: ACTION;
     distance: number;
     azimuthAngle: number;

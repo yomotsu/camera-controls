@@ -290,26 +290,19 @@ var CameraControls = (function (_super) {
         if (typeof THREE === 'undefined') {
             console.error('camera-controls: `THREE` is undefined. You must first run `CameraControls.install( { THREE: THREE } )`. Check the docs for further information.');
         }
-        _this._camera = camera;
-        _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
-        _this._yAxisUpSpaceInverse = quatInvertCompat(_this._yAxisUpSpace.clone());
         _this._state = ACTION.NONE;
         _this._domElement = domElement;
         _this._target = new THREE.Vector3();
         _this._targetEnd = _this._target.clone();
         _this._focalOffset = new THREE.Vector3();
         _this._focalOffsetEnd = _this._focalOffset.clone();
-        _this._spherical = new THREE.Spherical().setFromVector3(_v3A.copy(_this._camera.position).applyQuaternion(_this._yAxisUpSpace));
-        _this._sphericalEnd = _this._spherical.clone();
-        _this._zoom = _this._camera.zoom;
-        _this._zoomEnd = _this._zoom;
         _this._nearPlaneCorners = [
             new THREE.Vector3(),
             new THREE.Vector3(),
             new THREE.Vector3(),
             new THREE.Vector3(),
         ];
-        _this._updateNearPlaneCorners();
+        _this.camera = camera;
         _this._boundary = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
         _this._target0 = _this._target.clone();
         _this._position0 = _this._camera.position.clone();
@@ -317,21 +310,6 @@ var CameraControls = (function (_super) {
         _this._focalOffset0 = _this._focalOffset.clone();
         _this._dollyControlAmount = 0;
         _this._dollyControlCoord = new THREE.Vector2();
-        _this.mouseButtons = {
-            left: ACTION.ROTATE,
-            middle: ACTION.DOLLY,
-            right: ACTION.TRUCK,
-            wheel: isPerspectiveCamera(_this._camera) ? ACTION.DOLLY :
-                isOrthographicCamera(_this._camera) ? ACTION.ZOOM :
-                    ACTION.NONE,
-        };
-        _this.touches = {
-            one: ACTION.TOUCH_ROTATE,
-            two: isPerspectiveCamera(_this._camera) ? ACTION.TOUCH_DOLLY_TRUCK :
-                isOrthographicCamera(_this._camera) ? ACTION.TOUCH_ZOOM_TRUCK :
-                    ACTION.NONE,
-            three: ACTION.TOUCH_TRUCK,
-        };
         _this._elementRect = new THREE.Vector4();
         if (_this._domElement) {
             var dragStartPosition_1 = new THREE.Vector2();
@@ -597,6 +575,38 @@ var CameraControls = (function (_super) {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(CameraControls.prototype, "camera", {
+        get: function () {
+            return this._camera;
+        },
+        set: function (camera) {
+            this._camera = camera;
+            this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(this._camera.up, _AXIS_Y);
+            this._yAxisUpSpaceInverse = quatInvertCompat(this._yAxisUpSpace.clone());
+            this._spherical = new THREE.Spherical().setFromVector3(_v3A.copy(this._camera.position).applyQuaternion(this._yAxisUpSpace));
+            this._sphericalEnd = this._spherical.clone();
+            this._zoom = this._camera.zoom;
+            this._zoomEnd = this._zoom;
+            this._updateNearPlaneCorners();
+            this.mouseButtons = {
+                left: ACTION.ROTATE,
+                middle: ACTION.DOLLY,
+                right: ACTION.TRUCK,
+                wheel: isPerspectiveCamera(this._camera) ? ACTION.DOLLY :
+                    isOrthographicCamera(this._camera) ? ACTION.ZOOM :
+                        ACTION.NONE,
+            };
+            this.touches = {
+                one: ACTION.TOUCH_ROTATE,
+                two: isPerspectiveCamera(this._camera) ? ACTION.TOUCH_DOLLY_TRUCK :
+                    isOrthographicCamera(this._camera) ? ACTION.TOUCH_ZOOM_TRUCK :
+                        ACTION.NONE,
+                three: ACTION.TOUCH_TRUCK,
+            };
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(CameraControls.prototype, "currentAction", {
         get: function () {
             return this._state;
@@ -689,7 +699,20 @@ var CameraControls = (function (_super) {
     };
     CameraControls.prototype.dollyTo = function (distance, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
-        this._sphericalEnd.radius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
+        var lastRadius = this._sphericalEnd.radius;
+        var newRadius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
+        var hasCollider = this.colliderMeshes.length >= 1;
+        if (hasCollider) {
+            var maxDistanceByCollisionTest = this._collisionTest();
+            var isCollided = approxEquals(maxDistanceByCollisionTest, this._spherical.radius);
+            var isDollyIn = lastRadius > newRadius;
+            if (!isDollyIn && isCollided)
+                return;
+            this._sphericalEnd.radius = Math.min(newRadius, maxDistanceByCollisionTest);
+        }
+        else {
+            this._sphericalEnd.radius = newRadius;
+        }
         if (!enableTransition) {
             this._spherical.radius = this._sphericalEnd.radius;
         }
@@ -1177,15 +1200,14 @@ var CameraControls = (function (_super) {
             return distance;
         if (notSupportedInOrthographicCamera(this._camera, '_collisionTest'))
             return distance;
-        distance = this._spherical.radius;
-        var direction = _v3A.setFromSpherical(this._spherical).divideScalar(distance);
+        var direction = _v3A.setFromSpherical(this._spherical).divideScalar(this._spherical.radius);
         _rotationMatrix.lookAt(_ORIGIN, direction, this._camera.up);
         for (var i = 0; i < 4; i++) {
             var nearPlaneCorner = _v3B.copy(this._nearPlaneCorners[i]);
             nearPlaneCorner.applyMatrix4(_rotationMatrix);
             var origin_1 = _v3C.addVectors(this._target, nearPlaneCorner);
             _raycaster.set(origin_1, direction);
-            _raycaster.far = distance;
+            _raycaster.far = this._spherical.radius + 1;
             var intersects = _raycaster.intersectObjects(this.colliderMeshes);
             if (intersects.length !== 0 && intersects[0].distance < distance) {
                 distance = intersects[0].distance;

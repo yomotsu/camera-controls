@@ -15,7 +15,8 @@
     "noUnusedParameters": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "strictPropertyInitialization": false,
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
