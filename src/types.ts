@@ -38,7 +38,8 @@ export interface MouseButtons {
 	middle: mouseButtonAction;
 	right : mouseButtonAction;
 	wheel : mouseWheelAction;
-	// We can also add shiftLeft, altLeft and etc if someone wants...
+	shiftLeft  : mouseButtonAction;
+	// We can also add altLeft and etc if someone wants...
 }
 
 export interface Touches {
