@@ -113,15 +113,15 @@ export class CameraControls extends EventDispatcher {
 	colliderMeshes: _THREE.Object3D[] = [];
 
 	// button configs
-	mouseButtons: MouseButtons;
-	touches: Touches;
+	mouseButtons!: MouseButtons;
+	touches!: Touches;
 
 	cancel: () => void = () => {};
 
 	protected _enabled = true;
-	protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
-	protected _yAxisUpSpace: _THREE.Quaternion;
-	protected _yAxisUpSpaceInverse: _THREE.Quaternion;
+	protected _camera!: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
+	protected _yAxisUpSpace!: _THREE.Quaternion;
+	protected _yAxisUpSpaceInverse!: _THREE.Quaternion;
 	protected _state: ACTION = ACTION.NONE;
 
 	protected _domElement: HTMLElement;
@@ -135,11 +135,11 @@ export class CameraControls extends EventDispatcher {
 	protected _focalOffsetEnd: _THREE.Vector3;
 
 	// rotation and dolly distance
-	protected _spherical: _THREE.Spherical;
-	protected _sphericalEnd: _THREE.Spherical;
+	protected _spherical!: _THREE.Spherical;
+	protected _sphericalEnd!: _THREE.Spherical;
 
-	protected _zoom: number;
-	protected _zoomEnd: number;
+	protected _zoom!: number;
+	protected _zoomEnd!: number;
 
 	// reset
 	protected _target0: _THREE.Vector3;
