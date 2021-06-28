@@ -113,15 +113,15 @@ export class CameraControls extends EventDispatcher {
 	colliderMeshes: _THREE.Object3D[] = [];
 
 	// button configs
-	mouseButtons: MouseButtons;
-	touches: Touches;
+	mouseButtons!: MouseButtons;
+	touches!: Touches;
 
 	cancel: () => void = () => {};
 
 	protected _enabled = true;
-	protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
-	protected _yAxisUpSpace: _THREE.Quaternion;
-	protected _yAxisUpSpaceInverse: _THREE.Quaternion;
+	protected _camera!: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
+	protected _yAxisUpSpace: _THREE.Quaternion = new THREE.Quaternion();
+	protected _yAxisUpSpaceInverse: _THREE.Quaternion = new THREE.Quaternion();
 	protected _state: ACTION = ACTION.NONE;
 
 	protected _domElement: HTMLElement;
@@ -135,11 +135,11 @@ export class CameraControls extends EventDispatcher {
 	protected _focalOffsetEnd: _THREE.Vector3;
 
 	// rotation and dolly distance
-	protected _spherical: _THREE.Spherical;
-	protected _sphericalEnd: _THREE.Spherical;
+	protected _spherical: _THREE.Spherical =  new THREE.Spherical();
+	protected _sphericalEnd: _THREE.Spherical = new THREE.Spherical();
 
-	protected _zoom: number;
-	protected _zoomEnd: number;
+	protected _zoom: number = 1;
+	protected _zoomEnd: number = 1;
 
 	// reset
 	protected _target0: _THREE.Vector3;
@@ -174,9 +174,6 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._camera = camera;
-		this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
-		this._yAxisUpSpaceInverse = quatInvertCompat( this._yAxisUpSpace.clone() );
 		this._state = ACTION.NONE;
 
 		this._domElement = domElement;
@@ -188,21 +185,16 @@ export class CameraControls extends EventDispatcher {
 		this._focalOffset = new THREE.Vector3();
 		this._focalOffsetEnd = this._focalOffset.clone();
 
-		// rotation
-		this._spherical = new THREE.Spherical().setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
-		this._sphericalEnd = this._spherical.clone();
-
-		this._zoom = this._camera.zoom;
-		this._zoomEnd = this._zoom;
-
-		// collisionTest uses nearPlane.s
+		// Initializing collisionTest uses nearPlane.s
 		this._nearPlaneCorners = [
 			new THREE.Vector3(),
 			new THREE.Vector3(),
 			new THREE.Vector3(),
 			new THREE.Vector3(),
 		];
-		this._updateNearPlaneCorners();
+
+		// Setting the camera
+		this.camera = camera;
 
 		// Target cannot move outside of this box
 		this._boundary = new THREE.Box3(
@@ -218,27 +210,6 @@ export class CameraControls extends EventDispatcher {
 
 		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
-
-		// configs
-		this.mouseButtons = {
-			left: ACTION.ROTATE,
-			middle: ACTION.DOLLY,
-			right: ACTION.TRUCK,
-			wheel:
-				isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
-				isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
-				ACTION.NONE,
-			// We can also add shiftLeft, altLeft and etc if someone wants...
-		};
-
-		this.touches = {
-			one: ACTION.TOUCH_ROTATE,
-			two:
-				isPerspectiveCamera( this._camera )  ? ACTION.TOUCH_DOLLY_TRUCK :
-				isOrthographicCamera( this._camera ) ? ACTION.TOUCH_ZOOM_TRUCK :
-				ACTION.NONE,
-			three: ACTION.TOUCH_TRUCK,
-		};
 
 		this._elementRect = new THREE.Vector4();
 
@@ -614,6 +585,51 @@ export class CameraControls extends EventDispatcher {
 		this._enabled = enabled;
 		if ( ! enabled ) this.cancel();
 
+	}
+
+	get camera() {
+		return this._camera;
+	}
+
+	set camera(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera) {
+		this._camera = camera;
+
+		// camera up
+		this._yAxisUpSpace.setFromUnitVectors( this._camera.up, _AXIS_Y );
+		this._yAxisUpSpaceInverse.copy(quatInvertCompat( this._yAxisUpSpace.clone() ));
+
+		// rotation
+		this._spherical.setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
+		this._sphericalEnd.copy(this._spherical);
+
+		// Zoom
+		this._zoom = this._camera.zoom;
+		this._zoomEnd = this._zoom;
+
+		// collisionTest
+		this._updateNearPlaneCorners();
+
+		// Mouse controls config
+		this.mouseButtons = {
+			left: ACTION.ROTATE,
+			middle: ACTION.DOLLY,
+			right: ACTION.TRUCK,
+			wheel:
+				isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
+				isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
+				ACTION.NONE,
+			// We can also add shiftLeft, altLeft and etc if someone wants...
+		};
+
+		// Touch controls config
+		this.touches = {
+			one: ACTION.TOUCH_ROTATE,
+			two:
+				isPerspectiveCamera( this._camera )  ? ACTION.TOUCH_DOLLY_TRUCK :
+				isOrthographicCamera( this._camera ) ? ACTION.TOUCH_ZOOM_TRUCK :
+				ACTION.NONE,
+			three: ACTION.TOUCH_TRUCK,
+		};
 	}
 
 	get currentAction(): ACTION {
