@@ -228,7 +228,7 @@ export class CameraControls extends EventDispatcher {
 				isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
 				isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
 				ACTION.NONE,
-			shiftLeft: ACTION.NONE
+			shiftLeft: ACTION.NONE,
 			// We can also add altLeft and etc if someone wants...
 		};
 
@@ -274,16 +274,8 @@ export class CameraControls extends EventDispatcher {
 				switch ( event.button ) {
 
 					case THREE.MOUSE.LEFT:
-						if ( event.shiftKey ) {
 
-							this._state = this.mouseButtons.shiftLeft;
-
-						} else {
-
-							this._state = this.mouseButtons.left;
-
-						}
-
+						this._state = event.shiftKey ? this.mouseButtons.shiftLeft : this.mouseButtons.left;
 						break;
 
 					case THREE.MOUSE.MIDDLE:
