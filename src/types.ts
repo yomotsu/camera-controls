@@ -34,11 +34,12 @@ type multiTouchAction =
 	ACTION.NONE;
 
 export interface MouseButtons {
-	left  : mouseButtonAction;
-	middle: mouseButtonAction;
-	right : mouseButtonAction;
-	wheel : mouseWheelAction;
-	// We can also add shiftLeft, altLeft and etc if someone wants...
+	left     : mouseButtonAction;
+	middle   : mouseButtonAction;
+	right    : mouseButtonAction;
+	wheel    : mouseWheelAction;
+	shiftLeft: mouseButtonAction;
+	// We can also add altLeft and etc if someone wants...
 }
 
 export interface Touches {

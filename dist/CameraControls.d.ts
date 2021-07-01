@@ -48,19 +48,23 @@ export declare class CameraControls extends EventDispatcher {
     protected _focalOffset0: _THREE.Vector3;
     protected _dollyControlAmount: number;
     protected _dollyControlCoord: _THREE.Vector2;
-    protected _nearPlaneCorners: _THREE.Vector3[];
+    protected _nearPlaneCorners: [
+        _THREE.Vector3,
+        _THREE.Vector3,
+        _THREE.Vector3,
+        _THREE.Vector3
+    ];
     protected _boundary: _THREE.Box3;
     protected _boundaryEnclosesCamera: boolean;
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
+    protected _elementRect: _THREE.Vector4;
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
     enabled: boolean;
     readonly currentAction: ACTION;
     distance: number;
     azimuthAngle: number;
     polarAngle: number;
-    phiSpeed: number;
-    thetaSpeed: number;
     boundaryEnclosesCamera: boolean;
     addEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
     removeEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
@@ -100,6 +104,10 @@ export declare class CameraControls extends EventDispatcher {
     dispose(): void;
     protected _encloseToBoundary(position: _THREE.Vector3, offset: _THREE.Vector3, friction: number): _THREE.Vector3;
     protected _updateNearPlaneCorners(): void;
+    protected _truckInternal: (deltaX: number, deltaY: number, dragToOffset: boolean) => void;
+    protected _rotateInternal: (deltaX: number, deltaY: number) => void;
+    protected _dollyInternal: (delta: number, x: number, y: number) => void;
+    protected _zoomInternal: (delta: number, x: number, y: number) => void;
     protected _collisionTest(): number;
     protected _getClientRect(target: _THREE.Vector4): _THREE.Vector4;
     protected _removeAllEventListeners(): void;

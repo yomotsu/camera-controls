@@ -191,6 +191,7 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 | `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.wheel`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.shiftLeft`   | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`* |
 
 - \* is the default.
 - The default of `mouseButtons.wheel` is:
@@ -364,16 +365,16 @@ Fit the viewport to the sphere or the bounding sphere of the object.
 
 #### `setLookAt( positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition )`
 
-It moves the camera into `position`, and make it look at `target`.
+Make a orbit with given points.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
-| `positionX`        | `number`  | Position x of look at from. |
-| `positionY`        | `number`  | Position y of look at from. |
-| `positionZ`        | `number`  | Position z of look at from. |
-| `targetX`          | `number`  | Position x of look at. |
-| `targetY`          | `number`  | Position y of look at. |
-| `targetZ`          | `number`  | Position z of look at. |
+| `positionX`        | `number`  | Camera position x. |
+| `positionY`        | `number`  | Camera position y. |
+| `positionZ`        | `number`  | Camera position z. |
+| `targetX`          | `number`  | Orbit center position x. |
+| `targetY`          | `number`  | Orbit center position y. |
+| `targetZ`          | `number`  | Orbit center position z. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
