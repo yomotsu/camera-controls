@@ -1,6 +1,7 @@
 import type * as _THREE from 'three';
 import {
 	ACTION,
+	PointerInput,
 	MouseButtons,
 	Touches,
 	FitToOptions,
@@ -20,7 +21,6 @@ import {
 	infinityToMaxNumber,
 	maxNumberToInfinity,
 } from './utils/math-utils';
-import { isTouchEvent } from './utils/isTouchEvent';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
 import { quatInvertCompat } from './utils/quatInvertCompat';
@@ -28,6 +28,7 @@ import { EventDispatcher, Listener } from './EventDispatcher';
 
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test( navigator.platform );
+const isPointerEventsNotSupported = ! ( isBrowser && 'PointerEvent' in window ); // Safari 12 does not support PointerEvents API
 const readonlyACTION = Object.freeze( ACTION );
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 
@@ -160,6 +161,8 @@ export class CameraControls extends EventDispatcher {
 	protected _updatedLastTime = false;
 	protected _elementRect: _THREE.Vector4;
 
+	protected _activePointers: PointerInput[] = [];
+
 	constructor(
 		camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera,
 		domElement: HTMLElement,
@@ -180,6 +183,7 @@ export class CameraControls extends EventDispatcher {
 		this._state = ACTION.NONE;
 
 		this._domElement = domElement;
+		this._domElement.style.touchAction = 'none';
 
 		// the location
 		this._target = new THREE.Vector3();
@@ -252,24 +256,25 @@ export class CameraControls extends EventDispatcher {
 			const cancelDragging = (): void => {
 
 				this._state = ACTION.NONE;
-
-				document.removeEventListener( 'mousemove', dragging );
-				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
-				// eslint-disable-next-line no-undef
-				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
-				document.removeEventListener( 'mouseup',  endDragging );
-				document.removeEventListener( 'touchend', endDragging );
+				this._activePointers.length = 0;
+				endDragging();
 
 			};
 
-			const onMouseDown = ( event: MouseEvent ): void => {
+			const onPointerDown = ( event: PointerEvent ) => {
 
 				if ( ! this._enabled ) return;
 
-				// Don't call `event.preventDefault()` on the mousedown event
-				// to keep receiving mousemove evens outside dragging iframe
+				// Don't call `event.preventDefault()` on the pointerdown event
+				// to keep receiving pointermove evens outside dragging iframe
 				// https://taye.me/blog/tips/2015/11/16/mouse-drag-outside-iframe/
-				cancelDragging();
+
+				const pointer = {
+					pointerId: event.pointerId,
+					clientX: event.clientX,
+					clientY: event.clientY,
+				};
+				this._activePointers.push( pointer );
 
 				switch ( event.button ) {
 
@@ -290,7 +295,79 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				startDragging( event );
+				if ( event.pointerType === 'touch' ) {
+
+					switch ( this._activePointers.length ) {
+
+						case 1:
+
+							this._state = this.touches.one;
+							break;
+
+						case 2:
+
+							this._state = this.touches.two;
+							break;
+
+						case 3:
+
+							this._state = this.touches.three;
+							break;
+
+					}
+
+				}
+
+				// eslint-disable-next-line no-undef
+				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
+				this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+
+				this._domElement.ownerDocument.addEventListener( 'pointermove', onPointerMove, { passive: false } );
+				this._domElement.ownerDocument.addEventListener( 'pointerup', onPointerUp );
+
+				startDragging();
+
+			};
+
+			const onMouseDown = ( event: MouseEvent ) => {
+
+				if ( ! this._enabled ) return;
+
+				const pointer = {
+					pointerId: 0,
+					clientX: event.clientX,
+					clientY: event.clientY,
+				};
+				this._activePointers.push( pointer );
+
+				switch ( event.button ) {
+
+					case THREE.MOUSE.LEFT:
+
+						this._state = event.shiftKey ? this.mouseButtons.shiftLeft : this.mouseButtons.left;
+						break;
+
+					case THREE.MOUSE.MIDDLE:
+
+						this._state = this.mouseButtons.middle;
+						break;
+
+					case THREE.MOUSE.RIGHT:
+
+						this._state = this.mouseButtons.right;
+						break;
+
+				}
+
+				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
+				// eslint-disable-next-line no-undef
+				this._domElement.ownerDocument.removeEventListener( 'mousemove', onMouseMove );
+				this._domElement.ownerDocument.removeEventListener( 'mouseup', onMouseUp );
+
+				this._domElement.ownerDocument.addEventListener( 'mousemove', onMouseMove );
+				this._domElement.ownerDocument.addEventListener( 'mouseup', onMouseUp );
+
+				startDragging();
 
 			};
 
@@ -298,9 +375,20 @@ export class CameraControls extends EventDispatcher {
 
 				if ( ! this._enabled ) return;
 
-				cancelDragging();
+				event.preventDefault();
 
-				switch ( event.touches.length ) {
+				Array.prototype.forEach.call( event.changedTouches, ( touch ) => {
+
+					const pointer = {
+						pointerId: touch.identifier,
+						clientX: touch.clientX,
+						clientY: touch.clientY,
+					};
+					this._activePointers.push( pointer );
+
+				} );
+
+				switch ( this._activePointers.length ) {
 
 					case 1:
 
@@ -319,7 +407,153 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				startDragging( event );
+				// eslint-disable-next-line no-undef
+				this._domElement.ownerDocument.removeEventListener( 'touchmove', onTouchMove, { passive: false } as AddEventListenerOptions );
+				this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
+
+				this._domElement.ownerDocument.addEventListener( 'touchmove', onTouchMove, { passive: false } );
+				this._domElement.ownerDocument.addEventListener( 'touchend', onTouchEnd );
+
+				startDragging();
+
+			};
+
+			const onPointerMove = ( event: PointerEvent ) => {
+
+				if ( event.cancelable ) event.preventDefault();
+
+				const pointerId = ( event as PointerEvent ).pointerId;
+				const pointer = this._findPointerById( pointerId );
+
+				if ( ! pointer ) return;
+
+				pointer.clientX = ( event as PointerEvent ).clientX;
+				pointer.clientY = ( event as PointerEvent ).clientY;
+
+				dragging();
+
+			};
+
+			const onMouseMove = ( event: MouseEvent ) => {
+
+				const pointer = this._findPointerById( 0 );
+
+				if ( ! pointer ) return;
+
+				pointer.clientX = ( event as PointerEvent ).clientX;
+				pointer.clientY = ( event as PointerEvent ).clientY;
+
+				dragging();
+
+			};
+
+			const onTouchMove = ( event: TouchEvent ) => {
+
+				if ( event.cancelable ) event.preventDefault();
+
+				Array.prototype.forEach.call( event.changedTouches, ( touch: Touch ) => {
+
+					const pointerId = touch.identifier;
+					const pointer = this._findPointerById( pointerId );
+
+					if ( ! pointer ) return;
+
+					pointer.clientX = touch.clientX;
+					pointer.clientY = touch.clientY;
+
+				} );
+
+				dragging();
+
+			};
+
+			const onPointerUp = ( event: PointerEvent ) => {
+
+				const pointerId = event.pointerId;
+				const pointer = this._findPointerById( pointerId );
+				pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+
+				if ( event.pointerType === 'touch' ) {
+
+					switch ( this._activePointers.length ) {
+
+						case 0:
+
+							this._state = ACTION.NONE;
+							break;
+
+						case 1:
+
+							this._state = this.touches.one;
+							break;
+
+						case 2:
+
+							this._state = this.touches.two;
+							break;
+
+						case 3:
+
+							this._state = this.touches.three;
+							break;
+
+					}
+
+				} else {
+
+					this._state = ACTION.NONE;
+
+				}
+
+				endDragging();
+
+			};
+
+			const onMouseUp = () => {
+
+				const pointer = this._findPointerById( 0 );
+				pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+				this._state = ACTION.NONE;
+
+				endDragging();
+
+			};
+
+			const onTouchEnd = ( event: TouchEvent ) => {
+
+				Array.prototype.forEach.call( event.changedTouches, ( touch: Touch ) => {
+
+					const pointerId = touch.identifier;
+					const pointer = this._findPointerById( pointerId );
+					pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+
+				} );
+
+				switch ( this._activePointers.length ) {
+
+					case 0:
+
+						this._state = ACTION.NONE;
+						break;
+
+					case 1:
+
+						this._state = this.touches.one;
+						break;
+
+					case 2:
+
+						this._state = this.touches.two;
+						break;
+
+					case 3:
+
+						this._state = this.touches.three;
+						break;
+
+				}
+
+				endDragging();
 
 			};
 
@@ -390,10 +624,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				this.dispatchEvent( {
-					type: 'control',
-					originalEvent: event,
-				} );
+				this.dispatchEvent( { type: 'control' } );
 
 			};
 
@@ -405,56 +636,44 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
-			const startDragging = ( event: Event ): void => {
+			const startDragging = (): void => {
 
 				if ( ! this._enabled ) return;
 
-				extractClientCoordFromEvent( event, _v2 );
+				extractClientCoordFromEvent( this._activePointers, _v2 );
 
 				this._getClientRect( this._elementRect );
 				dragStartPosition.copy( _v2 );
 				lastDragPosition.copy( _v2 );
 
-				const isMultiTouch = isTouchEvent( event ) && ( event as TouchEvent ).touches.length >= 2;
+				const isMultiTouch = this._activePointers.length >= 2;
 
 				if ( isMultiTouch ) {
 
-					const touchEvent = event as TouchEvent;
-
 					// 2 finger pinch
-					const dx = _v2.x - touchEvent.touches[ 1 ].clientX;
-					const dy = _v2.y - touchEvent.touches[ 1 ].clientY;
+					const dx = _v2.x - this._activePointers[ 1 ].clientX;
+					const dy = _v2.y - this._activePointers[ 1 ].clientY;
 					const distance = Math.sqrt( dx * dx + dy * dy );
 
 					dollyStart.set( 0, distance );
 
 					// center coords of 2 finger truck
-					const x = ( touchEvent.touches[ 0 ].clientX + touchEvent.touches[ 1 ].clientX ) * 0.5;
-					const y = ( touchEvent.touches[ 0 ].clientY + touchEvent.touches[ 1 ].clientY ) * 0.5;
+					const x = ( this._activePointers[ 0 ].clientX + this._activePointers[ 1 ].clientX ) * 0.5;
+					const y = ( this._activePointers[ 0 ].clientY + this._activePointers[ 1 ].clientY ) * 0.5;
 
 					lastDragPosition.set( x, y );
 
 				}
 
-				document.addEventListener( 'mousemove', dragging );
-				document.addEventListener( 'touchmove', dragging, { passive: false } );
-				document.addEventListener( 'mouseup', endDragging );
-				document.addEventListener( 'touchend', endDragging );
-
-				this.dispatchEvent( {
-					type: 'controlstart',
-					originalEvent: event,
-				} );
+				this.dispatchEvent( { type: 'controlstart' } );
 
 			};
 
-			const dragging = ( event: Event ): void => {
+			const dragging = (): void => {
 
 				if ( ! this._enabled ) return;
 
-				if ( event.cancelable ) event.preventDefault();
-
-				extractClientCoordFromEvent( event, _v2 );
+				extractClientCoordFromEvent( this._activePointers, _v2 );
 
 				const deltaX = lastDragPosition.x - _v2.x;
 				const deltaY = lastDragPosition.y - _v2.y;
@@ -490,9 +709,8 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.TOUCH_DOLLY_OFFSET:
 					case ACTION.TOUCH_ZOOM_OFFSET: {
 
-						const touchEvent = event as TouchEvent;
-						const dx = _v2.x - touchEvent.touches[ 1 ].clientX;
-						const dy = _v2.y - touchEvent.touches[ 1 ].clientY;
+						const dx = _v2.x - this._activePointers[ 1 ].clientX;
+						const dy = _v2.y - this._activePointers[ 1 ].clientY;
 						const distance = Math.sqrt( dx * dx + dy * dy );
 						const dollyDelta = dollyStart.y - distance;
 						dollyStart.set( 0, distance );
@@ -543,47 +761,58 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				this.dispatchEvent( {
-					type: 'control',
-					originalEvent: event,
-				} );
+				this.dispatchEvent( { type: 'control' } );
 
 			};
 
-			const endDragging = ( event: Event ): void => {
+			const endDragging = (): void => {
 
-				if ( ! this._enabled ) return;
+				extractClientCoordFromEvent( this._activePointers, _v2 );
+				lastDragPosition.copy( _v2 );
 
-				cancelDragging();
+				if ( this._activePointers.length === 0 ) {
 
-				this.dispatchEvent( {
-					type: 'controlend',
-					originalEvent: event,
-				} );
+					// eslint-disable-next-line no-undef
+					this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
+					this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+
+					// eslint-disable-next-line no-undef
+					this._domElement.ownerDocument.removeEventListener( 'touchmove', onTouchMove, { passive: false } as AddEventListenerOptions );
+					this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
+
+				}
+
+				this.dispatchEvent( { type: 'controlend' } );
 
 			};
 
-			this._domElement.addEventListener( 'mousedown', onMouseDown );
-			this._domElement.addEventListener( 'touchstart', onTouchStart, { passive: true } );
+			// this._domElement.addEventListener( 'pointerdown', onPointerDown );
+			isPointerEventsNotSupported && this._domElement.addEventListener( 'mousedown', onMouseDown );
+			isPointerEventsNotSupported && this._domElement.addEventListener( 'touchstart', onTouchStart );
+			this._domElement.addEventListener( 'pointercancel', onPointerUp );
 			this._domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
 			this._domElement.addEventListener( 'contextmenu', onContextMenu );
 
 			this._removeAllEventListeners = (): void => {
 
+				this._domElement.removeEventListener( 'pointerdown', onPointerDown );
 				this._domElement.removeEventListener( 'mousedown', onMouseDown );
+				this._domElement.removeEventListener( 'touchstart', onTouchStart );
+				this._domElement.removeEventListener( 'pointercancel', onPointerUp );
 				// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#matching_event_listeners_for_removal
 				// > it's probably wise to use the same values used for the call to `addEventListener()` when calling `removeEventListener()`
 				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
 				// eslint-disable-next-line no-undef
-				this._domElement.removeEventListener( 'touchstart', onTouchStart, { passive: true } as AddEventListenerOptions );
-				// eslint-disable-next-line no-undef
 				this._domElement.removeEventListener( 'wheel', onMouseWheel, { passive: false } as AddEventListenerOptions );
 				this._domElement.removeEventListener( 'contextmenu', onContextMenu );
-				document.removeEventListener( 'mousemove', dragging );
 				// eslint-disable-next-line no-undef
-				document.removeEventListener( 'touchmove', dragging, { passive: false } as AddEventListenerOptions );
-				document.removeEventListener( 'mouseup', endDragging );
-				document.removeEventListener( 'touchend', endDragging );
+				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
+				this._domElement.ownerDocument.removeEventListener( 'mousemove', onMouseMove );
+				// eslint-disable-next-line no-undef
+				this._domElement.ownerDocument.removeEventListener( 'touchmove', onTouchMove, { passive: false } as AddEventListenerOptions );
+				this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+				this._domElement.ownerDocument.removeEventListener( 'mouseup', onMouseUp );
+				this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
 
 			};
 
@@ -591,10 +820,7 @@ export class CameraControls extends EventDispatcher {
 
 				cancelDragging();
 
-				this.dispatchEvent( {
-					type: 'controlend',
-					originalEvent: null,
-				} );
+				this.dispatchEvent( { type: 'controlend' } );
 
 			};
 
@@ -1487,6 +1713,27 @@ export class CameraControls extends EventDispatcher {
 	dispose(): void {
 
 		this._removeAllEventListeners();
+
+	}
+
+
+	protected _findPointerById( pointerId: number ): PointerInput | null {
+
+		// to support IE11 use some instead of Array#find (will be removed when IE11 is deprecated)
+		let pointer: PointerInput | null = null;
+		this._activePointers.some( ( activePointer ) => {
+
+			if ( activePointer.pointerId === pointerId ) {
+
+				pointer = activePointer;
+				return true;
+
+			}
+
+			return false;
+
+		} );
+		return pointer;
 
 	}
 

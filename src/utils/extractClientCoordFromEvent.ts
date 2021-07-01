@@ -1,34 +1,18 @@
-import * as _THREE  from 'three';
-import { isTouchEvent } from './isTouchEvent';
+import type * as _THREE  from 'three';
+import type { PointerInput } from '../types';
 
-export function extractClientCoordFromEvent( event: Event, out: _THREE.Vector2 ) {
+export function extractClientCoordFromEvent( pointers: PointerInput[], out: _THREE.Vector2 ) {
 
 	out.set( 0, 0 );
 
-	if ( isTouchEvent( event ) ) {
+	pointers.forEach( ( pointer ) => {
 
-		const touchEvent = event as TouchEvent;
+		out.x += pointer.clientX;
+		out.y += pointer.clientY;
 
-		for ( let i = 0; i < touchEvent.touches.length; i ++ ) {
+	} );
 
-			out.x += touchEvent.touches[ i ].clientX;
-			out.y += touchEvent.touches[ i ].clientY;
-
-		}
-
-		out.x /= touchEvent.touches.length;
-		out.y /= touchEvent.touches.length;
-
-		return out;
-
-	} else {
-
-		const mouseEvent = event as MouseEvent;
-
-		out.set( mouseEvent.clientX, mouseEvent.clientY );
-
-		return out;
-
-	}
+	out.x /= pointers.length;
+	out.y /= pointers.length;
 
 }
