@@ -830,6 +830,22 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	get camera(): _THREE.PerspectiveCamera | _THREE.OrthographicCamera {
+
+		return this._camera;
+
+	}
+
+	set camera( camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera ) {
+
+		this._camera = camera;
+		this.updateCameraUp();
+		this._camera.updateProjectionMatrix();
+		this._updateNearPlaneCorners();
+		this._needsUpdate = true;
+
+	}
+
 	get enabled(): boolean {
 
 		return this._enabled;
