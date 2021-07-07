@@ -1,5 +1,5 @@
 import * as _THREE from 'three';
-import { ACTION, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
+import { ACTION, PointerInput, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     static install(libs: any): void;
@@ -59,7 +59,9 @@ export declare class CameraControls extends EventDispatcher {
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
     protected _elementRect: _THREE.Vector4;
+    protected _activePointers: PointerInput[];
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
+    camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
     enabled: boolean;
     readonly currentAction: ACTION;
     distance: number;
@@ -102,6 +104,7 @@ export declare class CameraControls extends EventDispatcher {
     toJSON(): string;
     fromJSON(json: string, enableTransition?: boolean): void;
     dispose(): void;
+    protected _findPointerById(pointerId: number): PointerInput | null;
     protected _encloseToBoundary(position: _THREE.Vector3, offset: _THREE.Vector3, friction: number): _THREE.Vector3;
     protected _updateNearPlaneCorners(): void;
     protected _truckInternal: (deltaX: number, deltaY: number, dragToOffset: boolean) => void;

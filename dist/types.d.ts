@@ -16,6 +16,11 @@ export declare enum ACTION {
     TOUCH_ZOOM_TRUCK = 13,
     TOUCH_ZOOM_OFFSET = 14
 }
+export interface PointerInput {
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+}
 declare type mouseButtonAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.OFFSET | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 declare type mouseWheelAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.OFFSET | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
 declare type singleTouchAction = ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.TOUCH_OFFSET | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
@@ -25,6 +30,7 @@ export interface MouseButtons {
     middle: mouseButtonAction;
     right: mouseButtonAction;
     wheel: mouseWheelAction;
+    shiftLeft: mouseButtonAction;
 }
 export interface Touches {
     one: singleTouchAction;
@@ -49,15 +55,12 @@ export interface CameraControlsEventMap {
     };
     controlstart: {
         type: 'controlstart';
-        originalEvent: MouseEvent | TouchEvent | WheelEvent;
     };
     control: {
         type: 'control';
-        originalEvent: MouseEvent | TouchEvent | WheelEvent;
     };
     controlend: {
         type: 'controlend';
-        originalEvent: MouseEvent | TouchEvent | WheelEvent;
     };
 }
 export declare function isPerspectiveCamera(camera: _THREE.Camera): camera is _THREE.PerspectiveCamera;

@@ -93,27 +93,14 @@
 	    return value * Infinity;
 	}
 
-	function isTouchEvent(event) {
-	    return 'TouchEvent' in window && event instanceof TouchEvent;
-	}
-
-	function extractClientCoordFromEvent(event, out) {
+	function extractClientCoordFromEvent(pointers, out) {
 	    out.set(0, 0);
-	    if (isTouchEvent(event)) {
-	        var touchEvent = event;
-	        for (var i = 0; i < touchEvent.touches.length; i++) {
-	            out.x += touchEvent.touches[i].clientX;
-	            out.y += touchEvent.touches[i].clientY;
-	        }
-	        out.x /= touchEvent.touches.length;
-	        out.y /= touchEvent.touches.length;
-	        return out;
-	    }
-	    else {
-	        var mouseEvent = event;
-	        out.set(mouseEvent.clientX, mouseEvent.clientY);
-	        return out;
-	    }
+	    pointers.forEach(function (pointer) {
+	        out.x += pointer.clientX;
+	        out.y += pointer.clientY;
+	    });
+	    out.x /= pointers.length;
+	    out.y /= pointers.length;
 	}
 
 	function notSupportedInOrthographicCamera(camera, message) {
@@ -178,6 +165,7 @@
 
 	var isBrowser = typeof window !== 'undefined';
 	var isMac = isBrowser && /Mac/.test(navigator.platform);
+	var isPointerEventsNotSupported = !(isBrowser && 'PointerEvent' in window);
 	var readonlyACTION = Object.freeze(ACTION);
 	var TOUCH_DOLLY_FACTOR = 1 / 8;
 	var THREE;
@@ -232,6 +220,7 @@
 	        _this._boundaryEnclosesCamera = false;
 	        _this._needsUpdate = true;
 	        _this._updatedLastTime = false;
+	        _this._activePointers = [];
 	        _this._truckInternal = function (deltaX, deltaY, dragToOffset) {
 	            if (isPerspectiveCamera(_this._camera)) {
 	                var offset = _v3A.copy(_this._camera.position).sub(_this._target);
@@ -301,6 +290,7 @@
 	        _this._yAxisUpSpaceInverse = quatInvertCompat(_this._yAxisUpSpace.clone());
 	        _this._state = ACTION.NONE;
 	        _this._domElement = domElement;
+	        _this._domElement.style.touchAction = 'none';
 	        _this._target = new THREE.Vector3();
 	        _this._targetEnd = _this._target.clone();
 	        _this._focalOffset = new THREE.Vector3();
@@ -330,6 +320,7 @@
 	            wheel: isPerspectiveCamera(_this._camera) ? ACTION.DOLLY :
 	                isOrthographicCamera(_this._camera) ? ACTION.ZOOM :
 	                    ACTION.NONE,
+	            shiftLeft: ACTION.NONE,
 	        };
 	        _this.touches = {
 	            one: ACTION.TOUCH_ROTATE,
@@ -345,18 +336,21 @@
 	            var dollyStart_1 = new THREE.Vector2();
 	            var cancelDragging_1 = function () {
 	                _this._state = ACTION.NONE;
-	                document.removeEventListener('mousemove', dragging_1);
-	                document.removeEventListener('touchmove', dragging_1, { passive: false });
-	                document.removeEventListener('mouseup', endDragging_1);
-	                document.removeEventListener('touchend', endDragging_1);
+	                _this._activePointers.length = 0;
+	                endDragging_1();
 	            };
-	            var onMouseDown_1 = function (event) {
+	            var onPointerDown_1 = function (event) {
 	                if (!_this._enabled)
 	                    return;
-	                cancelDragging_1();
+	                var pointer = {
+	                    pointerId: event.pointerId,
+	                    clientX: event.clientX,
+	                    clientY: event.clientY,
+	                };
+	                _this._activePointers.push(pointer);
 	                switch (event.button) {
 	                    case THREE.MOUSE.LEFT:
-	                        _this._state = _this.mouseButtons.left;
+	                        _this._state = event.shiftKey ? _this.mouseButtons.shiftLeft : _this.mouseButtons.left;
 	                        break;
 	                    case THREE.MOUSE.MIDDLE:
 	                        _this._state = _this.mouseButtons.middle;
@@ -365,13 +359,64 @@
 	                        _this._state = _this.mouseButtons.right;
 	                        break;
 	                }
-	                startDragging_1(event);
+	                if (event.pointerType === 'touch') {
+	                    switch (_this._activePointers.length) {
+	                        case 1:
+	                            _this._state = _this.touches.one;
+	                            break;
+	                        case 2:
+	                            _this._state = _this.touches.two;
+	                            break;
+	                        case 3:
+	                            _this._state = _this.touches.three;
+	                            break;
+	                    }
+	                }
+	                _this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove_1, { passive: false });
+	                _this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp_1);
+	                _this._domElement.ownerDocument.addEventListener('pointermove', onPointerMove_1, { passive: false });
+	                _this._domElement.ownerDocument.addEventListener('pointerup', onPointerUp_1);
+	                startDragging_1();
+	            };
+	            var onMouseDown_1 = function (event) {
+	                if (!_this._enabled)
+	                    return;
+	                var pointer = {
+	                    pointerId: 0,
+	                    clientX: event.clientX,
+	                    clientY: event.clientY,
+	                };
+	                _this._activePointers.push(pointer);
+	                switch (event.button) {
+	                    case THREE.MOUSE.LEFT:
+	                        _this._state = event.shiftKey ? _this.mouseButtons.shiftLeft : _this.mouseButtons.left;
+	                        break;
+	                    case THREE.MOUSE.MIDDLE:
+	                        _this._state = _this.mouseButtons.middle;
+	                        break;
+	                    case THREE.MOUSE.RIGHT:
+	                        _this._state = _this.mouseButtons.right;
+	                        break;
+	                }
+	                _this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove_1);
+	                _this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp_1);
+	                _this._domElement.ownerDocument.addEventListener('mousemove', onMouseMove_1);
+	                _this._domElement.ownerDocument.addEventListener('mouseup', onMouseUp_1);
+	                startDragging_1();
 	            };
 	            var onTouchStart_1 = function (event) {
 	                if (!_this._enabled)
 	                    return;
-	                cancelDragging_1();
-	                switch (event.touches.length) {
+	                event.preventDefault();
+	                Array.prototype.forEach.call(event.changedTouches, function (touch) {
+	                    var pointer = {
+	                        pointerId: touch.identifier,
+	                        clientX: touch.clientX,
+	                        clientY: touch.clientY,
+	                    };
+	                    _this._activePointers.push(pointer);
+	                });
+	                switch (_this._activePointers.length) {
 	                    case 1:
 	                        _this._state = _this.touches.one;
 	                        break;
@@ -382,7 +427,96 @@
 	                        _this._state = _this.touches.three;
 	                        break;
 	                }
-	                startDragging_1(event);
+	                _this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove_1, { passive: false });
+	                _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
+	                _this._domElement.ownerDocument.addEventListener('touchmove', onTouchMove_1, { passive: false });
+	                _this._domElement.ownerDocument.addEventListener('touchend', onTouchEnd_1);
+	                startDragging_1();
+	            };
+	            var onPointerMove_1 = function (event) {
+	                if (event.cancelable)
+	                    event.preventDefault();
+	                var pointerId = event.pointerId;
+	                var pointer = _this._findPointerById(pointerId);
+	                if (!pointer)
+	                    return;
+	                pointer.clientX = event.clientX;
+	                pointer.clientY = event.clientY;
+	                dragging_1();
+	            };
+	            var onMouseMove_1 = function (event) {
+	                var pointer = _this._findPointerById(0);
+	                if (!pointer)
+	                    return;
+	                pointer.clientX = event.clientX;
+	                pointer.clientY = event.clientY;
+	                dragging_1();
+	            };
+	            var onTouchMove_1 = function (event) {
+	                if (event.cancelable)
+	                    event.preventDefault();
+	                Array.prototype.forEach.call(event.changedTouches, function (touch) {
+	                    var pointerId = touch.identifier;
+	                    var pointer = _this._findPointerById(pointerId);
+	                    if (!pointer)
+	                        return;
+	                    pointer.clientX = touch.clientX;
+	                    pointer.clientY = touch.clientY;
+	                });
+	                dragging_1();
+	            };
+	            var onPointerUp_1 = function (event) {
+	                var pointerId = event.pointerId;
+	                var pointer = _this._findPointerById(pointerId);
+	                pointer && _this._activePointers.splice(_this._activePointers.indexOf(pointer), 1);
+	                if (event.pointerType === 'touch') {
+	                    switch (_this._activePointers.length) {
+	                        case 0:
+	                            _this._state = ACTION.NONE;
+	                            break;
+	                        case 1:
+	                            _this._state = _this.touches.one;
+	                            break;
+	                        case 2:
+	                            _this._state = _this.touches.two;
+	                            break;
+	                        case 3:
+	                            _this._state = _this.touches.three;
+	                            break;
+	                    }
+	                }
+	                else {
+	                    _this._state = ACTION.NONE;
+	                }
+	                endDragging_1();
+	            };
+	            var onMouseUp_1 = function () {
+	                var pointer = _this._findPointerById(0);
+	                pointer && _this._activePointers.splice(_this._activePointers.indexOf(pointer), 1);
+	                _this._state = ACTION.NONE;
+	                endDragging_1();
+	            };
+	            var onTouchEnd_1 = function (event) {
+	                Array.prototype.forEach.call(event.changedTouches, function (touch) {
+	                    var pointerId = touch.identifier;
+	                    var pointer = _this._findPointerById(pointerId);
+	                    pointer && _this._activePointers.splice(_this._activePointers.indexOf(pointer), 1);
+	                });
+	                switch (_this._activePointers.length) {
+	                    case 0:
+	                        _this._state = ACTION.NONE;
+	                        break;
+	                    case 1:
+	                        _this._state = _this.touches.one;
+	                        break;
+	                    case 2:
+	                        _this._state = _this.touches.two;
+	                        break;
+	                    case 3:
+	                        _this._state = _this.touches.three;
+	                        break;
+	                }
+	                endDragging_1();
 	            };
 	            var lastScrollTimeStamp_1 = -1;
 	            var onMouseWheel_1 = function (event) {
@@ -423,49 +557,36 @@
 	                        break;
 	                    }
 	                }
-	                _this.dispatchEvent({
-	                    type: 'control',
-	                    originalEvent: event,
-	                });
+	                _this.dispatchEvent({ type: 'control' });
 	            };
 	            var onContextMenu_1 = function (event) {
 	                if (!_this._enabled)
 	                    return;
 	                event.preventDefault();
 	            };
-	            var startDragging_1 = function (event) {
+	            var startDragging_1 = function () {
 	                if (!_this._enabled)
 	                    return;
-	                extractClientCoordFromEvent(event, _v2);
+	                extractClientCoordFromEvent(_this._activePointers, _v2);
 	                _this._getClientRect(_this._elementRect);
 	                dragStartPosition_1.copy(_v2);
 	                lastDragPosition_1.copy(_v2);
-	                var isMultiTouch = isTouchEvent(event) && event.touches.length >= 2;
+	                var isMultiTouch = _this._activePointers.length >= 2;
 	                if (isMultiTouch) {
-	                    var touchEvent = event;
-	                    var dx = _v2.x - touchEvent.touches[1].clientX;
-	                    var dy = _v2.y - touchEvent.touches[1].clientY;
+	                    var dx = _v2.x - _this._activePointers[1].clientX;
+	                    var dy = _v2.y - _this._activePointers[1].clientY;
 	                    var distance = Math.sqrt(dx * dx + dy * dy);
 	                    dollyStart_1.set(0, distance);
-	                    var x = (touchEvent.touches[0].clientX + touchEvent.touches[1].clientX) * 0.5;
-	                    var y = (touchEvent.touches[0].clientY + touchEvent.touches[1].clientY) * 0.5;
+	                    var x = (_this._activePointers[0].clientX + _this._activePointers[1].clientX) * 0.5;
+	                    var y = (_this._activePointers[0].clientY + _this._activePointers[1].clientY) * 0.5;
 	                    lastDragPosition_1.set(x, y);
 	                }
-	                document.addEventListener('mousemove', dragging_1);
-	                document.addEventListener('touchmove', dragging_1, { passive: false });
-	                document.addEventListener('mouseup', endDragging_1);
-	                document.addEventListener('touchend', endDragging_1);
-	                _this.dispatchEvent({
-	                    type: 'controlstart',
-	                    originalEvent: event,
-	                });
+	                _this.dispatchEvent({ type: 'controlstart' });
 	            };
-	            var dragging_1 = function (event) {
+	            var dragging_1 = function () {
 	                if (!_this._enabled)
 	                    return;
-	                if (event.cancelable)
-	                    event.preventDefault();
-	                extractClientCoordFromEvent(event, _v2);
+	                extractClientCoordFromEvent(_this._activePointers, _v2);
 	                var deltaX = lastDragPosition_1.x - _v2.x;
 	                var deltaY = lastDragPosition_1.y - _v2.y;
 	                lastDragPosition_1.copy(_v2);
@@ -490,9 +611,8 @@
 	                    case ACTION.TOUCH_ZOOM_TRUCK:
 	                    case ACTION.TOUCH_DOLLY_OFFSET:
 	                    case ACTION.TOUCH_ZOOM_OFFSET: {
-	                        var touchEvent = event;
-	                        var dx = _v2.x - touchEvent.touches[1].clientX;
-	                        var dy = _v2.y - touchEvent.touches[1].clientY;
+	                        var dx = _v2.x - _this._activePointers[1].clientX;
+	                        var dy = _v2.y - _this._activePointers[1].clientY;
 	                        var distance = Math.sqrt(dx * dx + dy * dy);
 	                        var dollyDelta = dollyStart_1.y - distance;
 	                        dollyStart_1.set(0, distance);
@@ -523,40 +643,41 @@
 	                        break;
 	                    }
 	                }
-	                _this.dispatchEvent({
-	                    type: 'control',
-	                    originalEvent: event,
-	                });
+	                _this.dispatchEvent({ type: 'control' });
 	            };
-	            var endDragging_1 = function (event) {
-	                if (!_this._enabled)
-	                    return;
-	                cancelDragging_1();
-	                _this.dispatchEvent({
-	                    type: 'controlend',
-	                    originalEvent: event,
-	                });
+	            var endDragging_1 = function () {
+	                extractClientCoordFromEvent(_this._activePointers, _v2);
+	                lastDragPosition_1.copy(_v2);
+	                if (_this._activePointers.length === 0) {
+	                    _this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove_1, { passive: false });
+	                    _this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp_1);
+	                    _this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove_1, { passive: false });
+	                    _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
+	                }
+	                _this.dispatchEvent({ type: 'controlend' });
 	            };
-	            _this._domElement.addEventListener('mousedown', onMouseDown_1);
-	            _this._domElement.addEventListener('touchstart', onTouchStart_1, { passive: true });
+	            isPointerEventsNotSupported && _this._domElement.addEventListener('mousedown', onMouseDown_1);
+	            isPointerEventsNotSupported && _this._domElement.addEventListener('touchstart', onTouchStart_1);
+	            _this._domElement.addEventListener('pointercancel', onPointerUp_1);
 	            _this._domElement.addEventListener('wheel', onMouseWheel_1, { passive: false });
 	            _this._domElement.addEventListener('contextmenu', onContextMenu_1);
 	            _this._removeAllEventListeners = function () {
+	                _this._domElement.removeEventListener('pointerdown', onPointerDown_1);
 	                _this._domElement.removeEventListener('mousedown', onMouseDown_1);
-	                _this._domElement.removeEventListener('touchstart', onTouchStart_1, { passive: true });
+	                _this._domElement.removeEventListener('touchstart', onTouchStart_1);
+	                _this._domElement.removeEventListener('pointercancel', onPointerUp_1);
 	                _this._domElement.removeEventListener('wheel', onMouseWheel_1, { passive: false });
 	                _this._domElement.removeEventListener('contextmenu', onContextMenu_1);
-	                document.removeEventListener('mousemove', dragging_1);
-	                document.removeEventListener('touchmove', dragging_1, { passive: false });
-	                document.removeEventListener('mouseup', endDragging_1);
-	                document.removeEventListener('touchend', endDragging_1);
+	                _this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove_1, { passive: false });
+	                _this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove_1);
+	                _this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove_1, { passive: false });
+	                _this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp_1);
+	                _this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp_1);
+	                _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
 	            };
 	            _this.cancel = function () {
 	                cancelDragging_1();
-	                _this.dispatchEvent({
-	                    type: 'controlend',
-	                    originalEvent: null,
-	                });
+	                _this.dispatchEvent({ type: 'controlend' });
 	            };
 	        }
 	        _this.update(0);
@@ -587,6 +708,20 @@
 	    Object.defineProperty(CameraControls, "ACTION", {
 	        get: function () {
 	            return readonlyACTION;
+	        },
+	        enumerable: false,
+	        configurable: true
+	    });
+	    Object.defineProperty(CameraControls.prototype, "camera", {
+	        get: function () {
+	            return this._camera;
+	        },
+	        set: function (camera) {
+	            this._camera = camera;
+	            this.updateCameraUp();
+	            this._camera.updateProjectionMatrix();
+	            this._updateNearPlaneCorners();
+	            this._needsUpdate = true;
 	        },
 	        enumerable: false,
 	        configurable: true
@@ -695,7 +830,20 @@
 	    };
 	    CameraControls.prototype.dollyTo = function (distance, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
-	        this._sphericalEnd.radius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
+	        var lastRadius = this._sphericalEnd.radius;
+	        var newRadius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
+	        var hasCollider = this.colliderMeshes.length >= 1;
+	        if (hasCollider) {
+	            var maxDistanceByCollisionTest = this._collisionTest();
+	            var isCollided = approxEquals(maxDistanceByCollisionTest, this._spherical.radius);
+	            var isDollyIn = lastRadius > newRadius;
+	            if (!isDollyIn && isCollided)
+	                return;
+	            this._sphericalEnd.radius = Math.min(newRadius, maxDistanceByCollisionTest);
+	        }
+	        else {
+	            this._sphericalEnd.radius = newRadius;
+	        }
 	        if (!enableTransition) {
 	            this._spherical.radius = this._sphericalEnd.radius;
 	        }
@@ -1126,6 +1274,17 @@
 	    CameraControls.prototype.dispose = function () {
 	        this._removeAllEventListeners();
 	    };
+	    CameraControls.prototype._findPointerById = function (pointerId) {
+	        var pointer = null;
+	        this._activePointers.some(function (activePointer) {
+	            if (activePointer.pointerId === pointerId) {
+	                pointer = activePointer;
+	                return true;
+	            }
+	            return false;
+	        });
+	        return pointer;
+	    };
 	    CameraControls.prototype._encloseToBoundary = function (position, offset, friction) {
 	        var offsetLength2 = offset.lengthSq();
 	        if (offsetLength2 === 0.0) {
@@ -1183,15 +1342,14 @@
 	            return distance;
 	        if (notSupportedInOrthographicCamera(this._camera, '_collisionTest'))
 	            return distance;
-	        distance = this._spherical.radius;
-	        var direction = _v3A.setFromSpherical(this._spherical).divideScalar(distance);
+	        var direction = _v3A.setFromSpherical(this._spherical).divideScalar(this._spherical.radius);
 	        _rotationMatrix.lookAt(_ORIGIN, direction, this._camera.up);
 	        for (var i = 0; i < 4; i++) {
 	            var nearPlaneCorner = _v3B.copy(this._nearPlaneCorners[i]);
 	            nearPlaneCorner.applyMatrix4(_rotationMatrix);
 	            var origin_1 = _v3C.addVectors(this._target, nearPlaneCorner);
 	            _raycaster.set(origin_1, direction);
-	            _raycaster.far = distance;
+	            _raycaster.far = this._spherical.radius + 1;
 	            var intersects = _raycaster.intersectObjects(this.colliderMeshes);
 	            if (intersects.length !== 0 && intersects[0].distance < distance) {
 	                distance = intersects[0].distance;
