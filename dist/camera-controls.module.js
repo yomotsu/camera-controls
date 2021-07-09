@@ -650,6 +650,7 @@ var CameraControls = (function (_super) {
                 }
                 _this.dispatchEvent({ type: 'controlend' });
             };
+            _this._domElement.addEventListener('pointerdown', onPointerDown_1);
             isPointerEventsNotSupported && _this._domElement.addEventListener('mousedown', onMouseDown_1);
             isPointerEventsNotSupported && _this._domElement.addEventListener('touchstart', onTouchStart_1);
             _this._domElement.addEventListener('pointercancel', onPointerUp_1);
