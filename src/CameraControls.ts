@@ -786,7 +786,7 @@ export class CameraControls extends EventDispatcher {
 
 			};
 
-			// this._domElement.addEventListener( 'pointerdown', onPointerDown );
+			this._domElement.addEventListener( 'pointerdown', onPointerDown );
 			isPointerEventsNotSupported && this._domElement.addEventListener( 'mousedown', onMouseDown );
 			isPointerEventsNotSupported && this._domElement.addEventListener( 'touchstart', onTouchStart );
 			this._domElement.addEventListener( 'pointercancel', onPointerUp );
