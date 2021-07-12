@@ -91,7 +91,7 @@ import {
 	MathUtils,
 } from 'three';
 
-const subsetTHREE = {
+const subsetOfTHREE = {
 	MOUSE     : MOUSE,
 	Vector2   : Vector2,
 	Vector3   : Vector3,
@@ -108,7 +108,7 @@ const subsetTHREE = {
 	},
 };
 
-CameraControls.install( { THREE: subsetTHREE } );
+CameraControls.install( { THREE: subsetOfTHREE } );
 ```
 
 ## Constructor

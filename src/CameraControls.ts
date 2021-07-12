@@ -1,5 +1,6 @@
 import type * as _THREE from 'three';
 import {
+	THREESubset,
 	ACTION,
 	PointerInput,
 	MouseButtons,
@@ -32,7 +33,7 @@ const isPointerEventsNotSupported = ! ( isBrowser && 'PointerEvent' in window );
 const readonlyACTION = Object.freeze( ACTION );
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 
-let THREE: any;
+let THREE: THREESubset;
 let _ORIGIN: _THREE.Vector3;
 let _AXIS_Y: _THREE.Vector3;
 let _AXIS_Z: _THREE.Vector3;
@@ -55,7 +56,7 @@ let _raycaster: _THREE.Raycaster;
 
 export class CameraControls extends EventDispatcher {
 
-	static install( libs: any ): void {
+	static install( libs: { THREE: THREESubset } ): void {
 
 		THREE = libs.THREE;
 		_ORIGIN = Object.freeze( new THREE.Vector3( 0, 0, 0 ) );
