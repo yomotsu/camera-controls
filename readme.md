@@ -224,6 +224,28 @@ Rotate azimuthal angle(horizontal) and polar angle(vertical).
 
 ---
 
+#### `rotateAzimuthTo( azimuthAngle, enableTransition )`
+
+Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) target.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `azimuthAngle`     | `number`  | Azimuth rotate angle. In radian. |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
+
+#### `rotatePolarTo( polarAngle, enableTransition )`
+
+Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) target.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `polarAngle`       | `number`  | Polar rotate angle. In radian. |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
+
 #### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
