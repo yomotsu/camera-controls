@@ -806,6 +806,14 @@ var CameraControls = (function (_super) {
         if (enableTransition === void 0) { enableTransition = false; }
         this.rotateTo(this._sphericalEnd.theta + azimuthAngle, this._sphericalEnd.phi + polarAngle, enableTransition);
     };
+    CameraControls.prototype.rotateAzimuthTo = function (azimuthAngle, enableTransition) {
+        if (enableTransition === void 0) { enableTransition = false; }
+        this.rotateTo(this._sphericalEnd.theta + azimuthAngle, this._sphericalEnd.phi, enableTransition);
+    };
+    CameraControls.prototype.rotatePolarTo = function (polarAngle, enableTransition) {
+        if (enableTransition === void 0) { enableTransition = false; }
+        this.rotateTo(this._sphericalEnd.theta, this._sphericalEnd.phi + polarAngle, enableTransition);
+    };
     CameraControls.prototype.rotateTo = function (azimuthAngle, polarAngle, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
         var theta = THREE.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);

@@ -969,6 +969,28 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	// azimuthAngle in radian
+	rotateAzimuthTo( azimuthAngle: number, enableTransition: boolean = false ): void {
+
+		this.rotateTo(
+			this._sphericalEnd.theta + azimuthAngle,
+			this._sphericalEnd.phi,
+			enableTransition,
+		);
+
+	}
+
+	// polarAngle in radian
+	rotatePolarTo( polarAngle: number, enableTransition: boolean = false ): void {
+
+		this.rotateTo(
+			this._sphericalEnd.theta,
+			this._sphericalEnd.phi + polarAngle,
+			enableTransition,
+		);
+
+	}
+
+	// azimuthAngle in radian
 	// polarAngle in radian
 	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): void {
 
