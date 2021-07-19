@@ -1,4 +1,22 @@
 import * as _THREE from 'three';
+export interface THREESubset {
+    MOUSE: typeof _THREE.MOUSE;
+    Vector2: typeof _THREE.Vector2;
+    Vector3: typeof _THREE.Vector3;
+    Vector4: typeof _THREE.Vector4;
+    Quaternion: typeof _THREE.Quaternion;
+    Matrix4: typeof _THREE.Matrix4;
+    Spherical: typeof _THREE.Spherical;
+    Box3: typeof _THREE.Box3;
+    Sphere: typeof _THREE.Sphere;
+    Raycaster: typeof _THREE.Raycaster;
+    MathUtils: {
+        DEG2RAD: typeof _THREE.MathUtils.DEG2RAD;
+        clamp: typeof _THREE.MathUtils.clamp;
+        [key: string]: any;
+    };
+    [key: string]: any;
+}
 export declare enum ACTION {
     NONE = 0,
     ROTATE = 1,

@@ -1,8 +1,10 @@
 import * as _THREE from 'three';
-import { ACTION, PointerInput, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
+import { THREESubset, ACTION, PointerInput, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
-    static install(libs: any): void;
+    static install(libs: {
+        THREE: THREESubset;
+    }): void;
     static readonly ACTION: Readonly<typeof ACTION>;
     minPolarAngle: number;
     maxPolarAngle: number;
@@ -71,6 +73,8 @@ export declare class CameraControls extends EventDispatcher {
     addEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
     removeEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
     rotate(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
+    rotateAzimuthTo(azimuthAngle: number, enableTransition?: boolean): void;
+    rotatePolarTo(polarAngle: number, enableTransition?: boolean): void;
     rotateTo(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;
     dolly(distance: number, enableTransition?: boolean): void;
     dollyTo(distance: number, enableTransition?: boolean): void;
