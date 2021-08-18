@@ -21,6 +21,8 @@ export declare class CameraControls extends EventDispatcher {
     polarRotateSpeed: number;
     dollySpeed: number;
     truckSpeed: number;
+    truckXDisabled: boolean;
+    truckYDisabled: boolean;
     dollyToCursor: boolean;
     dragToOffset: boolean;
     verticalDragToForward: boolean;

@@ -207,6 +207,8 @@
 	        _this.polarRotateSpeed = 1.0;
 	        _this.dollySpeed = 1.0;
 	        _this.truckSpeed = 2.0;
+	        _this.truckXDisabled = false;
+	        _this.truckYDisabled = false;
 	        _this.dollyToCursor = false;
 	        _this.dragToOffset = false;
 	        _this.verticalDragToForward = false;
@@ -587,8 +589,8 @@
 	                if (!_this._enabled)
 	                    return;
 	                extractClientCoordFromEvent(_this._activePointers, _v2);
-	                var deltaX = lastDragPosition_1.x - _v2.x;
-	                var deltaY = lastDragPosition_1.y - _v2.y;
+	                var deltaX = _this.truckXDisabled ? 0 : lastDragPosition_1.x - _v2.x;
+	                var deltaY = _this.truckYDisabled ? 0 : lastDragPosition_1.y - _v2.y;
 	                lastDragPosition_1.copy(_v2);
 	                switch (_this._state) {
 	                    case ACTION.ROTATE:

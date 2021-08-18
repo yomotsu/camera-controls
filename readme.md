@@ -160,6 +160,8 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
+| `.truckXDisabled`         | `boolean` | `false`     | Truck on the X axis is disabled. |
+| `.truckYDisabled`         | `boolean` | `false`     | Truck on the Y axis is disabled. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |

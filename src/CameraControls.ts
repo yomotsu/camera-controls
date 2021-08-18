@@ -106,6 +106,8 @@ export class CameraControls extends EventDispatcher {
 	polarRotateSpeed = 1.0;
 	dollySpeed = 1.0;
 	truckSpeed = 2.0;
+	truckXDisabled = false;
+	truckYDisabled = false;
 	dollyToCursor = false;
 	dragToOffset = false;
 	verticalDragToForward = false;
@@ -676,8 +678,8 @@ export class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( this._activePointers, _v2 );
 
-				const deltaX = lastDragPosition.x - _v2.x;
-				const deltaY = lastDragPosition.y - _v2.y;
+				const deltaX = this.truckXDisabled ? 0 : lastDragPosition.x - _v2.x;
+				const deltaY = this.truckYDisabled ? 0 : lastDragPosition.y - _v2.y;
 
 				lastDragPosition.copy( _v2 );
 
