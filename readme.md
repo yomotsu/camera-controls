@@ -180,7 +180,7 @@ To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`
 | `'controlstart'`    | When the user starts to control the camera via mouse / touches. |
 | `'control'`         | When the user controls the camera (dragging). |
 | `'controlend'`      | When the user ends to control the camera. |
-| `'transitionstart'` | When a transition is started using any method such as `.rotateTo` or `zoom` with `enableTransition = true` |
+| `'transitionstart'` | When any kind of transition starts, either user control or using a method with `enableTransition = true` |
 | `'update'`          | When the camera position is updated. |
 | `'wake'`            | When the camera start moving. |
 | `'rest'`           | When the camera end moving. |

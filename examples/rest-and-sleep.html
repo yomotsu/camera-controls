@@ -53,41 +53,11 @@ renderer.render( scene, camera );
 const restEventBtn = document.querySelector( '#restEventBtn' )
 const sleepEventBtn = document.querySelector( '#sleepEventBtn' )
 
-cameraControls.addEventListener( 'wake', () => {
-
-	console.log( 'wake' );
-	restEventBtn.disabled = true;
-	sleepEventBtn.disabled = true;
-
-} );
-
-cameraControls.addEventListener( 'controlstart', () => {
-
-	console.log('controlstart');
-	restEventBtn.disabled = true;
-	sleepEventBtn.disabled = true;
-
-} );
-
 cameraControls.addEventListener( 'transitionstart', () => {
 
 	console.log( 'transitionstart' );
 	restEventBtn.disabled = true;
 	sleepEventBtn.disabled = true;
-
-} );
-
-cameraControls.addEventListener( 'control', () => {
-
-	console.log( 'control' );
-	restEventBtn.disabled = true;
-	sleepEventBtn.disabled = true;
-
-} );
-
-cameraControls.addEventListener( 'controlend', () => {
-
-	console.log( 'controlend' );
 
 } );
 
