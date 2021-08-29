@@ -1,4 +1,5 @@
 export declare function approxZero(number: number): boolean;
+export declare function lessThanEpsilon(number: number, EPS: number): boolean;
 export declare function approxEquals(a: number, b: number): boolean;
 export declare function roundToStep(value: number, step: number): number;
 export declare function infinityToMaxNumber(value: number): number;

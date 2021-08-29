@@ -1,4 +1,4 @@
-import * as _THREE from 'three';
+import type * as _THREE from 'three';
 export interface THREESubset {
     MOUSE: typeof _THREE.MOUSE;
     Vector2: typeof _THREE.Vector2;
@@ -68,8 +68,14 @@ export interface CameraControlsEventMap {
     wake: {
         type: 'wake';
     };
+    rest: {
+        type: 'rest';
+    };
     sleep: {
         type: 'sleep';
+    };
+    transitionstart: {
+        type: 'transitionstart';
     };
     controlstart: {
         type: 'controlstart';

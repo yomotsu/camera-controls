@@ -68,6 +68,9 @@ var EPSILON = 1e-5;
 function approxZero(number) {
     return Math.abs(number) < EPSILON;
 }
+function lessThanEpsilon(number, EPS) {
+    return Math.abs(number) < EPS;
+}
 function approxEquals(a, b) {
     return approxZero(a - b);
 }
@@ -205,12 +208,14 @@ var CameraControls = (function (_super) {
         _this.dragToOffset = false;
         _this.verticalDragToForward = false;
         _this.boundaryFriction = 0.0;
+        _this.restEpsilon = 0.0025;
         _this.colliderMeshes = [];
         _this.cancel = function () { };
         _this._enabled = true;
         _this._state = ACTION.NONE;
         _this._viewport = null;
         _this._dollyControlAmount = 0;
+        _this._hasRested = false;
         _this._boundaryEnclosesCamera = false;
         _this._needsUpdate = true;
         _this._updatedLastTime = false;
@@ -551,6 +556,7 @@ var CameraControls = (function (_super) {
                         break;
                     }
                 }
+                _this._hasRested = false;
                 _this.dispatchEvent({ type: 'control' });
             };
             var onContextMenu_1 = function (event) {
@@ -575,6 +581,7 @@ var CameraControls = (function (_super) {
                     var y = (_this._activePointers[0].clientY + _this._activePointers[1].clientY) * 0.5;
                     lastDragPosition_1.set(x, y);
                 }
+                _this._hasRested = false;
                 _this.dispatchEvent({ type: 'controlstart' });
             };
             var dragging_1 = function () {
@@ -637,6 +644,7 @@ var CameraControls = (function (_super) {
                         break;
                     }
                 }
+                _this._hasRested = false;
                 _this.dispatchEvent({ type: 'control' });
             };
             var endDragging_1 = function () {
@@ -825,6 +833,10 @@ var CameraControls = (function (_super) {
             this._spherical.theta = this._sphericalEnd.theta;
             this._spherical.phi = this._sphericalEnd.phi;
         }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
+        }
         this._needsUpdate = true;
     };
     CameraControls.prototype.dolly = function (distance, enableTransition) {
@@ -850,6 +862,10 @@ var CameraControls = (function (_super) {
         if (!enableTransition) {
             this._spherical.radius = this._sphericalEnd.radius;
         }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
+        }
         this._needsUpdate = true;
     };
     CameraControls.prototype.zoom = function (zoomStep, enableTransition) {
@@ -861,6 +877,10 @@ var CameraControls = (function (_super) {
         this._zoomEnd = THREE.MathUtils.clamp(zoom, this.minZoom, this.maxZoom);
         if (!enableTransition) {
             this._zoom = this._zoomEnd;
+        }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
         }
         this._needsUpdate = true;
     };
@@ -881,6 +901,10 @@ var CameraControls = (function (_super) {
         if (!enableTransition) {
             this._target.copy(this._targetEnd);
         }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
+        }
         this._needsUpdate = true;
     };
     CameraControls.prototype.forward = function (distance, enableTransition) {
@@ -892,6 +916,10 @@ var CameraControls = (function (_super) {
         if (!enableTransition) {
             this._target.copy(this._targetEnd);
         }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
+        }
         this._needsUpdate = true;
     };
     CameraControls.prototype.moveTo = function (x, y, z, enableTransition) {
@@ -899,6 +927,10 @@ var CameraControls = (function (_super) {
         this._targetEnd.set(x, y, z);
         if (!enableTransition) {
             this._target.copy(this._targetEnd);
+        }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
         }
         this._needsUpdate = true;
     };
@@ -997,6 +1029,10 @@ var CameraControls = (function (_super) {
             this._target.copy(this._targetEnd);
             this._spherical.copy(this._sphericalEnd);
         }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
+        }
         this._needsUpdate = true;
     };
     CameraControls.prototype.lerpLookAt = function (positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, t, enableTransition) {
@@ -1017,6 +1053,10 @@ var CameraControls = (function (_super) {
             this._target.copy(this._targetEnd);
             this._spherical.copy(this._sphericalEnd);
         }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
+        }
         this._needsUpdate = true;
     };
     CameraControls.prototype.setPosition = function (positionX, positionY, positionZ, enableTransition) {
@@ -1033,6 +1073,10 @@ var CameraControls = (function (_super) {
         this._focalOffsetEnd.set(x, y, z);
         if (!enableTransition) {
             this._focalOffset.copy(this._focalOffsetEnd);
+        }
+        else {
+            this._hasRested = false;
+            this.dispatchEvent({ type: 'transitionstart' });
         }
         this._needsUpdate = true;
     };
@@ -1204,13 +1248,28 @@ var CameraControls = (function (_super) {
         }
         var updated = this._needsUpdate;
         if (updated && !this._updatedLastTime) {
+            this._hasRested = false;
             this.dispatchEvent({ type: 'wake' });
             this.dispatchEvent({ type: 'update' });
         }
         else if (updated) {
             this.dispatchEvent({ type: 'update' });
+            if (lessThanEpsilon(deltaTheta, this.restEpsilon) &&
+                lessThanEpsilon(deltaPhi, this.restEpsilon) &&
+                lessThanEpsilon(deltaRadius, this.restEpsilon) &&
+                lessThanEpsilon(deltaTarget.x, this.restEpsilon) &&
+                lessThanEpsilon(deltaTarget.y, this.restEpsilon) &&
+                lessThanEpsilon(deltaTarget.z, this.restEpsilon) &&
+                lessThanEpsilon(deltaOffset.x, this.restEpsilon) &&
+                lessThanEpsilon(deltaOffset.y, this.restEpsilon) &&
+                lessThanEpsilon(deltaOffset.z, this.restEpsilon) &&
+                !this._hasRested) {
+                this.dispatchEvent({ type: 'rest' });
+                this._hasRested = true;
+            }
         }
         else if (!updated && this._updatedLastTime) {
+            this._hasRested = false;
             this.dispatchEvent({ type: 'sleep' });
         }
         this._updatedLastTime = updated;

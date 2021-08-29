@@ -1,11 +1,11 @@
-import * as _THREE from 'three';
+import type * as _THREE from 'three';
 import { THREESubset, ACTION, PointerInput, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     static install(libs: {
         THREE: THREESubset;
     }): void;
-    static readonly ACTION: Readonly<typeof ACTION>;
+    static get ACTION(): Readonly<typeof ACTION>;
     minPolarAngle: number;
     maxPolarAngle: number;
     minAzimuthAngle: number;
@@ -25,6 +25,7 @@ export declare class CameraControls extends EventDispatcher {
     dragToOffset: boolean;
     verticalDragToForward: boolean;
     boundaryFriction: number;
+    restEpsilon: number;
     colliderMeshes: _THREE.Object3D[];
     mouseButtons: MouseButtons;
     touches: Touches;
@@ -50,12 +51,8 @@ export declare class CameraControls extends EventDispatcher {
     protected _focalOffset0: _THREE.Vector3;
     protected _dollyControlAmount: number;
     protected _dollyControlCoord: _THREE.Vector2;
-    protected _nearPlaneCorners: [
-        _THREE.Vector3,
-        _THREE.Vector3,
-        _THREE.Vector3,
-        _THREE.Vector3
-    ];
+    protected _nearPlaneCorners: [_THREE.Vector3, _THREE.Vector3, _THREE.Vector3, _THREE.Vector3];
+    protected _hasRested: boolean;
     protected _boundary: _THREE.Box3;
     protected _boundaryEnclosesCamera: boolean;
     protected _needsUpdate: boolean;
@@ -63,13 +60,19 @@ export declare class CameraControls extends EventDispatcher {
     protected _elementRect: _THREE.Vector4;
     protected _activePointers: PointerInput[];
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
-    camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
-    enabled: boolean;
-    readonly currentAction: ACTION;
-    distance: number;
-    azimuthAngle: number;
-    polarAngle: number;
-    boundaryEnclosesCamera: boolean;
+    get camera(): _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
+    set camera(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera);
+    get enabled(): boolean;
+    set enabled(enabled: boolean);
+    get currentAction(): ACTION;
+    get distance(): number;
+    set distance(distance: number);
+    get azimuthAngle(): number;
+    set azimuthAngle(azimuthAngle: number);
+    get polarAngle(): number;
+    set polarAngle(polarAngle: number);
+    get boundaryEnclosesCamera(): boolean;
+    set boundaryEnclosesCamera(boundaryEnclosesCamera: boolean);
     addEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
     removeEventListener<K extends keyof CameraControlsEventMap>(type: K, listener: (event: CameraControlsEventMap[K]) => any): void;
     rotate(azimuthAngle: number, polarAngle: number, enableTransition?: boolean): void;

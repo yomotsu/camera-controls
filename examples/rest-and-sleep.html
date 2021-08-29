@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<button type="button" onclick="cameraControls.reset( true )">Reset</button>
+	<button type="button" onclick="cameraControls.rotateTo( THREE.MathUtils.randFloat( 0, 2 * Math.PI ), THREE.MathUtils.randFloat( 0, Math.PI ), true )">Rotate</button>
+	<button onclick="cameraControls.lerpLookAt( -2, 0, 0, 1, 1, 0, 0, 2, 5, -1, 0, 0, Math.random(), true )">Move</button>
+	<p>These buttons will be disabled whenever a transition is occuring and then re-enabled when the transition is complete.</p>
+	<button id="restEventBtn">Enable on Rest</button><br>
+	<button id="sleepEventBtn">Enable on Sleep</button>
+	<p>The rest event will fire when the camera slows to less than <code>controls.restEpsilon</code> units in a single frame. You can set this value here</p> 	<label><input oninput="cameraControls.restEpsilon = this.value" value="0.0025" type="number" min="0.001" max="1" step="0.001"> Rest Epsilon</label>
+
+	<p></p> The sleep event will fire once the camera completely stops. Due to damping, this is often long after it <em>appears</em> to have stopped.</p>
+
+</div>
+
+<script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxBufferGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+renderer.render( scene, camera );
+
+const restEventBtn = document.querySelector( '#restEventBtn' )
+const sleepEventBtn = document.querySelector( '#sleepEventBtn' )
+
+cameraControls.addEventListener( 'wake', () => {
+
+	console.log( 'wake' );
+	restEventBtn.disabled = true;
+	sleepEventBtn.disabled = true;
+
+} );
+
+cameraControls.addEventListener( 'controlstart', () => {
+
+	console.log('controlstart');
+	restEventBtn.disabled = true;
+	sleepEventBtn.disabled = true;
+
+} );
+
+cameraControls.addEventListener( 'transitionstart', () => {
+
+	console.log( 'transitionstart' );
+	restEventBtn.disabled = true;
+	sleepEventBtn.disabled = true;
+
+} );
+
+cameraControls.addEventListener( 'control', () => {
+
+	console.log( 'control' );
+	restEventBtn.disabled = true;
+	sleepEventBtn.disabled = true;
+
+} );
+
+cameraControls.addEventListener( 'controlend', () => {
+
+	console.log( 'controlend' );
+
+} );
+
+cameraControls.addEventListener( 'rest', () => {
+
+	restEventBtn.disabled = false;
+
+} );
+
+cameraControls.addEventListener( 'sleep', () => {
+
+	sleepEventBtn.disabled = false;
+
+} );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+
+	}
+
+} )();
+</script>
+
+</body>
+</html>
