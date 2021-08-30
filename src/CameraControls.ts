@@ -20,7 +20,6 @@ import {
 	approxEquals,
 	roundToStep,
 	infinityToMaxNumber,
-	lessThanEpsilon,
 	maxNumberToInfinity,
 } from './utils/math-utils';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
@@ -112,7 +111,6 @@ export class CameraControls extends EventDispatcher {
 	verticalDragToForward = false;
 
 	boundaryFriction = 0.0;
-	
 	restThreshold = 0.0025;
 
 	colliderMeshes: _THREE.Object3D[] = [];
@@ -1721,15 +1719,15 @@ export class CameraControls extends EventDispatcher {
 			this.dispatchEvent( { type: 'update' } );
 
 			if (
-				lessThanEpsilon( deltaTheta, this.restThreshold ) &&
-				lessThanEpsilon( deltaPhi, this.restThreshold ) &&
-				lessThanEpsilon( deltaRadius, this.restThreshold ) &&
-				lessThanEpsilon( deltaTarget.x, this.restThreshold ) &&
-				lessThanEpsilon( deltaTarget.y, this.restThreshold ) &&
-				lessThanEpsilon( deltaTarget.z, this.restThreshold ) &&
-				lessThanEpsilon( deltaOffset.x, this.restThreshold ) &&
-				lessThanEpsilon( deltaOffset.y, this.restThreshold ) &&
-				lessThanEpsilon( deltaOffset.z, this.restThreshold ) && 
+				approxZero( deltaTheta, this.restThreshold ) &&
+				approxZero( deltaPhi, this.restThreshold ) &&
+				approxZero( deltaRadius, this.restThreshold ) &&
+				approxZero( deltaTarget.x, this.restThreshold ) &&
+				approxZero( deltaTarget.y, this.restThreshold ) &&
+				approxZero( deltaTarget.z, this.restThreshold ) &&
+				approxZero( deltaOffset.x, this.restThreshold ) &&
+				approxZero( deltaOffset.y, this.restThreshold ) &&
+				approxZero( deltaOffset.z, this.restThreshold ) &&
 				! this._hasRested
 			) {
 

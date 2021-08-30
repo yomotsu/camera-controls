@@ -1,14 +1,8 @@
 const EPSILON = 1e-5;
 
-export function approxZero( number: number ): boolean {
+export function approxZero( number: number, error: number = EPSILON ): boolean {
 
-	return Math.abs( number ) < EPSILON;
-
-}
-
-export function lessThanEpsilon( number: number, EPS: number ): boolean {
-
-	return Math.abs( number ) < EPS;
+	return Math.abs( number ) < error;
 
 }
 
