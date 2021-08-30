@@ -6,11 +6,11 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 
 ## Examples
 
-| camera move    | default user input (Configurable)                                    |
-| -------------- | -------------------------------------------------------------------- |
-| Orbit rotation | left mouse drag / touch: one-finger move                             |
+| camera move    | default user input (Configurable) |
+| ---            | ---                               |
+| Orbit rotation | left mouse drag / touch: one-finger move |
 | Dolly          | middle mouse drag, or mousewheel / touch: two-finger pinch-in or out |
-| Truck (Pan)    | right mouse drag / touch: two-finger move or three-finger move       |
+| Truck (Pan)    | right mouse drag / touch: two-finger move or three-finger move |
 
 - [basic](https://yomotsu.github.io/camera-controls/examples/basic.html)
 - [fit-and-padding](https://yomotsu.github.io/camera-controls/examples/fit-and-padding.html)
@@ -36,38 +36,41 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 ## Usage
 
 ```javascript
-import * as THREE from "three";
-import CameraControls from "camera-controls";
+import * as THREE from 'three';
+import CameraControls from 'camera-controls';
 
-CameraControls.install({ THREE: THREE });
+CameraControls.install( { THREE: THREE } );
 
 // snip ( init three scene... )
 const clock = new THREE.Clock();
-const camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 1000);
-const cameraControls = new CameraControls(camera, renderer.domElement);
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 1000 );
+const cameraControls = new CameraControls( camera, renderer.domElement );
 
-(function anim() {
-  // snip
-  const delta = clock.getDelta();
-  const hasControlsUpdated = cameraControls.update(delta);
+( function anim () {
 
-  requestAnimationFrame(anim);
+	// snip
+	const delta = clock.getDelta();
+	const hasControlsUpdated = cameraControls.update( delta );
 
-  // you can skip this condition to render though
-  if (hasControlsUpdated) {
-    renderer.render(scene, camera);
-  }
-})();
+	requestAnimationFrame( anim );
+
+	// you can skip this condition to render though
+	if ( hasControlsUpdated ) {
+
+		renderer.render( scene, camera );
+
+	}
+
+} )();
 ```
 
 ### Important!
 
-You _must install_ three.js before using camera-controls. Not doing so will lead to runtime errors (undefined references to THREE).
+You *must install* three.js before using camera-controls. Not doing so will lead to runtime errors (undefined references to THREE).
 
 **Before creating a new CameraControls instance, call**:
-
 ```javascript
-CameraControls.install({ THREE: THREE });
+CameraControls.install( { THREE: THREE } );
 ```
 
 You can then proceed to use CameraControls.
@@ -76,37 +79,37 @@ Note: If you don't want to use full of three.js (tree-shaking for example), make
 
 ```js
 import {
-  MOUSE,
-  Vector2,
-  Vector3,
-  Vector4,
-  Quaternion,
-  Matrix4,
-  Spherical,
-  Box3,
-  Sphere,
-  Raycaster,
-  MathUtils,
-} from "three";
+	MOUSE,
+	Vector2,
+	Vector3,
+	Vector4,
+	Quaternion,
+	Matrix4,
+	Spherical,
+	Box3,
+	Sphere,
+	Raycaster,
+	MathUtils,
+} from 'three';
 
 const subsetOfTHREE = {
-  MOUSE: MOUSE,
-  Vector2: Vector2,
-  Vector3: Vector3,
-  Vector4: Vector4,
-  Quaternion: Quaternion,
-  Matrix4: Matrix4,
-  Spherical: Spherical,
-  Box3: Box3,
-  Sphere: Sphere,
-  Raycaster: Raycaster,
-  MathUtils: {
-    DEG2RAD: MathUtils.DEG2RAD,
-    clamp: MathUtils.clamp,
-  },
+	MOUSE     : MOUSE,
+	Vector2   : Vector2,
+	Vector3   : Vector3,
+	Vector4   : Vector4,
+	Quaternion: Quaternion,
+	Matrix4   : Matrix4,
+	Spherical : Spherical,
+	Box3      : Box3,
+	Sphere    : Sphere,
+	Raycaster : Raycaster,
+	MathUtils : {
+		DEG2RAD: MathUtils.DEG2RAD,
+		clamp: MathUtils.clamp,
+	},
 };
 
-CameraControls.install({ THREE: subsetOfTHREE });
+CameraControls.install( { THREE: subsetOfTHREE } );
 ```
 
 ## Constructor
@@ -126,6 +129,7 @@ If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation an
 
 ![](https://raw.githubusercontent.com/yomotsu/camera-controls/dev/examples/fig1.svg)
 
+
 ### Dolly vs Zoom
 
 - A Zoom involves changing the lens focal length. In three.js, zooming is actually changing the camera FOV, and the camera is stationary (doesn't move).
@@ -135,33 +139,33 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 
 ## Properties
 
-| Name                      | Type                                      | Default     | Description                                                        |
-| ------------------------- | ----------------------------------------- | ----------- | ------------------------------------------------------------------ |
-| `.camera`                 | `THREE.Perspective \| THREE.Orthographic` | N/A         | The camera to be controlled                                        |
-| `.enabled`                | `boolean`                                 | `true`      | Whether or not the controls are enabled.                           |
-| `.currentAction`          | `ACTION`                                  | N/A         | Getter for the current `ACTION`.                                   |
-| `.distance`               | `number`                                  | N/A         | current distance.                                                  |
-| `.minDistance`            | `number`                                  | `0`         | Minimum distance for dolly.                                        |
-| `.maxDistance`            | `number`                                  | `Infinity`  | Maximum distance for dolly.                                        |
-| `.polarAngle`             | `number`                                  | N/A         | current polarAngle in radians.                                     |
-| `.minPolarAngle`          | `number`                                  | `0`         | In radians.                                                        |
-| `.maxPolarAngle`          | `number`                                  | `Math.PI`   | In radians.                                                        |
-| `.azimuthAngle`           | `number`                                  | N/A         | current azimuthAngle in radians.                                   |
-| `.minAzimuthAngle`        | `number`                                  | `-Infinity` | In radians.                                                        |
-| `.maxAzimuthAngle`        | `number`                                  | `Infinity`  | In radians.                                                        |
-| `.boundaryFriction`       | `number`                                  | `0.0`       | Friction ratio of the boundary.                                    |
-| `.boundaryEnclosesCamera` | `boolean`                                 | `false`     | Whether camera position should be enclosed in the boundary or not. |
-| `.dampingFactor`          | `number`                                  | `0.05`      | The damping inertia                                                |
-| `.draggingDampingFactor`  | `number`                                  | `0.25`      | The damping inertia while dragging                                 |
-| `.azimuthRotateSpeed`     | `number`                                  | `1.0`       | Speed of azimuth rotation.                                         |
-| `.polarRotateSpeed`       | `number`                                  | `1.0`       | Speed of polar rotation.                                           |
-| `.dollySpeed`             | `number`                                  | `1.0`       | Speed of mouse-wheel dollying.                                     |
-| `.truckSpeed`             | `number`                                  | `2.0`       | Speed of drag for truck and pedestal.                              |
-| `.verticalDragToForward`  | `boolean`                                 | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls.     |
-| `.dollyToCursor`          | `boolean`                                 | `false`     | `true` to enable Dolly-in to the mouse cursor coords.              |
-| `.colliderMeshes`         | `array`                                   | `[]`        | An array of Meshes to collide with camera ¹.                       |
-| `.infinityDolly`          | `boolean`                                 | `false`     | `true` to enable Infinity Dolly ².                                 |
-| `.restThreshold`          | `number`                                  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows       |
+| Name                      | Type      | Default     | Description |
+| ------------------------- | --------- | ----------- | ----------- |
+| `.camera`                 | `THREE.Perspective \| THREE.Orthographic` | N/A | The camera to be controlled |
+| `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
+| `.currentAction`          | `ACTION`  | N/A         | Getter for the current `ACTION`. |
+| `.distance`               | `number`  | N/A         | current distance. |
+| `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. |
+| `.maxDistance`            | `number`  | `Infinity`  | Maximum distance for dolly. |
+| `.polarAngle`             | `number`  | N/A         | current polarAngle in radians. |
+| `.minPolarAngle`          | `number`  | `0`         | In radians. |
+| `.maxPolarAngle`          | `number`  | `Math.PI`   | In radians. |
+| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians. |
+| `.minAzimuthAngle`        | `number`  | `-Infinity` | In radians. |
+| `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
+| `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
+| `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
+| `.dampingFactor`          | `number`  | `0.05`      | The damping inertia |
+| `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging |
+| `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
+| `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
+| `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
+| `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
+| `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
+| `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
+| `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
+| `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ². |
+| `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows       |
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
@@ -180,7 +184,7 @@ To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`
 | `'transitionstart'` | When any kind of transition starts, either user control or using a method with `enableTransition = true` |
 | `'update'`          | When the camera position is updated.                                                                     |
 | `'wake'`            | When the camera starts moving.                                                                           |
-| `'rest'`            | When the camera movement is below `.restThreshold`.                                                      |
+| `'rest'`            | When the camera movement is below `.restThreshold` ¹.                                                      |
 | `'sleep'`           | When the camera end moving.                                                                              |
 
 1. Due to damping, `sleep` will usually fire a few seconds after the camera _appears_ to have stopped moving. If you want to do something (e.g. enable UI, perform another transition) at the point when the camera has stopped, you probably want the `rest` event. This can be fine tuned using the `.restThreshold` parameter. See the [Rest and Sleep Example](https://yomotsu.github.io/camera-controls/examples/rest-and-sleep.html).
@@ -189,23 +193,23 @@ To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`
 
 Working example: [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
 
-| button to assign         | behavior                                                                                                                                                                                             |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mouseButtons.left`      | `CameraControls.ACTION.ROTATE`\* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.right`     | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`\* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.wheel`     | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`   |
-| `mouseButtons.shiftLeft` | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`\* |
+| button to assign      | behavior |
+| --------------------- | -------- |
+| `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.wheel`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.shiftLeft`   | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`* |
 
 - \* is the default.
 - The default of `mouseButtons.wheel` is:
   - `DOLLY` for Perspective camera.
   - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
 
-| fingers to assign | behavior                                                                                                                                                                                                                                                                                                                   |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------- |
-| `touches.one`     | `CameraControls.ACTION.TOUCH_ROTATE`\* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.DOLLY`                                                                                                                                                                     | `CameraControls.ACTION.ZOOM` | `CameraControls.ACTION.NONE` |
-| `touches.two`     | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE` |
-| `touches.three`   | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE`                                                |
+| fingers to assign     | behavior |
+| --------------------- | -------- |
+| `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.DOLLY` | `CameraControls.ACTION.ZOOM` | `CameraControls.ACTION.NONE` |
+| `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE` |
+| `touches.three` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE` |
 
 - \* is the default.
 - The default of `touches.two` and `touches.three` is:
@@ -218,10 +222,10 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical).
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `azimuthAngle`     | `number`  | Azimuth rotate angle. In radian.        |
-| `polarAngle`       | `number`  | Polar rotate angle. In radian.          |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `azimuthAngle`     | `number`  | Azimuth rotate angle. In radian. |
+| `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -230,9 +234,9 @@ Rotate azimuthal angle(horizontal) and polar angle(vertical).
 
 Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) target.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `azimuthAngle`     | `number`  | Azimuth rotate angle. In radian.        |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `azimuthAngle`     | `number`  | Azimuth rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -241,9 +245,9 @@ Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) targe
 
 Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) target.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `polarAngle`       | `number`  | Polar rotate angle. In radian.          |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -252,10 +256,10 @@ Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) targe
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `azimuthAngle`     | `number`  | Azimuth rotate angle to. In radian.     |
-| `polarAngle`       | `number`  | Polar rotate angle to. In radian.       |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `azimuthAngle`     | `number`  | Azimuth rotate angle to. In radian. |
+| `polarAngle`       | `number`  | Polar rotate angle to. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -264,9 +268,9 @@ Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
 
 Dolly in/out camera position.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `distance`         | `number`  | Distance of dollyIn                     |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `distance`         | `number`  | Distance of dollyIn |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -275,9 +279,9 @@ Dolly in/out camera position.
 
 Dolly in/out camera position to given distance.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `distance`         | `number`  | Distance of dollyIn                     |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `distance`         | `number`  | Distance of dollyIn |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -286,17 +290,16 @@ Dolly in/out camera position to given distance.
 
 Zoom in/out of camera.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `zoomStep`         | `number`  | zoom scale                              |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `zoomStep`         | `number`  | zoom scale |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 You can also make zoomIn function using `camera.zoom` property.
 e.g.
-
 ```js
-const zoomIn = () => cameraControls.zoom(camera.zoom / 2, true);
-const zoomOut = () => cameraControls.zoom(-camera.zoom / 2, true);
+const zoomIn  = () => cameraControls.zoom(   camera.zoom / 2, true );
+const zoomOut = () => cameraControls.zoom( - camera.zoom / 2, true );
 ```
 
 ---
@@ -305,9 +308,9 @@ const zoomOut = () => cameraControls.zoom(-camera.zoom / 2, true);
 
 Zoom in/out camera to given scale.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `zoom`             | `number`  | zoom scale                              |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `zoom`             | `number`  | zoom scale |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -316,10 +319,10 @@ Zoom in/out camera to given scale.
 
 Truck and pedestal camera using current azimuthal angle.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `x`                | `number`  | Horizontal translate amount             |
-| `y`                | `number`  | Vertical translate amount               |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `x`                | `number`  | Horizontal translate amount |
+| `y`                | `number`  | Vertical translate amount |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -329,12 +332,12 @@ Truck and pedestal camera using current azimuthal angle.
 Set focal offset using the screen parallel coordinates.
 `z` doesn't affect in Orthographic as with Dolly.
 
-| Name               | Type      | Description                                                                                            |
-| ------------------ | --------- | ------------------------------------------------------------------------------------------------------ |
-| `x`                | `number`  | Horizontal offset amount                                                                               |
-| `y`                | `number`  | Vertical offset amount                                                                                 |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `x`                | `number`  | Horizontal offset amount |
+| `y`                | `number`  | Vertical offset amount |
 | `z`                | `number`  | Depth offset amount. The result is the same as Dolly but unaffected by `minDistance` and `maxDistance` |
-| `enableTransition` | `boolean` | Whether to move smoothly or immediately                                                                |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
 
@@ -342,10 +345,10 @@ Set focal offset using the screen parallel coordinates.
 
 Move forward / backward.
 
-| Name               | Type      | Description                                                        |
-| ------------------ | --------- | ------------------------------------------------------------------ |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
 | `distance`         | `number`  | Amount to move forward / backward. Negative value to move backward |
-| `enableTransition` | `boolean` | Whether to move smoothly or immediately                            |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
 
@@ -353,11 +356,11 @@ Move forward / backward.
 
 Move `target` position to given point.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `x`                | `number`  | x coord to move center position         |
-| `y`                | `number`  | y coord to move center position         |
-| `z`                | `number`  | z coord to move center position         |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `x`                | `number`  | x coord to move center position |
+| `y`                | `number`  | y coord to move center position |
+| `z`                | `number`  | z coord to move center position |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -366,15 +369,15 @@ Move `target` position to given point.
 
 Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
 
-| Name                    | Type                         | Description                                |
-| ----------------------- | ---------------------------- | ------------------------------------------ |
+| Name                    | Type                         | Description |
+| ----------------------- | ---------------------------- | ----------- |
 | `box3OrMesh`            | `THREE.Box3` \| `THREE.Mesh` | Axis aligned bounding box to fit the view. |
-| `enableTransition`      | `boolean`                    | Whether to move smoothly or immediately    |
-| `options`               | `object`                     | Options                                    |
-| `options.paddingTop`    | `number`                     | Padding top. Default is `0`                |
-| `options.paddingRight`  | `number`                     | Padding right. Default is `0`              |
-| `options.paddingBottom` | `number`                     | Padding bottom. Default is `0`             |
-| `options.paddingLeft`   | `number`                     | Padding left. Default is `0`               |
+| `enableTransition`      | `boolean`                    | Whether to move smoothly or immediately |
+| `options`               | `object`                     | Options |
+| `options.paddingTop`    | `number`                     | Padding top. Default is `0` |
+| `options.paddingRight`  | `number`                     | Padding right. Default is `0` |
+| `options.paddingBottom` | `number`                     | Padding bottom. Default is `0` |
+| `options.paddingLeft`   | `number`                     | Padding left. Default is `0` |
 
 ---
 
@@ -382,9 +385,9 @@ Fit the viewport to the box or the bounding box of the object, using the nearest
 
 Fit the viewport to the sphere or the bounding sphere of the object.
 
-| Name               | Type                           | Description                             |
-| ------------------ | ------------------------------ | --------------------------------------- |
-| `sphereOrMesh`     | `THREE.Sphere` \| `THREE.Mesh` | bounding sphere to fit the view.        |
+| Name               | Type                           | Description |
+| ------------------ | ------------------------------ | ----------- |
+| `sphereOrMesh`     | `THREE.Sphere` \| `THREE.Mesh` | bounding sphere to fit the view. |
 | `enableTransition` | `boolean`                      | Whether to move smoothly or immediately |
 
 ---
@@ -393,14 +396,14 @@ Fit the viewport to the sphere or the bounding sphere of the object.
 
 Make a orbit with given points.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `positionX`        | `number`  | Camera position x.                      |
-| `positionY`        | `number`  | Camera position y.                      |
-| `positionZ`        | `number`  | Camera position z.                      |
-| `targetX`          | `number`  | Orbit center position x.                |
-| `targetY`          | `number`  | Orbit center position y.                |
-| `targetZ`          | `number`  | Orbit center position z.                |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `positionX`        | `number`  | Camera position x. |
+| `positionY`        | `number`  | Camera position y. |
+| `positionZ`        | `number`  | Camera position z. |
+| `targetX`          | `number`  | Orbit center position x. |
+| `targetY`          | `number`  | Orbit center position y. |
+| `targetZ`          | `number`  | Orbit center position z. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -409,22 +412,22 @@ Make a orbit with given points.
 
 Similar to `setLookAt`, but it interpolates between two states.
 
-| Name               | Type      | Description                                         |
-| ------------------ | --------- | --------------------------------------------------- |
-| `positionAX`       | `number`  | The starting position x of look at from.            |
-| `positionAY`       | `number`  | The starting position y of look at from.            |
-| `positionAZ`       | `number`  | The starting position z of look at from.            |
-| `targetAX`         | `number`  | The starting position x of look at.                 |
-| `targetAY`         | `number`  | The starting position y of look at.                 |
-| `targetAZ`         | `number`  | The starting position z of look at.                 |
-| `positionBX`       | `number`  | Look at from position x to interpolate towards.     |
-| `positionBY`       | `number`  | Look at from position y to interpolate towards.     |
-| `positionBZ`       | `number`  | Look at from position z to interpolate towards.     |
-| `targetBX`         | `number`  | look at position x to interpolate towards.          |
-| `targetBY`         | `number`  | look at position y to interpolate towards.          |
-| `targetBZ`         | `number`  | look at position z to interpolate towards.          |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `positionAX`       | `number`  | The starting position x of look at from. |
+| `positionAY`       | `number`  | The starting position y of look at from. |
+| `positionAZ`       | `number`  | The starting position z of look at from. |
+| `targetAX`         | `number`  | The starting position x of look at. |
+| `targetAY`         | `number`  | The starting position y of look at. |
+| `targetAZ`         | `number`  | The starting position z of look at. |
+| `positionBX`       | `number`  | Look at from position x to interpolate towards. |
+| `positionBY`       | `number`  | Look at from position y to interpolate towards. |
+| `positionBZ`       | `number`  | Look at from position z to interpolate towards. |
+| `targetBX`         | `number`  | look at position x to interpolate towards. |
+| `targetBY`         | `number`  | look at position y to interpolate towards. |
+| `targetBZ`         | `number`  | look at position z to interpolate towards. |
 | `t`                | `number`  | Interpolation factor in the closed interval [0, 1]. |
-| `enableTransition` | `boolean` | Whether to move smoothly or immediately             |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
 
@@ -432,11 +435,11 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 `setLookAt` without target, keep gazing at the current target.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `positionX`        | `number`  | Position x of look at from.             |
-| `positionY`        | `number`  | Position y of look at from.             |
-| `positionZ`        | `number`  | Position z of look at from.             |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `positionX`        | `number`  | Position x of look at from. |
+| `positionY`        | `number`  | Position y of look at from. |
+| `positionZ`        | `number`  | Position z of look at from. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -445,11 +448,11 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 `setLookAt` without position, Stay still at the position.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
-| `targetX`          | `number`  | Position x of look at.                  |
-| `targetY`          | `number`  | Position y of look at.                  |
-| `targetZ`          | `number`  | Position z of look at.                  |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `targetX`          | `number`  | Position x of look at. |
+| `targetY`          | `number`  | Position y of look at. |
+| `targetZ`          | `number`  | Position z of look at. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -460,8 +463,8 @@ Set the boundary box that encloses the target of the camera. `box3` is in `THREE
 
 Return its current position.
 
-| Name   | Type          | Description                                        |
-| ------ | ------------- | -------------------------------------------------- |
+| Name   | Type          | Description |
+| ------ | ------------- | ----------- |
 | `box3` | `THREE.Box3?` | Boundary area. No argument to remove the boundary. |
 
 ---
@@ -474,20 +477,20 @@ Set this when you want to use renderer viewport and [`.dollyToCursor`](#properti
 
 See: [THREE.WebGLRenderer.setViewport()](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setViewport)
 
-| Name      | Type             | Description                                                              |
-| --------- | ---------------- | ------------------------------------------------------------------------ |
+| Name      | Type             | Description |
+| --------- | ---------------- | ----------- |
 | `vector4` | `THREE.Vector4?` | Vector4 that represents the viewport, or `undefined` for unsetting this. |
 
 #### `setViewport( x, y, width, height )`
 
 Same as [`setViewport( vector4 )`](#setviewport-vector4-|-null-) , but you can give it four numbers that represents a viewport instead:
 
-| Name     | Type     | Description                 |
-| -------- | -------- | --------------------------- |
-| `x`      | `number` | Leftmost of the viewport.   |
+| Name     | Type     | Description |
+| -------- | -------- | ----------- |
+| `x`      | `number` | Leftmost of the viewport. |
 | `y`      | `number` | Bottommost of the viewport. |
-| `width`  | `number` | Width of the viewport.      |
-| `height` | `number` | Height of the viewport.     |
+| `width`  | `number` | Width of the viewport. |
+| `height` | `number` | Height of the viewport. |
 
 ---
 
@@ -495,8 +498,8 @@ Same as [`setViewport( vector4 )`](#setviewport-vector4-|-null-) , but you can g
 
 Return its current position.
 
-| Name  | Type            | Description          |
-| ----- | --------------- | -------------------- |
+| Name  | Type            | Description |
+| ----- | --------------- | ----------- |
 | `out` | `THREE.Vector3` | The receiving vector |
 
 ---
@@ -505,8 +508,8 @@ Return its current position.
 
 Return its current gazing target, which is the center position of the orbit.
 
-| Name  | Type            | Description          |
-| ----- | --------------- | -------------------- |
+| Name  | Type            | Description |
+| ----- | --------------- | ----------- |
 | `out` | `THREE.Vector3` | The receiving vector |
 
 ---
@@ -515,8 +518,8 @@ Return its current gazing target, which is the center position of the orbit.
 
 Return its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
 
-| Name  | Type            | Description          |
-| ----- | --------------- | -------------------- |
+| Name  | Type            | Description |
+| ----- | --------------- | ----------- |
 | `out` | `THREE.Vector3` | The receiving vector |
 
 ---
@@ -537,8 +540,8 @@ Normalize camera azimuth angle rotation between 0 and 360 degrees.
 
 Reset all rotation and position to default.
 
-| Name               | Type      | Description                             |
-| ------------------ | --------- | --------------------------------------- |
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -547,8 +550,8 @@ Reset all rotation and position to default.
 
 Update camera position and directions. This should be called in your tick loop and returns `true` if re-rendering is needed.
 
-| Name    | Type     | Description                             |
-| ------- | -------- | --------------------------------------- |
+| Name    | Type     | Description |
+| ------- | -------- | ----------- |
 | `delta` | `number` | Delta time between previous update call |
 
 ---
