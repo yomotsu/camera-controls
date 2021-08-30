@@ -112,8 +112,8 @@ export class CameraControls extends EventDispatcher {
 	verticalDragToForward = false;
 
 	boundaryFriction = 0.0;
-	
-	restThreshold = 0.0025;
+
+	restThreshold = 0.01;
 
 	colliderMeshes: _THREE.Object3D[] = [];
 
@@ -966,9 +966,9 @@ export class CameraControls extends EventDispatcher {
 
 	// azimuthAngle in radian
 	// polarAngle in radian
-	rotate( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): void {
+	rotate( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): Promise<void> {
 
-		this.rotateTo(
+		return this.rotateTo(
 			this._sphericalEnd.theta + azimuthAngle,
 			this._sphericalEnd.phi   + polarAngle,
 			enableTransition,
@@ -977,9 +977,9 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	// azimuthAngle in radian
-	rotateAzimuthTo( azimuthAngle: number, enableTransition: boolean = false ): void {
+	rotateAzimuthTo( azimuthAngle: number, enableTransition: boolean = false ): Promise<void> {
 
-		this.rotateTo(
+		return this.rotateTo(
 			this._sphericalEnd.theta + azimuthAngle,
 			this._sphericalEnd.phi,
 			enableTransition,
@@ -988,9 +988,9 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	// polarAngle in radian
-	rotatePolarTo( polarAngle: number, enableTransition: boolean = false ): void {
+	rotatePolarTo( polarAngle: number, enableTransition: boolean = false ): Promise<void> {
 
-		this.rotateTo(
+		return this.rotateTo(
 			this._sphericalEnd.theta,
 			this._sphericalEnd.phi + polarAngle,
 			enableTransition,
@@ -1000,7 +1000,7 @@ export class CameraControls extends EventDispatcher {
 
 	// azimuthAngle in radian
 	// polarAngle in radian
-	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): void {
+	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): Promise<void> {
 
 		const theta = THREE.MathUtils.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
 		const phi   = THREE.MathUtils.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
@@ -1009,29 +1009,44 @@ export class CameraControls extends EventDispatcher {
 		this._sphericalEnd.phi   = phi;
 		this._sphericalEnd.makeSafe();
 
+		this._needsUpdate = true;
+
 		if ( ! enableTransition ) {
 
 			this._spherical.theta = this._sphericalEnd.theta;
 			this._spherical.phi   = this._sphericalEnd.phi;
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
+			return new Promise( ( resolve ) => {
+
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
 		}
 
-		this._needsUpdate = true;
+	}
+
+	dolly( distance: number, enableTransition: boolean = false ): Promise<void> {
+
+		return this.dollyTo( this._sphericalEnd.radius - distance, enableTransition );
 
 	}
 
-	dolly( distance: number, enableTransition: boolean = false ): void {
-
-		this.dollyTo( this._sphericalEnd.radius - distance, enableTransition );
-
-	}
-
-	dollyTo( distance: number, enableTransition: boolean = false ): void {
+	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		const lastRadius = this._sphericalEnd.radius;
 		const newRadius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
@@ -1043,7 +1058,7 @@ export class CameraControls extends EventDispatcher {
 			const isCollided = approxEquals( maxDistanceByCollisionTest, this._spherical.radius );
 			const isDollyIn = lastRadius > newRadius;
 
-			if ( ! isDollyIn && isCollided ) return;
+			if ( ! isDollyIn && isCollided ) return Promise.resolve();
 
 			this._sphericalEnd.radius = Math.min( newRadius, maxDistanceByCollisionTest );
 
@@ -1053,54 +1068,83 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
+		this._needsUpdate = true;
+
 		if ( ! enableTransition ) {
 
 			this._spherical.radius = this._sphericalEnd.radius;
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
+			return new Promise( ( resolve ) => {
+
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
 		}
 
-		this._needsUpdate = true;
+	}
+
+	zoom( zoomStep: number, enableTransition: boolean = false ): Promise<void> {
+
+		return this.zoomTo( this._zoomEnd + zoomStep, enableTransition );
 
 	}
 
-	zoom( zoomStep: number, enableTransition: boolean = false ): void {
-
-		this.zoomTo( this._zoomEnd + zoomStep, enableTransition );
-
-	}
-
-	zoomTo( zoom: number, enableTransition: boolean = false ): void {
+	zoomTo( zoom: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._zoomEnd = THREE.MathUtils.clamp( zoom, this.minZoom, this.maxZoom );
+		this._needsUpdate = true;
 
 		if ( ! enableTransition ) {
 
 			this._zoom = this._zoomEnd;
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
+			return new Promise( ( resolve ) => {
+
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
 		}
 
-		this._needsUpdate = true;
-
 	}
 
-	pan( x: number, y: number, enableTransition: boolean = false ): void {
+	pan( x: number, y: number, enableTransition: boolean = false ): Promise<void> {
 
 		console.log( '`pan` has been renamed to `truck`' );
-		this.truck( x, y, enableTransition );
+		return this.truck( x, y, enableTransition );
 
 	}
 
-	truck( x: number, y: number, enableTransition: boolean = false ): void {
+	truck( x: number, y: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._camera.updateMatrix();
 
@@ -1112,22 +1156,37 @@ export class CameraControls extends EventDispatcher {
 		const offset = _v3A.copy( _xColumn ).add( _yColumn );
 		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
 
+		this._needsUpdate = true;
+
 		if ( ! enableTransition ) {
 
 			this._target.copy( this._targetEnd );
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
-		}
+			return new Promise( ( resolve ) => {
 
-		this._needsUpdate = true;
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
+		}
 
 	}
 
-	forward( distance: number, enableTransition: boolean = false ): void {
+	forward( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		_v3A.setFromMatrixColumn( this._camera.matrix, 0 );
 		_v3A.crossVectors( this._camera.up, _v3A );
@@ -1135,37 +1194,67 @@ export class CameraControls extends EventDispatcher {
 
 		this._encloseToBoundary( this._targetEnd, _v3A, this.boundaryFriction );
 
+		this._needsUpdate = true;
+
 		if ( ! enableTransition ) {
 
 			this._target.copy( this._targetEnd );
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
-		}
+			return new Promise( ( resolve ) => {
 
-		this._needsUpdate = true;
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
+		}
 
 	}
 
-	moveTo( x: number, y: number, z: number, enableTransition: boolean = false ): void {
+	moveTo( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._targetEnd.set( x, y, z );
+
+		this._needsUpdate = true;
 
 		if ( ! enableTransition ) {
 
 			this._target.copy( this._targetEnd );
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
-		}
+			return new Promise( ( resolve ) => {
 
-		this._needsUpdate = true;
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
+		}
 
 	}
 
@@ -1174,8 +1263,9 @@ export class CameraControls extends EventDispatcher {
 		paddingRight = 0,
 		paddingBottom = 0,
 		paddingTop = 0
-	}: Partial<FitToOptions> = {} ): void {
+	}: Partial<FitToOptions> = {} ): Promise<void[]> {
 
+		let promises = [];
 		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
 			? _box3A.copy( box3OrObject as _THREE.Box3 )
 			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
@@ -1183,7 +1273,7 @@ export class CameraControls extends EventDispatcher {
 		if ( aabb.isEmpty() )  {
 
 			console.warn( 'camera-controls: fitTo() cannot be used with an empty box. Aborting' );
-			return;
+			Promise.resolve();
 
 		}
 
@@ -1191,7 +1281,7 @@ export class CameraControls extends EventDispatcher {
 		const theta = roundToStep( this._sphericalEnd.theta, PI_HALF );
 		const phi   = roundToStep( this._sphericalEnd.phi,   PI_HALF );
 
-		this.rotateTo( theta, phi, enableTransition );
+		promises.push( this.rotateTo( theta, phi, enableTransition ) );
 
 		const normal = _v3A.setFromSpherical( this._sphericalEnd ).normalize();
 		const rotation = _quaternionA.setFromUnitVectors( normal, _AXIS_Z );
@@ -1251,10 +1341,9 @@ export class CameraControls extends EventDispatcher {
 		if ( isPerspectiveCamera( this._camera ) ) {
 
 			const distance = this.getDistanceToFitBox( bbSize.x, bbSize.y, bbSize.z );
-			this.moveTo( center.x, center.y, center.z, enableTransition );
-			this.dollyTo( distance, enableTransition );
-			this.setFocalOffset( 0, 0, 0, enableTransition );
-			return;
+			promises.push( this.moveTo( center.x, center.y, center.z, enableTransition ) );
+			promises.push( this.dollyTo( distance, enableTransition ) );
+			promises.push( this.setFocalOffset( 0, 0, 0, enableTransition ) );
 
 		} else if ( isOrthographicCamera( this._camera ) ) {
 
@@ -1262,43 +1351,45 @@ export class CameraControls extends EventDispatcher {
 			const width = camera.right - camera.left;
 			const height = camera.top - camera.bottom;
 			const zoom = Math.min( width / bbSize.x, height / bbSize.y );
-			this.moveTo( center.x, center.y, center.z, enableTransition );
-			this.zoomTo( zoom, enableTransition );
-			this.setFocalOffset( 0, 0, 0, enableTransition );
-			return;
+			promises.push( this.moveTo( center.x, center.y, center.z, enableTransition ) );
+			promises.push( this.zoomTo( zoom, enableTransition ) );
+			promises.push( this.setFocalOffset( 0, 0, 0, enableTransition ) );
 
 		}
+
+		return Promise.all( promises );
 
 	}
 
 	/**
 	 * @deprecated fitTo() has been renamed to fitToBox()
 	 */
-	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, fitToOptions: Partial<FitToOptions> = {} ): void {
+	fitTo( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, fitToOptions: Partial<FitToOptions> = {} ): Promise<void[]> {
 
 		console.warn( 'camera-controls: fitTo() has been renamed to fitToBox()' );
-		this.fitToBox( box3OrObject, enableTransition, fitToOptions );
+		return this.fitToBox( box3OrObject, enableTransition, fitToOptions );
 
 	}
 
-	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): void {
+	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): Promise<void[]> {
 
+		const promises = [];
 		const isSphere = sphereOrMesh instanceof THREE.Sphere;
 		const boundingSphere = isSphere ?
 			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
 			createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
 
-		this.moveTo(
+		promises.push( this.moveTo(
 			boundingSphere.center.x,
 			boundingSphere.center.y,
 			boundingSphere.center.z,
 			enableTransition,
-		);
+		) );
 
 		if ( isPerspectiveCamera( this._camera ) ) {
 
 			const distanceToFit = this.getDistanceToFitSphere( boundingSphere.radius );
-			this.dollyTo( distanceToFit, enableTransition );
+			promises.push( this.dollyTo( distanceToFit, enableTransition ) );
 
 		} else if ( isOrthographicCamera( this._camera ) ) {
 
@@ -1306,11 +1397,13 @@ export class CameraControls extends EventDispatcher {
 			const height = this._camera.top - this._camera.bottom;
 			const diameter = 2 * boundingSphere.radius;
 			const zoom = Math.min( width / diameter, height / diameter );
-			this.zoomTo( zoom, enableTransition );
+			promises.push( this.zoomTo( zoom, enableTransition ) );
 
 		}
 
-		this.setFocalOffset( 0, 0, 0, enableTransition );
+		promises.push( this.setFocalOffset( 0, 0, 0, enableTransition ) );
+
+		return Promise.all( promises );
 
 	}
 
@@ -1318,7 +1411,7 @@ export class CameraControls extends EventDispatcher {
 		positionX: number, positionY: number, positionZ: number,
 		targetX: number, targetY: number, targetZ: number,
 		enableTransition: boolean = false,
-	): void {
+	): Promise<void> {
 
 		const position = _v3A.set( positionX, positionY, positionZ );
 		const target = _v3B.set( targetX, targetY, targetZ );
@@ -1327,19 +1420,34 @@ export class CameraControls extends EventDispatcher {
 		this._sphericalEnd.setFromVector3( position.sub( target ).applyQuaternion( this._yAxisUpSpace ) );
 		this.normalizeRotations();
 
+		this._needsUpdate = true;
+
 		if ( ! enableTransition ) {
 
 			this._target.copy( this._targetEnd );
 			this._spherical.copy( this._sphericalEnd );
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
-		}
+			return new Promise( ( resolve ) => {
 
-		this._needsUpdate = true;
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
+		}
 
 	}
 
@@ -1350,7 +1458,7 @@ export class CameraControls extends EventDispatcher {
 		targetBX: number, targetBY: number, targetBZ: number,
 		t: number,
 		enableTransition: boolean = false,
-	): void {
+	): Promise<void> {
 
 		const positionA = _v3A.set( positionAX, positionAY, positionAZ );
 		const targetA = _v3B.set( targetAX, targetAY, targetAZ );
@@ -1374,25 +1482,40 @@ export class CameraControls extends EventDispatcher {
 
 		this.normalizeRotations();
 
+		this._needsUpdate = true;
+
 		if ( ! enableTransition ) {
 
 			this._target.copy( this._targetEnd );
 			this._spherical.copy( this._sphericalEnd );
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
-		}
+			return new Promise( ( resolve ) => {
 
-		this._needsUpdate = true;
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
+		}
 
 	}
 
-	setPosition( positionX: number, positionY: number, positionZ: number, enableTransition: boolean = false ): void {
+	setPosition( positionX: number, positionY: number, positionZ: number, enableTransition: boolean = false ): Promise<void> {
 
-		this.setLookAt(
+		return this.setLookAt(
 			positionX, positionY, positionZ,
 			this._targetEnd.x, this._targetEnd.y, this._targetEnd.z,
 			enableTransition,
@@ -1400,10 +1523,10 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	setTarget( targetX: number, targetY: number, targetZ: number, enableTransition: boolean = false ): void {
+	setTarget( targetX: number, targetY: number, targetZ: number, enableTransition: boolean = false ): Promise<void> {
 
 		const pos = this.getPosition( _v3A );
-		this.setLookAt(
+		return this.setLookAt(
 			pos.x, pos.y, pos.z,
 			targetX, targetY, targetZ,
 			enableTransition,
@@ -1411,22 +1534,36 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	setFocalOffset( x: number, y: number, z: number, enableTransition: boolean = false ): void {
+	setFocalOffset( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._focalOffsetEnd.set( x, y, z );
+		this._needsUpdate = true;
 
 		if ( ! enableTransition ) {
 
 			this._focalOffset.copy( this._focalOffsetEnd );
+			return Promise.resolve();
 
 		} else {
 
 			this._hasRested = false;
 			this.dispatchEvent( { type: 'transitionstart' } );
 
-		}
+			return new Promise( ( resolve ) => {
 
-		this._needsUpdate = true;
+				const onResolve = () => {
+
+					this.removeEventListener( "rest", onResolve );
+
+					resolve();
+
+				};
+
+				this.addEventListener( "rest", onResolve );
+
+			} );
+
+		}
 
 	}
 
@@ -1536,20 +1673,24 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	reset( enableTransition: boolean = false ): void {
+	reset( enableTransition: boolean = false ): Promise<void[]> {
 
-		this.setLookAt(
-			this._position0.x, this._position0.y, this._position0.z,
-			this._target0.x, this._target0.y, this._target0.z,
-			enableTransition,
-		);
-		this.setFocalOffset(
-			this._focalOffset0.x,
-			this._focalOffset0.y,
-			this._focalOffset0.z,
-			enableTransition,
-		);
-		this.zoomTo( this._zoom0, enableTransition );
+		const promises = [
+			this.setLookAt(
+				this._position0.x, this._position0.y, this._position0.z,
+				this._target0.x, this._target0.y, this._target0.z,
+				enableTransition,
+			),
+			this.setFocalOffset(
+				this._focalOffset0.x,
+				this._focalOffset0.y,
+				this._focalOffset0.z,
+				enableTransition,
+			),
+			this.zoomTo( this._zoom0, enableTransition )
+		];
+
+		return Promise.all( promises );
 
 	}
 
@@ -1729,7 +1870,7 @@ export class CameraControls extends EventDispatcher {
 				lessThanEpsilon( deltaTarget.z, this.restThreshold ) &&
 				lessThanEpsilon( deltaOffset.x, this.restThreshold ) &&
 				lessThanEpsilon( deltaOffset.y, this.restThreshold ) &&
-				lessThanEpsilon( deltaOffset.z, this.restThreshold ) && 
+				lessThanEpsilon( deltaOffset.z, this.restThreshold ) &&
 				! this._hasRested
 			) {
 

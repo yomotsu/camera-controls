@@ -31,6 +31,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [camera shake effect](https://yomotsu.github.io/camera-controls/examples/effect-shake.html)
 - [rotate with duration and easing](https://yomotsu.github.io/camera-controls/examples/easing.html) (with [tween.js](https://github.com/tweenjs/tween.js))
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [tween.js](https://github.com/tweenjs/tween.js))
+- [complex transitions with `await`](https://yomotsu.github.io/camera-controls/examples/await-transitions.html)
 - [dragging outside the iframe](https://yomotsu.github.io/camera-controls/examples/iframe.html)
 
 ## Usage
@@ -597,6 +598,29 @@ Reproduce the control state with JSON. `enableTransition` is where anim or not i
 Dispose the cameraControls instance itself, remove all eventListeners.
 
 ---
+
+## Creating Complex Transitions
+
+All methods that take the `enableTransition` parameter return a `Promise` can be used to create complex animations, for example:
+
+``` js
+async function complexTransition() {
+	await cameraControls.rotateTo( Math.PI / 2, Math.PI / 4, true );
+	await cameraControls.dollyTo( 3, true );
+	await cameraControls.fitToSphere( mesh, true );
+}
+```
+
+This will rotate the camera, then dolly, and finally fit to the bounding sphere of the `mesh`. 
+
+The speed and timing of transitions can be tuned using `.restThreshold` and `.dampingFactor`.
+
+If `enableTransition` is `false`, the promise will resolve immediately:
+
+``` js
+// will resolve immediately
+await cameraControls.dollyTo( 3, false );
+```
 
 ## Breaking changes
 
