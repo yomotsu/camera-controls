@@ -166,7 +166,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ². |
-| `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows       |
+| `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
@@ -177,16 +177,16 @@ CameraControls instance emits the following events.
 To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
 To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`.
 
-| Event name          | Timing                                                                                                   |
-| ------------------- | -------------------------------------------------------------------------------------------------------- |
-| `'controlstart'`    | When the user starts to control the camera via mouse / touches.                                          |
-| `'control'`         | When the user controls the camera (dragging).                                                            |
-| `'controlend'`      | When the user ends to control the camera.                                                                |
+| Event name          | Timing |
+| ------------------- | ------ |
+| `'controlstart'`    | When the user starts to control the camera via mouse / touches. |
+| `'control'`         | When the user controls the camera (dragging). |
+| `'controlend'`      | When the user ends to control the camera. |
 | `'transitionstart'` | When any kind of transition starts, either user control or using a method with `enableTransition = true` |
-| `'update'`          | When the camera position is updated.                                                                     |
-| `'wake'`            | When the camera starts moving.                                                                           |
-| `'rest'`            | When the camera movement is below `.restThreshold` ¹.                                                      |
-| `'sleep'`           | When the camera end moving.                                                                              |
+| `'update'`          | When the camera position is updated. |
+| `'wake'`            | When the camera starts moving. |
+| `'rest'`            | When the camera movement is below `.restThreshold` ¹. |
+| `'sleep'`           | When the camera end moving. |
 
 1. Due to damping, `sleep` will usually fire a few seconds after the camera _appears_ to have stopped moving. If you want to do something (e.g. enable UI, perform another transition) at the point when the camera has stopped, you probably want the `rest` event. This can be fine tuned using the `.restThreshold` parameter. See the [Rest and Sleep Example](https://yomotsu.github.io/camera-controls/examples/rest-and-sleep.html).
 

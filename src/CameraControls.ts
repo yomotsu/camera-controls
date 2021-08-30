@@ -20,7 +20,6 @@ import {
 	approxEquals,
 	roundToStep,
 	infinityToMaxNumber,
-	lessThanEpsilon,
 	maxNumberToInfinity,
 } from './utils/math-utils';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
