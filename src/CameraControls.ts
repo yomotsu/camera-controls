@@ -113,7 +113,7 @@ export class CameraControls extends EventDispatcher {
 
 	boundaryFriction = 0.0;
 	
-	restEpsilon = 0.0025;
+	restThreshold = 0.0025;
 
 	colliderMeshes: _THREE.Object3D[] = [];
 
@@ -1721,15 +1721,15 @@ export class CameraControls extends EventDispatcher {
 			this.dispatchEvent( { type: 'update' } );
 
 			if (
-				lessThanEpsilon( deltaTheta, this.restEpsilon ) &&
-				lessThanEpsilon( deltaPhi, this.restEpsilon ) &&
-				lessThanEpsilon( deltaRadius, this.restEpsilon ) &&
-				lessThanEpsilon( deltaTarget.x, this.restEpsilon ) &&
-				lessThanEpsilon( deltaTarget.y, this.restEpsilon ) &&
-				lessThanEpsilon( deltaTarget.z, this.restEpsilon ) &&
-				lessThanEpsilon( deltaOffset.x, this.restEpsilon ) &&
-				lessThanEpsilon( deltaOffset.y, this.restEpsilon ) &&
-				lessThanEpsilon( deltaOffset.z, this.restEpsilon ) && 
+				lessThanEpsilon( deltaTheta, this.restThreshold ) &&
+				lessThanEpsilon( deltaPhi, this.restThreshold ) &&
+				lessThanEpsilon( deltaRadius, this.restThreshold ) &&
+				lessThanEpsilon( deltaTarget.x, this.restThreshold ) &&
+				lessThanEpsilon( deltaTarget.y, this.restThreshold ) &&
+				lessThanEpsilon( deltaTarget.z, this.restThreshold ) &&
+				lessThanEpsilon( deltaOffset.x, this.restThreshold ) &&
+				lessThanEpsilon( deltaOffset.y, this.restThreshold ) &&
+				lessThanEpsilon( deltaOffset.z, this.restThreshold ) && 
 				! this._hasRested
 			) {
 

@@ -15,7 +15,7 @@
 	<p>These buttons will be disabled whenever a transition is occuring and then re-enabled when the transition is complete.</p>
 	<button id="restEventBtn">Enable on Rest</button><br>
 	<button id="sleepEventBtn">Enable on Sleep</button>
-	<p>The rest event will fire when the camera slows to less than <code>controls.restEpsilon</code> units in a single frame. You can set this value here</p> 	<label><input oninput="cameraControls.restEpsilon = this.value" value="0.0025" type="number" min="0.001" max="1" step="0.001"> Rest Epsilon</label>
+	<p>The rest event will fire when the camera slows to less than <code>controls.restThreshold</code> units in a single frame. You can set this value here</p> 	<label><input oninput="cameraControls.restThreshold = this.value" value="0.0025" type="number" min="0.001" max="1" step="0.001"> Rest Epsilon</label>
 
 	<p></p> The sleep event will fire once the camera completely stops. Due to damping, this is often long after it <em>appears</em> to have stopped.</p>
 

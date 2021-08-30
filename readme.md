@@ -164,7 +164,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ². |
-| `.restEpsilon`            | `number` | `0.0025`     | Controls how soon the `rest` event fires as the camera slows |
+| `.restThreshold`            | `number` | `0.0025`     | Controls how soon the `rest` event fires as the camera slows |
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
@@ -186,7 +186,7 @@ To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`
 | `'rest'`           | When the camera end moving. |
 | `'sleep'`           | When the camera end moving. |
 
-1. Due to damping, `sleep` will usually fire a few seconds after the camera _appears_ to have stopped moving. If you want to do something (e.g. enable UI, perform another transition) at the point when the camera has stopped, you probably want the `rest` event, which can be fine tuned using the `.restEpsilon` parameter. See the [Rest and Sleep Example](https://yomotsu.github.io/camera-controls/examples/config.html) for the difference between the `rest` and `sleep` events. 
+1. Due to damping, `sleep` will usually fire a few seconds after the camera _appears_ to have stopped moving. If you want to do something (e.g. enable UI, perform another transition) at the point when the camera has stopped, you probably want the `rest` event, which can be fine tuned using the `.restThreshold` parameter. See the [Rest and Sleep Example](https://yomotsu.github.io/camera-controls/examples/config.html) for the difference between the `rest` and `sleep` events. 
 
 ## User input config
 
