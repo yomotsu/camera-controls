@@ -6,6 +6,12 @@ export function approxZero( number: number ): boolean {
 
 }
 
+export function lessThanEpsilon( number: number, EPS: number ): boolean {
+
+	return Math.abs( number ) < EPS;
+
+}
+
 export function approxEquals( a: number, b: number ): boolean {
 
 	return approxZero( a - b );

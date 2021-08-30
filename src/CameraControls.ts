@@ -20,6 +20,7 @@ import {
 	approxEquals,
 	roundToStep,
 	infinityToMaxNumber,
+	lessThanEpsilon,
 	maxNumberToInfinity,
 } from './utils/math-utils';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
@@ -111,6 +112,8 @@ export class CameraControls extends EventDispatcher {
 	verticalDragToForward = false;
 
 	boundaryFriction = 0.0;
+	
+	restThreshold = 0.0025;
 
 	colliderMeshes: _THREE.Object3D[] = [];
 
@@ -154,6 +157,8 @@ export class CameraControls extends EventDispatcher {
 
 	// collisionTest uses nearPlane. ( PerspectiveCamera only )
 	protected _nearPlaneCorners: [ _THREE.Vector3, _THREE.Vector3, _THREE.Vector3, _THREE.Vector3 ];
+
+	protected _hasRested = false;
 
 	protected _boundary: _THREE.Box3;
 	protected _boundaryEnclosesCamera = false;
@@ -625,6 +630,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
+				this._hasRested = false;
 				this.dispatchEvent( { type: 'control' } );
 
 			};
@@ -666,6 +672,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
+				this._hasRested = false;
 				this.dispatchEvent( { type: 'controlstart' } );
 
 			};
@@ -762,6 +769,7 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
+				this._hasRested = false;
 				this.dispatchEvent( { type: 'control' } );
 
 			};
@@ -1006,6 +1014,11 @@ export class CameraControls extends EventDispatcher {
 			this._spherical.theta = this._sphericalEnd.theta;
 			this._spherical.phi   = this._sphericalEnd.phi;
 
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
+
 		}
 
 		this._needsUpdate = true;
@@ -1044,6 +1057,11 @@ export class CameraControls extends EventDispatcher {
 
 			this._spherical.radius = this._sphericalEnd.radius;
 
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
+
 		}
 
 		this._needsUpdate = true;
@@ -1063,6 +1081,11 @@ export class CameraControls extends EventDispatcher {
 		if ( ! enableTransition ) {
 
 			this._zoom = this._zoomEnd;
+
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
 
 		}
 
@@ -1093,6 +1116,11 @@ export class CameraControls extends EventDispatcher {
 
 			this._target.copy( this._targetEnd );
 
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
+
 		}
 
 		this._needsUpdate = true;
@@ -1111,6 +1139,11 @@ export class CameraControls extends EventDispatcher {
 
 			this._target.copy( this._targetEnd );
 
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
+
 		}
 
 		this._needsUpdate = true;
@@ -1124,6 +1157,11 @@ export class CameraControls extends EventDispatcher {
 		if ( ! enableTransition ) {
 
 			this._target.copy( this._targetEnd );
+
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
 
 		}
 
@@ -1294,6 +1332,11 @@ export class CameraControls extends EventDispatcher {
 			this._target.copy( this._targetEnd );
 			this._spherical.copy( this._sphericalEnd );
 
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
+
 		}
 
 		this._needsUpdate = true;
@@ -1336,6 +1379,11 @@ export class CameraControls extends EventDispatcher {
 			this._target.copy( this._targetEnd );
 			this._spherical.copy( this._sphericalEnd );
 
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
+
 		}
 
 		this._needsUpdate = true;
@@ -1370,6 +1418,11 @@ export class CameraControls extends EventDispatcher {
 		if ( ! enableTransition ) {
 
 			this._focalOffset.copy( this._focalOffsetEnd );
+
+		} else {
+
+			this._hasRested = false;
+			this.dispatchEvent( { type: 'transitionstart' } );
 
 		}
 
@@ -1659,6 +1712,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( updated && ! this._updatedLastTime ) {
 
+			this._hasRested = false;
 			this.dispatchEvent( { type: 'wake' } );
 			this.dispatchEvent( { type: 'update' } );
 
@@ -1666,8 +1720,27 @@ export class CameraControls extends EventDispatcher {
 
 			this.dispatchEvent( { type: 'update' } );
 
+			if (
+				lessThanEpsilon( deltaTheta, this.restThreshold ) &&
+				lessThanEpsilon( deltaPhi, this.restThreshold ) &&
+				lessThanEpsilon( deltaRadius, this.restThreshold ) &&
+				lessThanEpsilon( deltaTarget.x, this.restThreshold ) &&
+				lessThanEpsilon( deltaTarget.y, this.restThreshold ) &&
+				lessThanEpsilon( deltaTarget.z, this.restThreshold ) &&
+				lessThanEpsilon( deltaOffset.x, this.restThreshold ) &&
+				lessThanEpsilon( deltaOffset.y, this.restThreshold ) &&
+				lessThanEpsilon( deltaOffset.z, this.restThreshold ) && 
+				! this._hasRested
+			) {
+
+				this.dispatchEvent( { type: 'rest' } );
+				this._hasRested = true;
+
+			}
+
 		} else if ( ! updated && this._updatedLastTime ) {
 
+			this._hasRested = false;
 			this.dispatchEvent( { type: 'sleep' } );
 
 		}

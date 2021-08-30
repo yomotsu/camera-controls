@@ -84,7 +84,9 @@ export interface FitToOptions {
 export interface CameraControlsEventMap {
 	update      : { type: 'update' };
 	wake        : { type: 'wake' };
+	rest       : { type: 'rest' };
 	sleep       : { type: 'sleep' };
+	transitionstart: { type: 'transitionstart' };
 	controlstart: { type: 'controlstart' };
 	control     : { type: 'control' };
 	controlend  : { type: 'controlend' };
