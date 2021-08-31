@@ -13,6 +13,8 @@
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 	<br>
+	<label><input type="checkbox" onchange="cameraControls.infinityDolly = this.checked">infinity dolly</label>
+	<br>
 	<button onclick="cameraControls.rotate(  45 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 45deg</button>
 	<button onclick="cameraControls.rotate( -90 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta -90deg</button>
 	<button onclick="cameraControls.rotate( 360 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 360deg</button>
@@ -28,6 +30,12 @@
 	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
 	<button onclick="customFitTo()">fit to the bounding box of the mesh</button>
 	<button onclick="cameraControls.reset( true )">reset</button>
+	<br>
+	cameraControls.mouseButtons.wheel =
+	<select onchange="cameraControls.mouseButtons.wheel = CameraControls.ACTION[ this.value ]">
+		<option value="ZOOM" selected>CameraControls.ACTION.ZOOM</option>
+		<option value="DOLLY">CameraControls.ACTION.DOLLY</option>
+	</select>
 </div>
 
 <script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
@@ -49,10 +57,10 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-// cameraControls.maxDistance = EPS;
+cameraControls.minDistance = cameraControls.maxDistance = 1;
 cameraControls.azimuthRotateSpeed = - 0.3; // negative value to invert rotation direction
 cameraControls.polarRotateSpeed   = - 0.3; // negative value to invert rotation direction
-cameraControls.truckSpeed = 1 / EPS * 3;
+cameraControls.truckSpeed = 10;
 cameraControls.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
 cameraControls.touches.two = CameraControls.ACTION.TOUCH_ZOOM_TRUCK;
 cameraControls.saveState();
