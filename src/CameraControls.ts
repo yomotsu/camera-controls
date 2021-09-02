@@ -2125,14 +2125,15 @@ export class CameraControls extends EventDispatcher {
 		const dollyScale = Math.pow( 0.95, - delta * this.dollySpeed );
 		const distance = this._sphericalEnd.radius * dollyScale;
 		const prevRadius = this._sphericalEnd.radius;
+		const signedPrevRadius = prevRadius * ( delta >= 0 ? - 1 : 1 );
 
 		this.dollyTo( distance );
 
-		if ( this.infinityDolly && distance < this.minDistance ) {
+		if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
 
 			this._camera.getWorldDirection( _v3A );
-			this._targetEnd.add( _v3A.normalize().multiplyScalar( prevRadius ) );
-			this._target.add( _v3A.normalize().multiplyScalar( prevRadius ) );
+			this._targetEnd.add( _v3A.normalize().multiplyScalar( signedPrevRadius ) );
+			this._target.add( _v3A.normalize().multiplyScalar( signedPrevRadius ) );
 
 		}
 
@@ -2140,9 +2141,9 @@ export class CameraControls extends EventDispatcher {
 
 			this._dollyControlAmount += this._sphericalEnd.radius - prevRadius;
 
-			if ( this.infinityDolly && distance < this.minDistance ) {
+			if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
 
-				this._dollyControlAmount -= prevRadius;
+				this._dollyControlAmount -= signedPrevRadius;
 
 			}
 
