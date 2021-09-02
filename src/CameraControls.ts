@@ -1025,13 +1025,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1083,13 +1083,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1122,13 +1122,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1171,13 +1171,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1209,13 +1209,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1243,13 +1243,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1436,13 +1436,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1498,13 +1498,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
@@ -1552,13 +1552,13 @@ export class CameraControls extends EventDispatcher {
 
 				const onResolve = () => {
 
-					this.removeEventListener( "rest", onResolve );
+					this.removeEventListener( 'rest', onResolve );
 
 					resolve();
 
 				};
 
-				this.addEventListener( "rest", onResolve );
+				this.addEventListener( 'rest', onResolve );
 
 			} );
 
