@@ -1,5 +1,5 @@
 import * as _THREE from 'three';
-import { isOrthographicCamera } from 'types';
+import { isOrthographicCamera } from '../types';
 
 export function notSupportedInOrthographicCamera(
 	camera: _THREE.OrthographicCamera | _THREE.PerspectiveCamera,
