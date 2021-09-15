@@ -342,6 +342,18 @@ Set focal offset using the screen parallel coordinates.
 
 ---
 
+#### `setOrbitPoint( targetX, targetY, targetZ )`
+
+Set orbit point without moving the camera.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `targetX`                | `number`  | Orbit center position x |
+| `targetY`                | `number`  | Orbit center position y |
+| `targetZ`                | `number`  | Orbit center position z |
+
+---
+
 #### `forward( distance, enableTransition )`
 
 Move forward / backward.
