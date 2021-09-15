@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<button onclick="cameraControls.rotate( 30 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 30deg</button>
+	<button onclick="cameraControls.reset( true )">reset</button>
+</div>
+
+<script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width  = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+cameraControls.mouseButtons.right = CameraControls.ACTION.OFFSET;
+
+const raycaster = new THREE.Raycaster();
+
+const box = new THREE.Mesh(
+	new THREE.BoxGeometry(),
+	new THREE.MeshBasicMaterial( {
+		color: 0x00ff00,
+		opacity: 0.8,
+		transparent: true,
+		side: THREE.DoubleSide,
+	} )
+);
+scene.add( box );
+
+const sphere = new THREE.Mesh(
+	new THREE.SphereGeometry( 0.1, 32, 32 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000 } )
+);
+scene.add( sphere );
+
+const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper );
+
+renderer.domElement.addEventListener( 'mousedown', ( event ) => setOrbitPoint( event.clientX, event.clientY ) );
+renderer.domElement.addEventListener( 'touchstart', ( event ) => setOrbitPoint( event.changedTouches[ 0 ].clientX, event.changedTouches[ 0 ].clientY ) );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	requestAnimationFrame( anim );
+	updated && renderer.render( scene, camera );
+
+} )();
+
+
+const normalizedMouse = new THREE.Vector2();
+function setOrbitPoint( mouseX, mouseY ) {
+
+	const elRect = renderer.domElement.getBoundingClientRect();
+	const canvasX = mouseX - elRect.left;
+	const canvasY = mouseY - elRect.top;
+
+	normalizedMouse.set(
+		( canvasX / elRect.width ) * 2.0 - 1.0,
+		( ( elRect.height - canvasY ) / elRect.height ) * 2.0 - 1.0
+	);
+
+	raycaster.setFromCamera( normalizedMouse, camera );
+
+	const intersections = raycaster.intersectObjects( scene.children );
+	const filtered = intersections.filter( ( intersection ) => intersection.object === box );
+
+	if ( filtered.length !== 0 ) {
+
+		sphere.position.copy( filtered[ 0 ].point );
+		cameraControls.setOrbitPoint(
+			filtered[ 0 ].point.x,
+			filtered[ 0 ].point.y,
+			filtered[ 0 ].point.z,
+			false
+		);
+
+	}
+
+}
+
+
+</script>
+
+</body>
+</html>

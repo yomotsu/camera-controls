@@ -17,6 +17,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [fit-to-bounding-sphere](https://yomotsu.github.io/camera-controls/examples/fit-to-bounding-sphere.html)
 - [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
 - [focal offset](https://yomotsu.github.io/camera-controls/examples/focal-offset.html)
+- [click to set orbit point](https://yomotsu.github.io/camera-controls/examples/click-to-set-orbit-point.html)
 - [`viewport` within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
@@ -348,9 +349,9 @@ Set orbit point without moving the camera.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
-| `targetX`                | `number`  | Orbit center position x |
-| `targetY`                | `number`  | Orbit center position y |
-| `targetZ`                | `number`  | Orbit center position z |
+| `targetX`          | `number`  | Orbit center position x |
+| `targetY`          | `number`  | Orbit center position y |
+| `targetZ`          | `number`  | Orbit center position z |
 
 ---
 
