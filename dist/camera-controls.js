@@ -1168,6 +1168,19 @@
 	            });
 	        }
 	    };
+	    CameraControls.prototype.setOrbitPoint = function (targetX, targetY, targetZ) {
+	        _xColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 0);
+	        _yColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 1);
+	        _zColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 2);
+	        var cameraToPoint = _v3A.set(targetX, targetY, targetZ).sub(this._camera.position);
+	        _xColumn.multiplyScalar(cameraToPoint.x);
+	        _yColumn.multiplyScalar(cameraToPoint.y);
+	        _zColumn.multiplyScalar(cameraToPoint.z);
+	        _v3A.copy(_xColumn).add(_yColumn).add(_zColumn);
+	        _v3A.z = _v3A.z + this.distance;
+	        this.setFocalOffset(-_v3A.x, _v3A.y, -_v3A.z, false);
+	        this.moveTo(targetX, targetY, targetZ, false);
+	    };
 	    CameraControls.prototype.setBoundary = function (box3) {
 	        if (!box3) {
 	            this._boundary.min.set(-Infinity, -Infinity, -Infinity);

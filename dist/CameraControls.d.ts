@@ -94,6 +94,7 @@ export declare class CameraControls extends EventDispatcher {
     setPosition(positionX: number, positionY: number, positionZ: number, enableTransition?: boolean): Promise<void>;
     setTarget(targetX: number, targetY: number, targetZ: number, enableTransition?: boolean): Promise<void>;
     setFocalOffset(x: number, y: number, z: number, enableTransition?: boolean): Promise<void>;
+    setOrbitPoint(targetX: number, targetY: number, targetZ: number): void;
     setBoundary(box3: _THREE.Box3): void;
     setViewport(viewportOrX: _THREE.Vector4 | number | null, y: number, width: number, height: number): void;
     getDistanceToFitBox(width: number, height: number, depth: number): number;
