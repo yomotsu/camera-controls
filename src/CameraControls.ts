@@ -1572,7 +1572,7 @@ export class CameraControls extends EventDispatcher {
 		_yColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 1 );
 		_zColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 2 );
 
-		let cameraToPoint = new THREE.Vector3( targetX, targetY, targetZ ).sub( this._camera.position );
+		const cameraToPoint = _v3A.set( targetX, targetY, targetZ ).sub( this._camera.position );
 		_xColumn.multiplyScalar( cameraToPoint.x );
 		_yColumn.multiplyScalar( cameraToPoint.y );
 		_zColumn.multiplyScalar( cameraToPoint.z );
