@@ -145,6 +145,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | ------------------------- | --------- | ----------- | ----------- |
 | `.camera`                 | `THREE.Perspective \| THREE.Orthographic` | N/A | The camera to be controlled |
 | `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
+| `.active`                 | `boolean` | `false`     | Returns `true` if the controls are active updating. |
 | `.currentAction`          | `ACTION`  | N/A         | Getter for the current `ACTION`. |
 | `.distance`               | `number`  | N/A         | current distance. |
 | `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. |
