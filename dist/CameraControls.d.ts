@@ -67,6 +67,7 @@ export declare class CameraControls extends EventDispatcher {
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
     camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
     enabled: boolean;
+    readonly active: boolean;
     readonly currentAction: ACTION;
     distance: number;
     azimuthAngle: number;
@@ -120,5 +121,6 @@ export declare class CameraControls extends EventDispatcher {
     protected _zoomInternal: (delta: number, x: number, y: number) => void;
     protected _collisionTest(): number;
     protected _getClientRect(target: _THREE.Vector4): _THREE.Vector4;
+    protected _createOnRestPromise(resolveImmediately: boolean): Promise<void>;
     protected _removeAllEventListeners(): void;
 }

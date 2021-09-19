@@ -69,8 +69,9 @@ function approxZero(number, error) {
     if (error === void 0) { error = EPSILON; }
     return Math.abs(number) < error;
 }
-function approxEquals(a, b) {
-    return approxZero(a - b);
+function approxEquals(a, b, error) {
+    if (error === void 0) { error = EPSILON; }
+    return approxZero(a - b, error);
 }
 function roundToStep(value, step) {
     return Math.round(value / step) * step;
@@ -213,7 +214,7 @@ var CameraControls = (function (_super) {
         _this._state = ACTION.NONE;
         _this._viewport = null;
         _this._dollyControlAmount = 0;
-        _this._hasRested = false;
+        _this._hasRested = true;
         _this._boundaryEnclosesCamera = false;
         _this._needsUpdate = true;
         _this._updatedLastTime = false;
@@ -555,7 +556,6 @@ var CameraControls = (function (_super) {
                         break;
                     }
                 }
-                _this._hasRested = false;
                 _this.dispatchEvent({ type: 'control' });
             };
             var onContextMenu_1 = function (event) {
@@ -580,7 +580,6 @@ var CameraControls = (function (_super) {
                     var y = (_this._activePointers[0].clientY + _this._activePointers[1].clientY) * 0.5;
                     lastDragPosition_1.set(x, y);
                 }
-                _this._hasRested = false;
                 _this.dispatchEvent({ type: 'controlstart' });
             };
             var dragging_1 = function () {
@@ -643,7 +642,6 @@ var CameraControls = (function (_super) {
                         break;
                     }
                 }
-                _this._hasRested = false;
                 _this.dispatchEvent({ type: 'control' });
             };
             var endDragging_1 = function () {
@@ -740,6 +738,13 @@ var CameraControls = (function (_super) {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(CameraControls.prototype, "active", {
+        get: function () {
+            return !this._hasRested;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(CameraControls.prototype, "currentAction", {
         get: function () {
             return this._state;
@@ -822,7 +827,6 @@ var CameraControls = (function (_super) {
         return this.rotateTo(this._sphericalEnd.theta, this._sphericalEnd.phi + polarAngle, enableTransition);
     };
     CameraControls.prototype.rotateTo = function (azimuthAngle, polarAngle, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
         var theta = THREE.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
         var phi = THREE.MathUtils.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
@@ -833,26 +837,17 @@ var CameraControls = (function (_super) {
         if (!enableTransition) {
             this._spherical.theta = this._sphericalEnd.theta;
             this._spherical.phi = this._sphericalEnd.phi;
-            return Promise.resolve();
         }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        var resolveImmediately = !enableTransition ||
+            approxEquals(this._spherical.theta, this._sphericalEnd.theta, this.restThreshold) &&
+                approxEquals(this._spherical.phi, this._sphericalEnd.phi, this.restThreshold);
+        return this._createOnRestPromise(resolveImmediately);
     };
     CameraControls.prototype.dolly = function (distance, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
         return this.dollyTo(this._sphericalEnd.radius - distance, enableTransition);
     };
     CameraControls.prototype.dollyTo = function (distance, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
         var lastRadius = this._sphericalEnd.radius;
         var newRadius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
@@ -871,44 +866,23 @@ var CameraControls = (function (_super) {
         this._needsUpdate = true;
         if (!enableTransition) {
             this._spherical.radius = this._sphericalEnd.radius;
-            return Promise.resolve();
         }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        var resolveImmediately = !enableTransition || approxEquals(this._spherical.radius, this._sphericalEnd.radius, this.restThreshold);
+        return this._createOnRestPromise(resolveImmediately);
     };
     CameraControls.prototype.zoom = function (zoomStep, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
         return this.zoomTo(this._zoomEnd + zoomStep, enableTransition);
     };
     CameraControls.prototype.zoomTo = function (zoom, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
         this._zoomEnd = THREE.MathUtils.clamp(zoom, this.minZoom, this.maxZoom);
         this._needsUpdate = true;
         if (!enableTransition) {
             this._zoom = this._zoomEnd;
-            return Promise.resolve();
         }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        var resolveImmediately = !enableTransition || approxEquals(this._zoom, this._zoomEnd, this.restThreshold);
+        return this._createOnRestPromise(resolveImmediately);
     };
     CameraControls.prototype.pan = function (x, y, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
@@ -916,76 +890,35 @@ var CameraControls = (function (_super) {
         return this.truck(x, y, enableTransition);
     };
     CameraControls.prototype.truck = function (x, y, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
         this._camera.updateMatrix();
         _xColumn.setFromMatrixColumn(this._camera.matrix, 0);
         _yColumn.setFromMatrixColumn(this._camera.matrix, 1);
         _xColumn.multiplyScalar(x);
         _yColumn.multiplyScalar(-y);
-        var offset = _v3A.copy(_xColumn).add(_yColumn);
-        this._encloseToBoundary(this._targetEnd, offset, this.boundaryFriction);
-        this._needsUpdate = true;
-        if (!enableTransition) {
-            this._target.copy(this._targetEnd);
-            return Promise.resolve();
-        }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        _v3A.copy(_xColumn).add(_yColumn);
+        return this.moveTo(_v3A.x, _v3A.y, _v3A.z, enableTransition);
     };
     CameraControls.prototype.forward = function (distance, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
         _v3A.setFromMatrixColumn(this._camera.matrix, 0);
         _v3A.crossVectors(this._camera.up, _v3A);
         _v3A.multiplyScalar(distance);
+        return this.moveTo(_v3A.x, _v3A.y, _v3A.z, enableTransition);
+    };
+    CameraControls.prototype.moveTo = function (x, y, z, enableTransition) {
+        if (enableTransition === void 0) { enableTransition = false; }
+        _v3A.set(x, y, z);
         this._encloseToBoundary(this._targetEnd, _v3A, this.boundaryFriction);
         this._needsUpdate = true;
         if (!enableTransition) {
             this._target.copy(this._targetEnd);
-            return Promise.resolve();
         }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
-    };
-    CameraControls.prototype.moveTo = function (x, y, z, enableTransition) {
-        var _this = this;
-        if (enableTransition === void 0) { enableTransition = false; }
-        this._targetEnd.set(x, y, z);
-        this._needsUpdate = true;
-        if (!enableTransition) {
-            this._target.copy(this._targetEnd);
-            return Promise.resolve();
-        }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        var resolveImmediately = !enableTransition ||
+            approxEquals(this._target.x, this._targetEnd.x, this.restThreshold) &&
+                approxEquals(this._target.y, this._targetEnd.y, this.restThreshold) &&
+                approxEquals(this._target.z, this._targetEnd.z, this.restThreshold);
+        return this._createOnRestPromise(resolveImmediately);
     };
     CameraControls.prototype.fitToBox = function (box3OrObject, enableTransition, _a) {
         var _b = _a === void 0 ? {} : _a, _c = _b.paddingLeft, paddingLeft = _c === void 0 ? 0 : _c, _d = _b.paddingRight, paddingRight = _d === void 0 ? 0 : _d, _e = _b.paddingBottom, paddingBottom = _e === void 0 ? 0 : _e, _f = _b.paddingTop, paddingTop = _f === void 0 ? 0 : _f;
@@ -1074,7 +1007,6 @@ var CameraControls = (function (_super) {
         return Promise.all(promises);
     };
     CameraControls.prototype.setLookAt = function (positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
         var position = _v3A.set(positionX, positionY, positionZ);
         var target = _v3B.set(targetX, targetY, targetZ);
@@ -1085,30 +1017,25 @@ var CameraControls = (function (_super) {
         if (!enableTransition) {
             this._target.copy(this._targetEnd);
             this._spherical.copy(this._sphericalEnd);
-            return Promise.resolve();
         }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        var resolveImmediately = !enableTransition ||
+            approxEquals(this._target.x, this._targetEnd.x, this.restThreshold) &&
+                approxEquals(this._target.y, this._targetEnd.y, this.restThreshold) &&
+                approxEquals(this._target.z, this._targetEnd.z, this.restThreshold) &&
+                approxEquals(this._spherical.theta, this._sphericalEnd.theta, this.restThreshold) &&
+                approxEquals(this._spherical.phi, this._sphericalEnd.phi, this.restThreshold) &&
+                approxEquals(this._spherical.radius, this._sphericalEnd.radius, this.restThreshold);
+        return this._createOnRestPromise(resolveImmediately);
     };
     CameraControls.prototype.lerpLookAt = function (positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, t, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
-        var positionA = _v3A.set(positionAX, positionAY, positionAZ);
-        var targetA = _v3B.set(targetAX, targetAY, targetAZ);
+        var targetA = _v3A.set(targetAX, targetAY, targetAZ);
+        var positionA = _v3B.set(positionAX, positionAY, positionAZ);
         _sphericalA.setFromVector3(positionA.sub(targetA).applyQuaternion(this._yAxisUpSpace));
-        var targetB = _v3A.set(targetBX, targetBY, targetBZ);
-        this._targetEnd.copy(targetA).lerp(targetB, t);
+        var targetB = _v3C.set(targetBX, targetBY, targetBZ);
         var positionB = _v3B.set(positionBX, positionBY, positionBZ);
         _sphericalB.setFromVector3(positionB.sub(targetB).applyQuaternion(this._yAxisUpSpace));
+        this._targetEnd.copy(targetA.lerp(targetB, t));
         var deltaTheta = _sphericalB.theta - _sphericalA.theta;
         var deltaPhi = _sphericalB.phi - _sphericalA.phi;
         var deltaRadius = _sphericalB.radius - _sphericalA.radius;
@@ -1118,19 +1045,15 @@ var CameraControls = (function (_super) {
         if (!enableTransition) {
             this._target.copy(this._targetEnd);
             this._spherical.copy(this._sphericalEnd);
-            return Promise.resolve();
         }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        var resolveImmediately = !enableTransition ||
+            approxEquals(this._target.x, this._targetEnd.x, this.restThreshold) &&
+                approxEquals(this._target.y, this._targetEnd.y, this.restThreshold) &&
+                approxEquals(this._target.z, this._targetEnd.z, this.restThreshold) &&
+                approxEquals(this._spherical.theta, this._sphericalEnd.theta, this.restThreshold) &&
+                approxEquals(this._spherical.phi, this._sphericalEnd.phi, this.restThreshold) &&
+                approxEquals(this._spherical.radius, this._sphericalEnd.radius, this.restThreshold);
+        return this._createOnRestPromise(resolveImmediately);
     };
     CameraControls.prototype.setPosition = function (positionX, positionY, positionZ, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
@@ -1142,25 +1065,17 @@ var CameraControls = (function (_super) {
         return this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
     };
     CameraControls.prototype.setFocalOffset = function (x, y, z, enableTransition) {
-        var _this = this;
         if (enableTransition === void 0) { enableTransition = false; }
         this._focalOffsetEnd.set(x, y, z);
         this._needsUpdate = true;
         if (!enableTransition) {
             this._focalOffset.copy(this._focalOffsetEnd);
-            return Promise.resolve();
         }
-        else {
-            this._hasRested = false;
-            this.dispatchEvent({ type: 'transitionstart' });
-            return new Promise(function (resolve) {
-                var onResolve = function () {
-                    _this.removeEventListener('rest', onResolve);
-                    resolve();
-                };
-                _this.addEventListener('rest', onResolve);
-            });
-        }
+        var resolveImmediately = !enableTransition ||
+            approxEquals(this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold) &&
+                approxEquals(this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold) &&
+                approxEquals(this._focalOffset.z, this._focalOffsetEnd.z, this.restThreshold);
+        return this._createOnRestPromise(resolveImmediately);
     };
     CameraControls.prototype.setOrbitPoint = function (targetX, targetY, targetZ) {
         _xColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 0);
@@ -1367,7 +1282,6 @@ var CameraControls = (function (_super) {
             }
         }
         else if (!updated && this._updatedLastTime) {
-            this._hasRested = false;
             this.dispatchEvent({ type: 'sleep' });
         }
         this._updatedLastTime = updated;
@@ -1532,6 +1446,20 @@ var CameraControls = (function (_super) {
             target.w = rect.height;
         }
         return target;
+    };
+    CameraControls.prototype._createOnRestPromise = function (resolveImmediately) {
+        var _this = this;
+        if (resolveImmediately)
+            return Promise.resolve();
+        this._hasRested = false;
+        this.dispatchEvent({ type: 'transitionstart' });
+        return new Promise(function (resolve) {
+            var onResolve = function () {
+                _this.removeEventListener('rest', onResolve);
+                resolve();
+            };
+            _this.addEventListener('rest', onResolve);
+        });
     };
     CameraControls.prototype._removeAllEventListeners = function () { };
     return CameraControls;
