@@ -157,7 +157,7 @@ export class CameraControls extends EventDispatcher {
 	// collisionTest uses nearPlane. ( PerspectiveCamera only )
 	protected _nearPlaneCorners: [ _THREE.Vector3, _THREE.Vector3, _THREE.Vector3, _THREE.Vector3 ];
 
-	protected _hasRested = false;
+	protected _hasRested = true;
 
 	protected _boundary: _THREE.Box3;
 	protected _boundaryEnclosesCamera = false;
@@ -629,7 +629,6 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				this._hasRested = false;
 				this.dispatchEvent( { type: 'control' } );
 
 			};
@@ -671,7 +670,6 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				this._hasRested = false;
 				this.dispatchEvent( { type: 'controlstart' } );
 
 			};
@@ -768,7 +766,6 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				this._hasRested = false;
 				this.dispatchEvent( { type: 'control' } );
 
 			};
@@ -867,6 +864,12 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	get active(): boolean {
+
+		return ! this._hasRested;
+
+	}
+
 	get currentAction(): ACTION {
 
 		return this._state;
@@ -879,7 +882,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	set distance( distance ) {
+	set distance( distance: number ) {
 
 		if (
 			this._spherical.radius === distance &&
@@ -899,7 +902,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	set azimuthAngle( azimuthAngle ) {
+	set azimuthAngle( azimuthAngle: number ) {
 
 		if (
 			this._spherical.theta === azimuthAngle &&
@@ -919,7 +922,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	set polarAngle( polarAngle ) {
+	set polarAngle( polarAngle: number ) {
 
 		if (
 			this._spherical.phi === polarAngle &&
@@ -938,7 +941,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	set boundaryEnclosesCamera( boundaryEnclosesCamera ) {
+	set boundaryEnclosesCamera( boundaryEnclosesCamera: boolean ) {
 
 		this._boundaryEnclosesCamera = boundaryEnclosesCamera;
 		this._needsUpdate = true;
@@ -1017,7 +1020,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		const resolveImmediately = enableTransition ||
+		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._spherical.theta, this._sphericalEnd.theta, this.restThreshold ) &&
 			approxEquals( this._spherical.phi, this._sphericalEnd.phi, this.restThreshold );
 		return this._createOnRestPromise( resolveImmediately );
@@ -1060,7 +1063,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		const resolveImmediately =  enableTransition || approxEquals( this._spherical.radius, this._sphericalEnd.radius, this.restThreshold );
+		const resolveImmediately =  ! enableTransition || approxEquals( this._spherical.radius, this._sphericalEnd.radius, this.restThreshold );
 		return this._createOnRestPromise( resolveImmediately );
 
 	}
@@ -1082,7 +1085,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		const resolveImmediately = enableTransition || approxEquals( this._zoom, this._zoomEnd, this.restThreshold );
+		const resolveImmediately = ! enableTransition || approxEquals( this._zoom, this._zoomEnd, this.restThreshold );
 		return this._createOnRestPromise( resolveImmediately );
 
 	}
@@ -1131,7 +1134,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		const resolveImmediately = enableTransition ||
+		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._target.x, this._targetEnd.x, this.restThreshold ) &&
 			approxEquals( this._target.y, this._targetEnd.y, this.restThreshold ) &&
 			approxEquals( this._target.z, this._targetEnd.z, this.restThreshold );
@@ -1310,7 +1313,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		const resolveImmediately = enableTransition ||
+		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._target.x, this._targetEnd.x, this.restThreshold ) &&
 			approxEquals( this._target.y, this._targetEnd.y, this.restThreshold ) &&
 			approxEquals( this._target.z, this._targetEnd.z, this.restThreshold ) &&
@@ -1361,7 +1364,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		const resolveImmediately = enableTransition ||
+		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._target.x, this._targetEnd.x, this.restThreshold ) &&
 			approxEquals( this._target.y, this._targetEnd.y, this.restThreshold ) &&
 			approxEquals( this._target.z, this._targetEnd.z, this.restThreshold ) &&
@@ -1404,7 +1407,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		const resolveImmediately = enableTransition ||
+		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold ) &&
 			approxEquals( this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold ) &&
 			approxEquals( this._focalOffset.z, this._focalOffsetEnd.z, this.restThreshold );
@@ -1745,7 +1748,6 @@ export class CameraControls extends EventDispatcher {
 
 		} else if ( ! updated && this._updatedLastTime ) {
 
-			this._hasRested = false;
 			this.dispatchEvent( { type: 'sleep' } );
 
 		}
