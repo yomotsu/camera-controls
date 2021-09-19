@@ -1123,8 +1123,9 @@ export class CameraControls extends EventDispatcher {
 
 	moveTo( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
 
-		_v3A.set( x, y, z );
-		this._encloseToBoundary( this._targetEnd, _v3A, this.boundaryFriction );
+		const offset = _v3A.set( x, y, z ).sub( this._targetEnd );
+		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
+		this._targetEnd.set( x, y, z );
 
 		this._needsUpdate = true;
 
