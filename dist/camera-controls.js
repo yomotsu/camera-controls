@@ -914,8 +914,9 @@
 	    };
 	    CameraControls.prototype.moveTo = function (x, y, z, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
-	        _v3A.set(x, y, z);
-	        this._encloseToBoundary(this._targetEnd, _v3A, this.boundaryFriction);
+	        var offset = _v3A.set(x, y, z).sub(this._targetEnd);
+	        this._encloseToBoundary(this._targetEnd, offset, this.boundaryFriction);
+	        this._targetEnd.set(x, y, z);
 	        this._needsUpdate = true;
 	        if (!enableTransition) {
 	            this._target.copy(this._targetEnd);
