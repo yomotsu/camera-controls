@@ -6,9 +6,9 @@ export function approxZero( number: number, error: number = EPSILON ): boolean {
 
 }
 
-export function approxEquals( a: number, b: number ): boolean {
+export function approxEquals( a: number, b: number, error: number = EPSILON ): boolean {
 
-	return approxZero( a - b );
+	return approxZero( a - b, error );
 
 }
 
