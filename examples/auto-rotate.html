@@ -51,11 +51,13 @@ scene.add( gridHelper );
 renderer.render( scene, camera );
 
 // Exclusive control for user dragging
+let userDragging = false;
 let disableAutoRotate = false;
 
 const onRest = () => {
 
 	cameraControls.removeEventListener( 'rest', onRest );
+	userDragging = false;
 	disableAutoRotate = false;
 
 }
@@ -63,6 +65,7 @@ const onRest = () => {
 cameraControls.addEventListener( 'controlstart', () => {
 
 	cameraControls.removeEventListener( 'rest', onRest );
+	userDragging = true;
 	disableAutoRotate = true;
 
 } );
@@ -82,6 +85,8 @@ cameraControls.addEventListener( 'controlend', () => {
 
 //
 cameraControls.addEventListener( 'transitionstart', () => {
+
+	if ( userDragging ) return;
 
 	disableAutoRotate = true;
 	cameraControls.addEventListener( 'rest', onRest );
