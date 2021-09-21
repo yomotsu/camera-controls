@@ -427,13 +427,13 @@ export class CameraControls extends EventDispatcher {
 
 				if ( event.cancelable ) event.preventDefault();
 
-				const pointerId = ( event as PointerEvent ).pointerId;
+				const pointerId = event.pointerId;
 				const pointer = this._findPointerById( pointerId );
 
 				if ( ! pointer ) return;
 
-				pointer.clientX = ( event as PointerEvent ).clientX;
-				pointer.clientY = ( event as PointerEvent ).clientY;
+				pointer.clientX = event.clientX;
+				pointer.clientY = event.clientY;
 
 				dragging();
 
@@ -445,8 +445,8 @@ export class CameraControls extends EventDispatcher {
 
 				if ( ! pointer ) return;
 
-				pointer.clientX = ( event as PointerEvent ).clientX;
-				pointer.clientY = ( event as PointerEvent ).clientY;
+				pointer.clientX = event.clientX;
+				pointer.clientY = event.clientY;
 
 				dragging();
 
@@ -1299,8 +1299,8 @@ export class CameraControls extends EventDispatcher {
 		enableTransition: boolean = false,
 	): Promise<void> {
 
-		const position = _v3A.set( positionX, positionY, positionZ );
 		const target = _v3B.set( targetX, targetY, targetZ );
+		const position = _v3A.set( positionX, positionY, positionZ );
 
 		this._targetEnd.copy( target );
 		this._sphericalEnd.setFromVector3( position.sub( target ).applyQuaternion( this._yAxisUpSpace ) );
