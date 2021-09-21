@@ -902,21 +902,22 @@
 	        _yColumn.setFromMatrixColumn(this._camera.matrix, 1);
 	        _xColumn.multiplyScalar(x);
 	        _yColumn.multiplyScalar(-y);
-	        _v3A.copy(_xColumn).add(_yColumn);
-	        return this.moveTo(_v3A.x, _v3A.y, _v3A.z, enableTransition);
+	        var offset = _v3A.copy(_xColumn).add(_yColumn);
+	        var to = _v3B.copy(this._targetEnd).add(offset);
+	        return this.moveTo(to.x, to.y, to.z, enableTransition);
 	    };
 	    CameraControls.prototype.forward = function (distance, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
 	        _v3A.setFromMatrixColumn(this._camera.matrix, 0);
 	        _v3A.crossVectors(this._camera.up, _v3A);
 	        _v3A.multiplyScalar(distance);
-	        return this.moveTo(_v3A.x, _v3A.y, _v3A.z, enableTransition);
+	        var to = _v3B.copy(this._targetEnd).add(_v3A);
+	        return this.moveTo(to.x, to.y, to.z, enableTransition);
 	    };
 	    CameraControls.prototype.moveTo = function (x, y, z, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
 	        var offset = _v3A.set(x, y, z).sub(this._targetEnd);
 	        this._encloseToBoundary(this._targetEnd, offset, this.boundaryFriction);
-	        this._targetEnd.set(x, y, z);
 	        this._needsUpdate = true;
 	        if (!enableTransition) {
 	            this._target.copy(this._targetEnd);
@@ -1165,7 +1166,7 @@
 	        var promises = [
 	            this.setLookAt(this._position0.x, this._position0.y, this._position0.z, this._target0.x, this._target0.y, this._target0.z, enableTransition),
 	            this.setFocalOffset(this._focalOffset0.x, this._focalOffset0.y, this._focalOffset0.z, enableTransition),
-	            this.zoomTo(this._zoom0, enableTransition)
+	            this.zoomTo(this._zoom0, enableTransition),
 	        ];
 	        return Promise.all(promises);
 	    };
@@ -1284,8 +1285,8 @@
 	                approxZero(deltaOffset.y, this.restThreshold) &&
 	                approxZero(deltaOffset.z, this.restThreshold) &&
 	                !this._hasRested) {
-	                this.dispatchEvent({ type: 'rest' });
 	                this._hasRested = true;
+	                this.dispatchEvent({ type: 'rest' });
 	            }
 	        }
 	        else if (!updated && this._updatedLastTime) {
