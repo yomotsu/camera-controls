@@ -11,13 +11,13 @@
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
 	<button onclick="moveToStartPoint()">move to the animation start point</button>
 	<br>
-	<button onclick="pathAnimation.start()">path animation</button>
+	<button onclick="animateIt()">path animation</button>
 	<br>
 	<button onclick="cameraControls.reset( true )">reset</button>
 </div>
 
 <script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
-<script src="https://unpkg.com/@tweenjs/tween.js@18.5.0/dist/tween.umd.js"></script>
+<script src="https://unpkg.com/popmotion@8.6.1/dist/popmotion.global.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -57,17 +57,23 @@ const pathMesh = new THREE.Line(
 );
 scene.add( pathMesh );
 
-const _tmp = new THREE.Vector3();
-const pathAnimation = new TWEEN.Tween( { progress: 0 } )
-	.to( { progress: 1 }, 3000 )
-	.easing( TWEEN.Easing.Quadratic.Out )
-	.onStart( function() {
-		// disable user control while the animation
-		cameraControls.enabled = false;
-	} )
-	.onUpdate( function( values ) {
+const moveToStartPoint = () => {
 
-		curve.getPoint ( values.progress, _tmp );
+	curve.getPoint ( 0, _tmp );
+	cameraControls.setLookAt( _tmp.x, _tmp.y, _tmp.z, 0, 0, 0, true );
+
+};
+
+const _tmp = new THREE.Vector3();
+const pathAnimation = popmotion.tween( {
+	from: 0,
+	to: 1,
+	duration: 3000,
+} );
+const pathAnimationAction = {
+	update( progress ) {
+
+		curve.getPoint ( progress, _tmp );
 		const cameraX = _tmp.x;
 		const cameraY = _tmp.y;
 		const cameraZ = _tmp.z;
@@ -75,7 +81,7 @@ const pathAnimation = new TWEEN.Tween( { progress: 0 } )
 		const lookAtY = 0;
 		const lookAtZ = 0;
 
-		cameraControls.setLookAt( 
+		cameraControls.setLookAt(
 			cameraX,
 			cameraY,
 			cameraZ,
@@ -85,15 +91,18 @@ const pathAnimation = new TWEEN.Tween( { progress: 0 } )
 			false
 		);
 
-	} )
-	.onComplete( function() {
+	},
+	complete() {
+
 		cameraControls.enabled = true;
-	} );
 
-function moveToStartPoint() {
+	},
+};
 
-	curve.getPoint ( 0, _tmp );
-	cameraControls.setLookAt( _tmp.x, _tmp.y, _tmp.z, 0, 0, 0, true );
+const animateIt = () => {
+
+	cameraControls.enabled = false;
+	pathAnimation.start( pathAnimationAction );
 
 }
 
@@ -108,8 +117,6 @@ renderer.render( scene, camera );
 	// if ( elapsed > 30 ) { return; }
 
 	requestAnimationFrame( anim );
-
-	TWEEN.update( elapsed * 1000 );
 
 	if ( updated ) {
 

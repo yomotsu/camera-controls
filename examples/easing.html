@@ -15,7 +15,7 @@
 </div>
 
 <script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
-<script src="https://unpkg.com/@tweenjs/tween.js@18.5.0/dist/tween.umd.js"></script>
+<script src="https://unpkg.com/popmotion@8.6.1/dist/popmotion.global.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -46,46 +46,54 @@ scene.add( gridHelper );
 
 const rotate45 = function () {
 
-	// save the start angle
-	let startAzimuthAngle = cameraControls.azimuthAngle;
-	new TWEEN.Tween( cameraControls )
-		.to( { azimuthAngle: 45 * THREE.MathUtils.DEG2RAD + startAzimuthAngle }, 1000 )
-		.easing( TWEEN.Easing.Bounce.Out )
-		.onStart( function() {
+	const animation = popmotion.tween( {
+		from: cameraControls.azimuthAngle,
+		to: cameraControls.azimuthAngle + 45 * THREE.MathUtils.DEG2RAD,
+		duration: 1000,
+		ease: popmotion.easing.backOut,
+	} );
+	const animationAction = {
+		update( azimuthAngle ) {
 
-			// disable user control while the animation
-			cameraControls.enabled = false;
+			cameraControls.azimuthAngle = azimuthAngle;
 
-		} )
-		.onComplete( function() {
+		},
+		complete() {
 
 			cameraControls.enabled = true;
 
-		} )
-		.start();
+		},
+	};
+
+	cameraControls.enabled = false;
+	animation.start( animationAction );
 
 }
 
 
 const rotate0To120 = function () {
 
-	cameraControls.azimuthAngle = 0;
+	const animation = popmotion.tween( {
+		from: 0,
+		to: 120 * THREE.MathUtils.DEG2RAD,
+		duration: 3000,
+		ease: popmotion.easing.easeOut,
+	} );
+	const animationAction = {
+		update( azimuthAngle ) {
 
-	new TWEEN.Tween( cameraControls )
-		.to( { azimuthAngle: 120 * THREE.MathUtils.DEG2RAD }, 3000 )
-		.easing( TWEEN.Easing.Exponential.Out )
-		.onStart( function() {
+			cameraControls.azimuthAngle = azimuthAngle;
 
-			// disable user control while the animation
-			cameraControls.enabled = false;
-
-		} )
-		.onComplete( function() {
+		},
+		complete() {
 
 			cameraControls.enabled = true;
 
-		} )
-		.start();
+		},
+	};
+
+	cameraControls.enabled = false;
+	animation.start( animationAction );
 
 }
 
@@ -101,8 +109,6 @@ renderer.render( scene, camera );
 	// if ( elapsed > 30 ) { return; }
 
 	requestAnimationFrame( anim );
-
-	TWEEN.update( elapsed * 1000 );
 
 	if ( updated ) {
 
