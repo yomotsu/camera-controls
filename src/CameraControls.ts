@@ -1106,8 +1106,9 @@ export class CameraControls extends EventDispatcher {
 		_xColumn.multiplyScalar(   x );
 		_yColumn.multiplyScalar( - y );
 
-		_v3A.copy( _xColumn ).add( _yColumn );
-		return this.moveTo( _v3A.x, _v3A.y, _v3A.z, enableTransition );
+		const offset = _v3A.copy( _xColumn ).add( _yColumn );
+		const to = _v3B.copy( this._targetEnd ).add( offset );
+		return this.moveTo( to.x, to.y, to.z, enableTransition );
 
 	}
 
@@ -1117,7 +1118,8 @@ export class CameraControls extends EventDispatcher {
 		_v3A.crossVectors( this._camera.up, _v3A );
 		_v3A.multiplyScalar( distance );
 
-		return this.moveTo( _v3A.x, _v3A.y, _v3A.z, enableTransition );
+		const to = _v3B.copy( this._targetEnd ).add( _v3A );
+		return this.moveTo( to.x, to.y, to.z, enableTransition );
 
 	}
 
@@ -1125,7 +1127,6 @@ export class CameraControls extends EventDispatcher {
 
 		const offset = _v3A.set( x, y, z ).sub( this._targetEnd );
 		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
-		this._targetEnd.set( x, y, z );
 
 		this._needsUpdate = true;
 
@@ -1555,7 +1556,7 @@ export class CameraControls extends EventDispatcher {
 				this._focalOffset0.z,
 				enableTransition,
 			),
-			this.zoomTo( this._zoom0, enableTransition )
+			this.zoomTo( this._zoom0, enableTransition ),
 		];
 
 		return Promise.all( promises );
@@ -1742,8 +1743,8 @@ export class CameraControls extends EventDispatcher {
 				! this._hasRested
 			) {
 
-				this.dispatchEvent( { type: 'rest' } );
 				this._hasRested = true;
+				this.dispatchEvent( { type: 'rest' } );
 
 			}
 
