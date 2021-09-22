@@ -624,7 +624,8 @@
 	                        var dollyX = _this.dollyToCursor ? (lastDragPosition_1.x - _this._elementRect.x) / _this._elementRect.z * 2 - 1 : 0;
 	                        var dollyY = _this.dollyToCursor ? (lastDragPosition_1.y - _this._elementRect.y) / _this._elementRect.w * -2 + 1 : 0;
 	                        _this._state === ACTION.TOUCH_DOLLY ||
-	                            _this._state === ACTION.TOUCH_DOLLY_TRUCK ?
+	                            _this._state === ACTION.TOUCH_DOLLY_TRUCK ||
+	                            _this._state === ACTION.TOUCH_DOLLY_OFFSET ?
 	                            _this._dollyInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
 	                            _this._zoomInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
 	                        if (_this._state === ACTION.TOUCH_DOLLY_TRUCK ||
@@ -1016,8 +1017,8 @@
 	    };
 	    CameraControls.prototype.setLookAt = function (positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
 	        if (enableTransition === void 0) { enableTransition = false; }
-	        var position = _v3A.set(positionX, positionY, positionZ);
 	        var target = _v3B.set(targetX, targetY, targetZ);
+	        var position = _v3A.set(positionX, positionY, positionZ);
 	        this._targetEnd.copy(target);
 	        this._sphericalEnd.setFromVector3(position.sub(target).applyQuaternion(this._yAxisUpSpace));
 	        this.normalizeRotations();
