@@ -305,7 +305,7 @@ polar
    0
 </pre>
 
-180 top/sky, 90 horizontal fron view, 0 bottom/floor
+180 top/sky, 90 horizontal from view, 0 bottom/floor
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
