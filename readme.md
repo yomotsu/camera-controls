@@ -154,7 +154,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.polarAngle`             | `number`  | N/A         | current polarAngle in radians. |
 | `.minPolarAngle`          | `number`  | `0`         | In radians. |
 | `.maxPolarAngle`          | `number`  | `Math.PI`   | In radians. |
-| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians. |
+| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians ³. |
 | `.minAzimuthAngle`        | `number`  | `-Infinity` | In radians. |
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
@@ -173,6 +173,13 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
+3. Every 360 degrees are added to the value. `360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720 = 12.566370614359172`. To restart use this function normalizeRotations() or this code 
+`
+const azi = 0;
+cameraController.addEventListener("control", (_event) => {
+	azi = _event.target.azimuthAngle % (360 * THREE.MathUtils.DEG2RAD);
+}, false);
+`
 
 ## Events
 
@@ -201,8 +208,12 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 | --------------------- | -------- |
 | `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.wheel`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.shiftLeft`   | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`* |
+| `mouseButtons.wheel` ¹ | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.middle` ² | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY`* \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+
+1. Mouse wheel event for scroll "up/down" on mac "up/down/left/right"
+2. Mouse click on wheel event "button"
 
 - \* is the default.
 - The default of `mouseButtons.wheel` is:
