@@ -246,8 +246,9 @@ Every value is adding to current.
 | `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
-When you need rotate only one axie put value to move, and zero value for doing nothing. ```js
-rotate(20 * THREE.MathUtils.DEG2RAD, 0, true)
+When you need rotate only one axie put value to move, and zero value for doing nothing. 
+``` js
+	rotate(20 * THREE.MathUtils.DEG2RAD, 0, true)
 ```
 
 ---
@@ -283,7 +284,7 @@ Every value is adding to current.
 Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
 Rotate absolutly camera view over camera pivot:
 
-  azimuth
+azimuth
      0
      |
 90 -- -- -90
@@ -292,12 +293,14 @@ Rotate absolutly camera view over camera pivot:
 
 0 front, 90 left, -90 right, 180 back
 
-   polar
-	180
-	|
-	90
-	|
-	0
+-----
+
+polar
+180
+|
+90
+|
+0
 
 180 top/sky, 90 horizontal fron view, 0 bottom/floor
 
@@ -345,7 +348,7 @@ Limits set with `.minZoom` and `.maxZoom`
 
 You can also make zoomIn function using `camera.zoom` property.
 e.g.
-```js
+``` js
 const zoomIn  = () => cameraControls.zoom(   camera.zoom / 2, true );
 const zoomOut = () => cameraControls.zoom( - camera.zoom / 2, true );
 ```
