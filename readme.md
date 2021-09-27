@@ -170,16 +170,18 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ². |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
+| `.minZoom` 	            | `number`  | `int`       | Limit for camera zoom pos/neg |
+| `.maxZoom` 	            | `number`  | `int`       | Limit for camera zoom pos/neg |
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
 3. Every 360 degrees are added to the value. `360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720 = 12.566370614359172`. To restart use this function normalizeRotations() or this code 
-`
+```js
 const azi = 0;
 cameraController.addEventListener("control", (_event) => {
 	azi = _event.target.azimuthAngle % (360 * THREE.MathUtils.DEG2RAD);
 }, false);
-`
+```
 
 ## Events
 
@@ -236,6 +238,7 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 #### `rotate( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical).
+Every value is adding to current.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -243,11 +246,17 @@ Rotate azimuthal angle(horizontal) and polar angle(vertical).
 | `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+When you need rotate only one axie put value to move, and zero value for doing nothing. ```js
+rotate(20 * THREE.MathUtils.DEG2RAD, 0, true)
+```
+
 ---
 
 #### `rotateAzimuthTo( azimuthAngle, enableTransition )`
 
-Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) target.
+Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) target. 
+Same as `rotate()` affect only one axie.
+Every value is adding to current.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -259,6 +268,8 @@ Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) targe
 #### `rotatePolarTo( polarAngle, enableTransition )`
 
 Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) target.
+Same as `rotate()` affect only one axie.
+Every value is adding to current.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -270,6 +281,25 @@ Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) targe
 #### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
+Rotate absolutly camera view over camera pivot:
+
+  azimuth
+     0
+     |
+90 -- -- -90
+     |
+    180
+
+0 front, 90 left, -90 right, 180 back
+
+   polar
+	180
+	|
+	90
+	|
+	0
+
+180 top/sky, 90 horizontal fron view, 0 bottom/floor
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -303,7 +333,10 @@ Dolly in/out camera position to given distance.
 
 #### `zoom( zoomStep, enableTransition )`
 
-Zoom in/out of camera.
+Zoom in/out is added or reduced to camera given scale.
+Current value +/- input `zoomStep`
+
+Limits set with `.minZoom` and `.maxZoom`
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -321,12 +354,15 @@ const zoomOut = () => cameraControls.zoom( - camera.zoom / 2, true );
 
 #### `zoomTo( zoom, enableTransition )`
 
-Zoom in/out camera to given scale.
+Rewrite current Zoom value to input value `zoom`.
+
+Limits set with `.minZoom` and `.maxZoom`
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
 | `zoom`             | `number`  | zoom scale |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
 
 ---
 
@@ -453,7 +489,7 @@ Similar to `setLookAt`, but it interpolates between two states.
 | `targetBX`         | `number`  | look at position x to interpolate towards. |
 | `targetBY`         | `number`  | look at position y to interpolate towards. |
 | `targetBZ`         | `number`  | look at position z to interpolate towards. |
-| `t`                | `number`  | Interpolation factor in the closed interval [0, 1]. |
+| `t`                | `number`  | Interpolation factor in the closed interval [0, 1 = 100%]. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
