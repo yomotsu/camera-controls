@@ -285,22 +285,25 @@ Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
 Rotate absolutly camera view over camera pivot:
 
 azimuth
-     0
-     |
-90 -- -- -90
-     |
+<pre>
+     0  
+     |  
+90 -- -- -90  
+     |  
     180
-
+</pre>
 0 front, 90 left, -90 right, 180 back
 
 -----
 
 polar
-180
-|
-90
-|
-0
+<pre>
+  180  
+   |  
+  90  
+   |  
+   0
+</pre>
 
 180 top/sky, 90 horizontal fron view, 0 bottom/floor
 
