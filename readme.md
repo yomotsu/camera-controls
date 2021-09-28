@@ -175,13 +175,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
-3. Every 360 degrees are added to the value. `360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720 = 12.566370614359172`. To restart use this function normalizeRotations() or this code 
-```js
-const azi = 0;
-cameraController.addEventListener("control", (_event) => {
-	azi = _event.target.azimuthAngle % (360 * THREE.MathUtils.DEG2RAD);
-}, false);
-```
+3. Every 360 degrees are added to the value. `360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720º = 12.566370614359172`.
 
 ## Events
 
