@@ -175,7 +175,9 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
-3. Every 360 degrees are added to the value. `360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720º = 12.566370614359172`.
+3. Every 360 degrees turn are added to `.azimuthAngle` value, is acaccumulative. 
+	`360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720º = 12.566370614359172`.<br/>
+	**Tip**: [How to normalize azimuthAngle?](#tips)
 
 ## Events
 
@@ -683,6 +685,20 @@ If `enableTransition` is `false`, the promise will resolve immediately:
 // will resolve immediately
 await cameraControls.dollyTo( 3, false );
 ```
+
+---
+
+## Tips
+
+* **Normalize azimuth angle**: 
+	If you need a normalized accumulated azimuth angle (between 0 and 360 deg), compute with [THREE.MathUtils.euclideanModulo](https://threejs.org/docs/#api/en/math/MathUtils)
+	e.g.: 
+	``` js 
+	const normalizedAzimuthAngle = THREE.MathUtils.euclideanModulo( cameraControls.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD ); 
+	```
+
+  
+---
 
 ## Breaking changes
 
