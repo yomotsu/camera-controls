@@ -13,7 +13,6 @@ import {
 import {
 	PI_2,
 	PI_HALF,
-	FPS_60,
 } from './constants';
 import {
 	approxZero,
@@ -1582,7 +1581,7 @@ export class CameraControls extends EventDispatcher {
 	update( delta: number ): boolean {
 
 		const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		const lerpRatio = 1.0 - Math.exp( - dampingFactor * delta * FPS_60 );
+		const lerpRatio = dampingFactor * delta * 60; // 60 is to emulate the original THREE.OrbitControls.
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
