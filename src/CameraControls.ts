@@ -950,8 +950,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Adds the specified event listener.
-	 * @param type 
-	 * @param listener 
+	 * @param type
+	 * @param listener
 	 */
 	addEventListener<K extends keyof CameraControlsEventMap>(
 		type: K,
@@ -964,8 +964,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Removes the specified event listener
-	 * @param type 
-	 * @param listener 
+	 * @param type
+	 * @param listener
 	 */
 	removeEventListener<K extends keyof CameraControlsEventMap>(
 		type: K,
@@ -990,10 +990,10 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * azimuthAngle in radian
-	 * 
+	 *
 	 * @param azimuthAngle | Every value is adding to current
-	 * @param enableTransition 
-	 * @returns 
+	 * @param enableTransition
+	 * @returns
 	 */
 	rotateAzimuthTo( azimuthAngle: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1008,8 +1008,8 @@ export class CameraControls extends EventDispatcher {
 	/**
 	 * polarAngle in radian
 	 * @param polarAngle | Every value is adding to current.
-	 * @param enableTransition 
-	 * @returns 
+	 * @param enableTransition
+	 * @returns
 	 */
 	rotatePolarTo( polarAngle: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1042,11 +1042,11 @@ export class CameraControls extends EventDispatcher {
 	 *			0
 	 *
 	 *		180 top/sky, 90 horizontal fron view, 0 bottom/floor
-	 * 
+	 *
 	 * @param azimuthAngle | polarAngle in radian
 	 * @param polarAngle | azimuthAngle in radian
-	 * @param enableTransition 
-	 * @returns 
+	 * @param enableTransition
+	 * @returns
 	 */
 	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1072,12 +1072,12 @@ export class CameraControls extends EventDispatcher {
 		return this._createOnRestPromise( resolveImmediately );
 
 	}
-	
+
 	/**
 	 * Dolly in/out camera position.
-	 * @param distance 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param distance
+	 * @param enableTransition
+	 * @returns
 	 */
 	dolly( distance: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1087,9 +1087,9 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Dolly in/out camera position to given distance.
-	 * @param distance 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param distance
+	 * @param enableTransition
+	 * @returns
 	 */
 	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1130,9 +1130,9 @@ export class CameraControls extends EventDispatcher {
 	 * Zoom in/out is added or reduced to camera given scale.
      * Current value +/- input `zoomStep`
 	 * Limits set with `.minZoom` and `.maxZoom`
-	 * @param zoomStep 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param zoomStep
+	 * @param enableTransition
+	 * @returns
 	 */
 	zoom( zoomStep: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1143,9 +1143,9 @@ export class CameraControls extends EventDispatcher {
 	/**
 	 * Rewrite current Zoom value to input value zoom.
 	 * Limits set with .minZoom and .maxZoom
-	 * @param zoom 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param zoom
+	 * @param enableTransition
+	 * @returns
 	 */
 	zoomTo( zoom: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1172,10 +1172,10 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Truck and pedestal camera using current azimuthal angle
-	 * @param x 
-	 * @param y 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param x
+	 * @param y
+	 * @param enableTransition
+	 * @returns
 	 */
 	truck( x: number, y: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1194,9 +1194,9 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Move forward / backward.
-	 * @param distance 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param distance
+	 * @param enableTransition
+	 * @returns
 	 */
 	forward( distance: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1211,11 +1211,11 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Move target position to given point.
-	 * @param x 
-	 * @param y 
-	 * @param z 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param enableTransition
+	 * @returns
 	 */
 	moveTo( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1243,7 +1243,7 @@ export class CameraControls extends EventDispatcher {
 	 * @param box3OrObject | THREE.Box3 | THREE.Mesh
 	 * @param enableTransition <boolean>
 	 * @param options | <object> { paddingTop, paddingLeft, paddingBottom, paddingRight }
-	 * @returns 
+	 * @returns
 	 */
 	fitToBox( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
 		paddingLeft = 0,
@@ -1360,9 +1360,9 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Fit the viewport to the sphere or the bounding sphere of the object.
-	 * @param sphereOrMesh 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param sphereOrMesh
+	 * @param enableTransition
+	 * @returns
 	 */
 	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): Promise<void[]> {
 
@@ -1402,14 +1402,14 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Make a orbit with given points.
-	 * @param positionX 
-	 * @param positionY 
-	 * @param positionZ 
-	 * @param targetX 
-	 * @param targetY 
-	 * @param targetZ 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param positionX
+	 * @param positionY
+	 * @param positionZ
+	 * @param targetX
+	 * @param targetY
+	 * @param targetZ
+	 * @param enableTransition
+	 * @returns
 	 */
 	setLookAt(
 		positionX: number, positionY: number, positionZ: number,
@@ -1446,21 +1446,21 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Similar to setLookAt, but it interpolates between two states.
-	 * @param positionAX 
-	 * @param positionAY 
-	 * @param positionAZ 
-	 * @param targetAX 
-	 * @param targetAY 
-	 * @param targetAZ 
-	 * @param positionBX 
-	 * @param positionBY 
-	 * @param positionBZ 
-	 * @param targetBX 
-	 * @param targetBY 
-	 * @param targetBZ 
-	 * @param t 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param positionAX
+	 * @param positionAY
+	 * @param positionAZ
+	 * @param targetAX
+	 * @param targetAY
+	 * @param targetAZ
+	 * @param positionBX
+	 * @param positionBY
+	 * @param positionBZ
+	 * @param targetBX
+	 * @param targetBY
+	 * @param targetBZ
+	 * @param t
+	 * @param enableTransition
+	 * @returns
 	 */
 	lerpLookAt(
 		positionAX: number, positionAY: number, positionAZ: number,
@@ -1515,11 +1515,11 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * setLookAt without target, keep gazing at the current target
-	 * @param positionX 
-	 * @param positionY 
-	 * @param positionZ 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param positionX
+	 * @param positionY
+	 * @param positionZ
+	 * @param enableTransition
+	 * @returns
 	 */
 	setPosition( positionX: number, positionY: number, positionZ: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1533,11 +1533,11 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * setLookAt without position, Stay still at the position.
-	 * @param targetX 
-	 * @param targetY 
-	 * @param targetZ 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param targetX
+	 * @param targetY
+	 * @param targetZ
+	 * @param enableTransition
+	 * @returns
 	 */
 	setTarget( targetX: number, targetY: number, targetZ: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1549,14 +1549,14 @@ export class CameraControls extends EventDispatcher {
 		);
 
 	}
-	
+
 	/**
 	 * Set focal offset using the screen parallel coordinates. z doesn't affect in Orthographic as with Dolly.
-	 * @param x 
-	 * @param y 
-	 * @param z 
-	 * @param enableTransition 
-	 * @returns 
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param enableTransition
+	 * @returns
 	 */
 	setFocalOffset( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1576,12 +1576,12 @@ export class CameraControls extends EventDispatcher {
 		return this._createOnRestPromise( resolveImmediately );
 
 	}
-	
+
 	/**
 	 * Set orbit point without moving the camera.
-	 * @param targetX 
-	 * @param targetY 
-	 * @param targetZ 
+	 * @param targetX
+	 * @param targetY
+	 * @param targetZ
 	 */
 	setOrbitPoint( targetX: number, targetY: number, targetZ : number ) {
 
@@ -1604,8 +1604,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Set the boundary box that encloses the target of the camera. box3 is in THREE.Box3
-	 * @param box3 
-	 * @returns 
+	 * @param box3
+	 * @returns
 	 */
 	setBoundary( box3: _THREE.Box3 ): void {
 
@@ -1628,11 +1628,11 @@ export class CameraControls extends EventDispatcher {
 	/**
 	 * Set (or unset) the current viewport.
 	 * Set this when you want to use renderer viewport and .dollyToCursor feature at the same time.
-	 * @param viewportOrX 
-	 * @param y 
-	 * @param width 
-	 * @param height 
-	 * @returns 
+	 * @param viewportOrX
+	 * @param y
+	 * @param width
+	 * @param height
+	 * @returns
 	 */
 	setViewport( viewportOrX: _THREE.Vector4 | number | null, y: number, width: number, height: number ): void {
 
@@ -1697,8 +1697,8 @@ export class CameraControls extends EventDispatcher {
 	 * Return its current gazing target, which is the center position of the orbit.
 
 
-	 * @param out 
-	 * @returns 
+	 * @param out
+	 * @returns
 	 */
 	getTarget( out: _THREE.Vector3 ): _THREE.Vector3 {
 
@@ -1709,8 +1709,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Return its current position.
-	 * @param out 
-	 * @returns 
+	 * @param out
+	 * @returns
 	 */
 	getPosition( out: _THREE.Vector3 ): _THREE.Vector3 {
 
@@ -1721,8 +1721,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Return its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
-	 * @param out 
-	 * @returns 
+	 * @param out
+	 * @returns
 	 */
 	getFocalOffset( out: _THREE.Vector3 ): _THREE.Vector3 {
 
@@ -1744,8 +1744,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Reset all rotation and position to default
-	 * @param enableTransition 
-	 * @returns 
+	 * @param enableTransition
+	 * @returns
 	 */
 	reset( enableTransition: boolean = false ): Promise<void[]> {
 
@@ -1791,8 +1791,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Update camera position and directions. This should be called in your tick loop and returns true if re-rendering is needed.
-	 * @param delta 
-	 * @returns 
+	 * @param delta
+	 * @returns
 	 */
 	update( delta: number ): boolean {
 
@@ -1982,7 +1982,7 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Get all state in JSON string
-	 * @returns 
+	 * @returns
 	 */
 	toJSON(): string {
 
@@ -2020,8 +2020,8 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Reproduce the control state with JSON. enableTransition is where anim or not in a boolean.
-	 * @param json 
-	 * @param enableTransition 
+	 * @param json
+	 * @param enableTransition
 	 */
 	fromJSON( json: string, enableTransition: boolean = false ): void {
 
