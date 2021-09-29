@@ -154,7 +154,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.polarAngle`             | `number`  | N/A         | current polarAngle in radians. |
 | `.minPolarAngle`          | `number`  | `0`         | In radians. |
 | `.maxPolarAngle`          | `number`  | `Math.PI`   | In radians. |
-| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians. |
+| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians ³. |
 | `.minAzimuthAngle`        | `number`  | `-Infinity` | In radians. |
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
@@ -170,9 +170,14 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ². |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
+| `.minZoom` 	            | `number`  | `int`       | Limit for camera zoom pos/neg |
+| `.maxZoom` 	            | `number`  | `int`       | Limit for camera zoom pos/neg |
 
 1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
 2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
+3. Every 360 degrees turn are added to `.azimuthAngle` value, is acaccumulative. 
+	`360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720º = 12.566370614359172`.<br/>
+	**Tip**: [How to normalize azimuthAngle?](#tips)
 
 ## Events
 
@@ -201,8 +206,12 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 | --------------------- | -------- |
 | `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-| `mouseButtons.wheel`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 | `mouseButtons.shiftLeft`   | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`* |
+| `mouseButtons.wheel` ¹ | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+| `mouseButtons.middle` ² | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY`* \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+
+1. Mouse wheel event for scroll "up/down" on mac "up/down/left/right"
+2. Mouse click on wheel event "button"
 
 - \* is the default.
 - The default of `mouseButtons.wheel` is:
@@ -225,6 +234,7 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 #### `rotate( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical).
+Every value is adding to current.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -232,11 +242,18 @@ Rotate azimuthal angle(horizontal) and polar angle(vertical).
 | `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
+When you need rotate only one axie put value to move, and zero value for doing nothing. 
+``` js
+	rotate(20 * THREE.MathUtils.DEG2RAD, 0, true)
+```
+
 ---
 
 #### `rotateAzimuthTo( azimuthAngle, enableTransition )`
 
-Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) target.
+Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) target. 
+Same as `rotate()` affect only one axie.
+Every value is adding to current.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -248,6 +265,8 @@ Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) targe
 #### `rotatePolarTo( polarAngle, enableTransition )`
 
 Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) target.
+Same as `rotate()` affect only one axie.
+Every value is adding to current.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -259,6 +278,30 @@ Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) targe
 #### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
+Rotate absolutly camera view over camera pivot:
+
+azimuth
+<pre>
+     0  
+     |  
+90 -- -- -90  
+     |  
+    180
+</pre>
+0 front, 90 left, -90 right, 180 back
+
+-----
+
+polar
+<pre>
+  180  
+   |  
+  90  
+   |  
+   0
+</pre>
+
+180 top/sky, 90 horizontal from view, 0 bottom/floor
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -292,7 +335,10 @@ Dolly in/out camera position to given distance.
 
 #### `zoom( zoomStep, enableTransition )`
 
-Zoom in/out of camera.
+Zoom in/out is added or reduced to camera given scale.
+Current value +/- input `zoomStep`
+
+Limits set with `.minZoom` and `.maxZoom`
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -301,7 +347,7 @@ Zoom in/out of camera.
 
 You can also make zoomIn function using `camera.zoom` property.
 e.g.
-```js
+``` js
 const zoomIn  = () => cameraControls.zoom(   camera.zoom / 2, true );
 const zoomOut = () => cameraControls.zoom( - camera.zoom / 2, true );
 ```
@@ -310,12 +356,15 @@ const zoomOut = () => cameraControls.zoom( - camera.zoom / 2, true );
 
 #### `zoomTo( zoom, enableTransition )`
 
-Zoom in/out camera to given scale.
+Rewrite current Zoom value to input value `zoom`.
+
+Limits set with `.minZoom` and `.maxZoom`
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
 | `zoom`             | `number`  | zoom scale |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
 
 ---
 
@@ -442,7 +491,7 @@ Similar to `setLookAt`, but it interpolates between two states.
 | `targetBX`         | `number`  | look at position x to interpolate towards. |
 | `targetBY`         | `number`  | look at position y to interpolate towards. |
 | `targetBZ`         | `number`  | look at position z to interpolate towards. |
-| `t`                | `number`  | Interpolation factor in the closed interval [0, 1]. |
+| `t`                | `number`  | Interpolation factor in the closed interval [0, 1 = 100%]. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -636,6 +685,20 @@ If `enableTransition` is `false`, the promise will resolve immediately:
 // will resolve immediately
 await cameraControls.dollyTo( 3, false );
 ```
+
+---
+
+## Tips
+
+* **Normalize azimuth angle**: 
+	If you need a normalized accumulated azimuth angle (between 0 and 360 deg), compute with [THREE.MathUtils.euclideanModulo](https://threejs.org/docs/#api/en/math/MathUtils)
+	e.g.: 
+	``` js 
+	const normalizedAzimuthAngle = THREE.MathUtils.euclideanModulo( cameraControls.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD ); 
+	```
+
+  
+---
 
 ## Breaking changes
 
