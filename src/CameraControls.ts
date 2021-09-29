@@ -1581,7 +1581,11 @@ export class CameraControls extends EventDispatcher {
 	update( delta: number ): boolean {
 
 		const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		const lerpRatio = dampingFactor >= 1 ? 1 : dampingFactor * delta * 60; // 60 is to emulate the original THREE.OrbitControls.
+		// The original THREE.OrbitControls assume 60 FPS fixed and does NOT rely on delta time.
+		// (that must be a problem of the original one though)
+		// To to emulate the speed of the original one under 60 FPS, multiply `60` to delta,
+		// but ours are more flexible to any FPS unlike the original.
+		const lerpRatio = dampingFactor >= 1 ? 1 : dampingFactor * delta * 60;
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
