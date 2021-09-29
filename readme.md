@@ -128,7 +128,7 @@ CameraControls.install( { THREE: subsetOfTHREE } );
 
 CameraControls uses Spherical Coordinates for orbit rotations.
 
-If your camera is Y-up, Azimuthal angle will be the angle for y-axis rotation and Polar angle will be the angle for vertical position.
+If your camera is Y-up, the Azimuthal angle will be the angle for y-axis rotation and the Polar angle will be the angle for vertical position.
 
 ![](https://raw.githubusercontent.com/yomotsu/camera-controls/dev/examples/fig1.svg)
 
@@ -154,7 +154,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.polarAngle`             | `number`  | N/A         | current polarAngle in radians. |
 | `.minPolarAngle`          | `number`  | `0`         | In radians. |
 | `.maxPolarAngle`          | `number`  | `Math.PI`   | In radians. |
-| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians ³. |
+| `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians ¹. |
 | `.minAzimuthAngle`        | `number`  | `-Infinity` | In radians. |
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
@@ -167,17 +167,17 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
-| `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ¹. |
-| `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ². |
+| `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ². |
+| `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ³. |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
-| `.minZoom` 	            | `number`  | `int`       | Limit for camera zoom pos/neg |
-| `.maxZoom` 	            | `number`  | `int`       | Limit for camera zoom pos/neg |
+| `.minZoom` 	              | `number`  | `0.01`      | Limit for camera zoom pos/neg |
+| `.maxZoom` 	              | `number`  | `Infinity`  | Limit for camera zoom pos/neg |
 
-1. Be aware colliderMeshes may decrease performance. Collision test uses 4 raycasters from camera, since near plane has 4 corners.
-2. When the Dolly distance less than the minDistance, the sphere of radius will set minDistance.
-3. Every 360 degrees turn are added to `.azimuthAngle` value, is acaccumulative. 
-	`360º = 360 * THREE.MathUtils.DEG2RAD = 6.283185307179586`, `720º = 12.566370614359172`.<br/>
-	**Tip**: [How to normalize azimuthAngle?](#tips)
+1. Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.
+  `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.
+  **Tip**: [How to normalize accumulated azimuthAngle?](#tips)
+2. Be aware colliderMeshes may decrease performance. The collision test uses 4 raycasters from the camera since the near plane has 4 corners.
+3. When the Dolly distance is less than the `minDistance`, the sphere of the radius will set `minDistance`.
 
 ## Events
 
@@ -242,18 +242,16 @@ Every value is adding to current.
 | `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
-When you need rotate only one axie put value to move, and zero value for doing nothing. 
+When you need rotate only one axis put value to move, and zero value for doing nothing.
 ``` js
-	rotate(20 * THREE.MathUtils.DEG2RAD, 0, true)
+rotate( 20 * THREE.MathUtils.DEG2RAD, 0, true );
 ```
 
 ---
 
 #### `rotateAzimuthTo( azimuthAngle, enableTransition )`
 
-Rotate azimuthal angle(horizontal) and keep the same polar angle(vertical) target. 
-Same as `rotate()` affect only one axie.
-Every value is adding to current.
+Rotate azimuthal angle(horizontal) absolutely and keep the same polar angle(vertical) target.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -264,9 +262,7 @@ Every value is adding to current.
 
 #### `rotatePolarTo( polarAngle, enableTransition )`
 
-Rotate polar angle(vertical) and keep the same azimuthal angle(horizontal) target.
-Same as `rotate()` affect only one axie.
-Every value is adding to current.
+Rotate polar angle(vertical) absolutely and keep the same azimuthal angle(horizontal) target.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -278,28 +274,28 @@ Every value is adding to current.
 #### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
-Rotate absolutly camera view over camera pivot:
+Rotate absolutely camera view over camera pivot:
 
-azimuth
-<pre>
-     0  
-     |  
-90 -- -- -90  
-     |  
-    180
-</pre>
+Azimuth angle
+```
+      0
+      |
+ 90 -- -- -90
+      |
+     180
+```
 0 front, 90 left, -90 right, 180 back
 
 -----
 
-polar
-<pre>
-  180  
-   |  
-  90  
-   |  
-   0
-</pre>
+Polar angle
+```
+     180
+      |
+      90
+      |
+      0
+```
 
 180 top/sky, 90 horizontal from view, 0 bottom/floor
 
@@ -491,7 +487,7 @@ Similar to `setLookAt`, but it interpolates between two states.
 | `targetBX`         | `number`  | look at position x to interpolate towards. |
 | `targetBY`         | `number`  | look at position y to interpolate towards. |
 | `targetBZ`         | `number`  | look at position z to interpolate towards. |
-| `t`                | `number`  | Interpolation factor in the closed interval [0, 1 = 100%]. |
+| `t`                | `number`  | Interpolation factor in the closed interval. The value must be a number between `0` to `1` inclusive, where `1` is 100% |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
@@ -690,14 +686,13 @@ await cameraControls.dollyTo( 3, false );
 
 ## Tips
 
-* **Normalize azimuth angle**: 
-	If you need a normalized accumulated azimuth angle (between 0 and 360 deg), compute with [THREE.MathUtils.euclideanModulo](https://threejs.org/docs/#api/en/math/MathUtils)
-	e.g.: 
-	``` js 
-	const normalizedAzimuthAngle = THREE.MathUtils.euclideanModulo( cameraControls.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD ); 
-	```
+### Normalize accumulated azimuth angle:
+If you need a normalized accumulated azimuth angle (between 0 and 360 deg), compute with [THREE.MathUtils.euclideanModulo](https://threejs.org/docs/#api/en/math/MathUtils)
+e.g.:
+``` js
+const normalizedAzimuthAngle = THREE.MathUtils.euclideanModulo( cameraControls.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD );
+```
 
-  
 ---
 
 ## Breaking changes

@@ -1022,26 +1022,26 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
-	 * Rotate absolutly camera view over camera pivot:
+   * Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
+   * Rotate absolutely camera view over camera pivot:
 	 *
-	 *		azimuth
-	 *			0
-	 *			|
- 	 *		90 -- -- -90
-	 *			|
-	 *			180
+	 *   azimuth
+	 *      0
+	 *      |
+ 	 * 90 -- -- -90
+	 *      |
+	 *     180
 	 *
-	 *		0 front, 90 left, -90 right, 180 back
+	 * 0 front, 90 left, - 90 right, 180 back
 	 *
-	 *		polar
-	 *			180
-	 *			|
-	 *			90
-	 *			|
-	 *			0
+	 *    polar
+	 *     180
+	 *      |
+	 *      90
+	 *      |
+	 *      0
 	 *
-	 *		180 top/sky, 90 horizontal fron view, 0 bottom/floor
+	 * 180 top/sky, 90 horizontal from view, 0 bottom/floor
 	 *
 	 * @param azimuthAngle | polarAngle in radian
 	 * @param polarAngle | azimuthAngle in radian
@@ -1792,7 +1792,7 @@ export class CameraControls extends EventDispatcher {
 	/**
 	 * Update camera position and directions. This should be called in your tick loop and returns true if re-rendering is needed.
 	 * @param delta
-	 * @returns
+	 * @returns updated
 	 */
 	update( delta: number ): boolean {
 
