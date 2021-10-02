@@ -148,10 +148,12 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.enabled`                | `boolean` | `true`      | Whether or not the controls are enabled. |
 | `.active`                 | `boolean` | `false`     | Returns `true` if the controls are active updating. |
 | `.currentAction`          | `ACTION`  | N/A         | Getter for the current `ACTION`. |
-| `.distance`               | `number`  | N/A         | current distance. |
-| `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. |
+| `.distance`               | `number`  | N/A         | Current distance. |
+| `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. The value must be higher than `0` |
 | `.maxDistance`            | `number`  | `Infinity`  | Maximum distance for dolly. |
-| `.polarAngle`             | `number`  | N/A         | current polarAngle in radians. |
+| `.minZoom` 	              | `number`  | `0.01`      | Minimum camera zoom. |
+| `.maxZoom` 	              | `number`  | `Infinity`  | Maximum camera zoom. |
+| `.polarAngle`             | `number`  | N/A         | Current polarAngle in radians. |
 | `.minPolarAngle`          | `number`  | `0`         | In radians. |
 | `.maxPolarAngle`          | `number`  | `Math.PI`   | In radians. |
 | `.azimuthAngle`           | `number`  | N/A         | current azimuthAngle in radians ¹. |
@@ -159,8 +161,8 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
-| `.dampingFactor`          | `number`  | `0.05`      | The damping inertia |
-| `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging |
+| `.dampingFactor`          | `number`  | `0.05`      | The damping inertia. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
+| `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
 | `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
 | `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
@@ -170,11 +172,9 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ². |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ³. |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
-| `.minZoom` 	              | `number`  | `0.01`      | Limit for camera zoom pos/neg |
-| `.maxZoom` 	              | `number`  | `Infinity`  | Limit for camera zoom pos/neg |
 
-1. Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.
-  `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.
+1. Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.  
+  `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.  
   **Tip**: [How to normalize accumulated azimuthAngle?](#tips)
 2. Be aware colliderMeshes may decrease performance. The collision test uses 4 raycasters from the camera since the near plane has 4 corners.
 3. When the Dolly distance is less than the `minDistance`, the sphere of the radius will set `minDistance`.
@@ -278,26 +278,26 @@ Rotate absolutely camera view over camera pivot:
 
 Azimuth angle
 ```
-      0
+      0º
       |
- 90 -- -- -90
+90º -- -- -90º
       |
-     180
+     180º
 ```
-0 front, 90 left, -90 right, 180 back
+0º front, 90º (`Math.PI / 2`) left, -90º (`- Math.PI / 2`) right, 180º (`Math.PI`) back
 
 -----
 
 Polar angle
 ```
-     180
+     180º
       |
-      90
+      90º
       |
-      0
+      0º
 ```
 
-180 top/sky, 90 horizontal from view, 0 bottom/floor
+180º (`Math.PI`) top/sky, 90º (`Math.PI / 2`) horizontal from view, 0º bottom/floor
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -544,7 +544,7 @@ See: [THREE.WebGLRenderer.setViewport()](https://threejs.org/docs/#api/en/render
 
 #### `setViewport( x, y, width, height )`
 
-Same as [`setViewport( vector4 )`](#setviewport-vector4-|-null-) , but you can give it four numbers that represents a viewport instead:
+Same as [`setViewport( vector4 )`](#setviewport-vector4-|-null-), but you can give it four numbers that represents a viewport instead:
 
 | Name     | Type     | Description |
 | -------- | -------- | ----------- |
@@ -659,7 +659,17 @@ Dispose the cameraControls instance itself, remove all eventListeners.
 
 ---
 
-## Creating Complex Transitions
+## Tips
+
+### Normalize accumulated azimuth angle:
+If you need a normalized accumulated azimuth angle (between 0 and 360 deg), compute with [THREE.MathUtils.euclideanModulo](https://threejs.org/docs/#api/en/math/MathUtils)
+e.g.:
+``` js
+const normalizedAzimuthAngle = THREE.MathUtils.euclideanModulo( cameraControls.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD );
+```
+
+---
+### Creating Complex Transitions
 
 All methods that take the `enableTransition` parameter return a `Promise` can be used to create complex animations, for example:
 
@@ -671,7 +681,7 @@ async function complexTransition() {
 }
 ```
 
-This will rotate the camera, then dolly, and finally fit to the bounding sphere of the `mesh`. 
+This will rotate the camera, then dolly, and finally fit to the bounding sphere of the `mesh`.
 
 The speed and timing of transitions can be tuned using `.restThreshold` and `.dampingFactor`.
 
@@ -680,17 +690,6 @@ If `enableTransition` is `false`, the promise will resolve immediately:
 ``` js
 // will resolve immediately
 await cameraControls.dollyTo( 3, false );
-```
-
----
-
-## Tips
-
-### Normalize accumulated azimuth angle:
-If you need a normalized accumulated azimuth angle (between 0 and 360 deg), compute with [THREE.MathUtils.euclideanModulo](https://threejs.org/docs/#api/en/math/MathUtils)
-e.g.:
-``` js
-const normalizedAzimuthAngle = THREE.MathUtils.euclideanModulo( cameraControls.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD );
 ```
 
 ---
