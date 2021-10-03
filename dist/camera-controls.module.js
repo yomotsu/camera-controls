@@ -62,7 +62,6 @@ function isOrthographicCamera(camera) {
 
 var PI_2 = Math.PI * 2;
 var PI_HALF = Math.PI / 2;
-var FPS_60 = 60;
 
 var EPSILON = 1e-5;
 function approxZero(number, error) {
@@ -887,7 +886,7 @@ var CameraControls = (function (_super) {
     };
     CameraControls.prototype.pan = function (x, y, enableTransition) {
         if (enableTransition === void 0) { enableTransition = false; }
-        console.log('`pan` has been renamed to `truck`');
+        console.warn('`pan` has been renamed to `truck`');
         return this.truck(x, y, enableTransition);
     };
     CameraControls.prototype.truck = function (x, y, enableTransition) {
@@ -1176,7 +1175,7 @@ var CameraControls = (function (_super) {
     };
     CameraControls.prototype.update = function (delta) {
         var dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-        var lerpRatio = 1.0 - Math.exp(-dampingFactor * delta * FPS_60);
+        var lerpRatio = dampingFactor >= 1 ? 1 : dampingFactor * delta * 60;
         var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
         var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
         var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
