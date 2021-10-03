@@ -1058,7 +1058,6 @@ export class CameraControls extends EventDispatcher {
 	 * Dolly in/out camera position.
 	 * @param distance Distance of dollyIn. Negative number for dollyOut.
 	 * @param enableTransition Whether to move smoothly or immediately.
-	 * @returns
 	 */
 	dolly( distance: number, enableTransition: boolean = false ): Promise<void> {
 
@@ -1070,7 +1069,6 @@ export class CameraControls extends EventDispatcher {
 	 * Dolly in/out camera position to given distance.
 	 * @param distance Distance of dolly.
 	 * @param enableTransition Whether to move smoothly or immediately.
-	 * @returns
 	 */
 	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
 
