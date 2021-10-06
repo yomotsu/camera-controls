@@ -977,7 +977,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Rotate azimuthal angle(horizontal) and polar angle(vertical). Every value is adding to current.
+	 * Rotate azimuthal angle(horizontal) and polar angle(vertical). Every value is added to the current value.
 	 * @param azimuthAngle Azimuth rotate angle. In radian.
 	 * @param polarAngle Polar rotate angle. In radian.
 	 * @param enableTransition Whether to move smoothly or immediately
@@ -993,7 +993,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Rotate azimuthal angle(horizontal) absolutely and keep the same polar angle(vertical) target.
+	 * Rotate azimuthal angle(horizontal) to the given angle and keep the same polar angle(vertical) target.
 	 * @param azimuthAngle Azimuth rotate angle. In radian.
 	 * @param enableTransition Whether to move smoothly or immediately
 	 */
@@ -1008,7 +1008,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Rotate polar angle(vertical) absolutely and keep the same azimuthal angle(horizontal) target.
+	 * Rotate polar angle(vertical) to the given angle and keep the same azimuthal angle(horizontal) target.
 	 * @param polarAngle Polar rotate angle. In radian.
 	 * @param enableTransition Whether to move smoothly or immediately
 	 */
@@ -1023,8 +1023,8 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-   * Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
-   * Rotate absolutely camera view over camera pivot:
+	 * Rotate azimuthal angle(horizontal) and polar angle(vertical) to the given angle.
+	 * Camera view will rotate over the orbit pivot absolutely
 	 * @param azimuthAngle Azimuth rotate angle to. In radian.
 	 * @param polarAngle Polar rotate angle to. In radian.
 	 * @param enableTransition  Whether to move smoothly or immediately
@@ -1106,8 +1106,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Zoom in/out is added or reduced to camera given scale.
-	 * Current value +/- input `zoomStep`
+	 * Zoom in/out camera. The value is added to camera zoom.
 	 * Limits set with `.minZoom` and `.maxZoom`
 	 * @param zoomStep zoom scale
 	 * @param enableTransition Whether to move smoothly or immediately
@@ -1119,7 +1118,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Rewrite current Zoom value to input value zoom.
+	 * Zoom in/out camera to given scale. The value overwrites camera zoom.
 	 * Limits set with .minZoom and .maxZoom
 	 * @param zoom
 	 * @param enableTransition
@@ -1373,7 +1372,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Make a orbit with given points.
+	 * Make an orbit with given points.
 	 * @param positionX
 	 * @param positionY
 	 * @param positionZ
@@ -1659,7 +1658,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Return its current gazing target, which is the center position of the orbit.
+	 * Returns its current gazing target, which is the center position of the orbit.
 	 * @param out
 	 */
 	getTarget( out: _THREE.Vector3 ): _THREE.Vector3 {
@@ -1670,7 +1669,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Return its current position.
+	 * Returns its current position.
 	 * @param out
 	 */
 	getPosition( out: _THREE.Vector3 ): _THREE.Vector3 {
@@ -1681,7 +1680,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Return its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
+	 * Returns its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
 	 * @param out
 	 */
 	getFocalOffset( out: _THREE.Vector3 ): _THREE.Vector3 {

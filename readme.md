@@ -78,7 +78,7 @@ CameraControls.install( { THREE: THREE } );
 
 You can then proceed to use CameraControls.
 
-Note: If you don't want to use full of three.js (tree-shaking for example), make a subset to install.
+Note: If you do not wish to use enter three.js to reduce file size(tree-shaking for example), make a subset to install.
 
 ```js
 import {
@@ -177,12 +177,12 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
   `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.  
   **Tip**: [How to normalize accumulated azimuthAngle?](#tips)
 2. Be aware colliderMeshes may decrease performance. The collision test uses 4 raycasters from the camera since the near plane has 4 corners.
-3. When the Dolly distance is less than the `minDistance`, the sphere of the radius will set `minDistance`.
+3. When the Dolly distance is less than the `minDistance`, radius of the sphere will be set `minDistance` automatically.
 
 ## Events
 
-CameraControls instance emits the following events.
-To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.
+CameraControls instance emits the following events.  
+To subscribe, use `cameraControl.addEventListener( 'eventname', function )`.  
 To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`.
 
 | Event name          | Timing |
@@ -234,7 +234,7 @@ Working example: [user input config](https://yomotsu.github.io/camera-controls/e
 #### `rotate( azimuthAngle, polarAngle, enableTransition )`
 
 Rotate azimuthal angle(horizontal) and polar angle(vertical).
-Every value is adding to current.
+Every value is added to the current value.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -242,7 +242,7 @@ Every value is adding to current.
 | `polarAngle`       | `number`  | Polar rotate angle. In radian. |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
-When you need rotate only one axis put value to move, and zero value for doing nothing.
+If you want to rotate only one axis, put a angle for the axis to rotate, and `0` for another.
 ``` js
 rotate( 20 * THREE.MathUtils.DEG2RAD, 0, true );
 ```
@@ -251,7 +251,7 @@ rotate( 20 * THREE.MathUtils.DEG2RAD, 0, true );
 
 #### `rotateAzimuthTo( azimuthAngle, enableTransition )`
 
-Rotate azimuthal angle(horizontal) absolutely and keep the same polar angle(vertical) target.
+Rotate azimuthal angle(horizontal) to the given angle and keep the same polar angle(vertical) target.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -262,7 +262,7 @@ Rotate azimuthal angle(horizontal) absolutely and keep the same polar angle(vert
 
 #### `rotatePolarTo( polarAngle, enableTransition )`
 
-Rotate polar angle(vertical) absolutely and keep the same azimuthal angle(horizontal) target.
+Rotate polar angle(vertical) to the given angle and keep the same azimuthal angle(horizontal) target.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -273,8 +273,8 @@ Rotate polar angle(vertical) absolutely and keep the same azimuthal angle(horizo
 
 #### `rotateTo( azimuthAngle, polarAngle, enableTransition )`
 
-Rotate azimuthal angle(horizontal) and polar angle(vertical) to a given point.
-Rotate absolutely camera view over camera pivot:
+Rotate azimuthal angle(horizontal) and polar angle(vertical) to the given angle.
+Camera view will rotate over the orbit pivot absolutely:
 
 Azimuth angle
 ```
@@ -331,9 +331,7 @@ Dolly in/out camera position to given distance.
 
 #### `zoom( zoomStep, enableTransition )`
 
-Zoom in/out is added or reduced to camera given scale.
-Current value +/- input `zoomStep`
-
+Zoom in/out camera. The value is added to camera zoom.  
 Limits set with `.minZoom` and `.maxZoom`
 
 | Name               | Type      | Description |
@@ -352,8 +350,7 @@ const zoomOut = () => cameraControls.zoom( - camera.zoom / 2, true );
 
 #### `zoomTo( zoom, enableTransition )`
 
-Rewrite current Zoom value to input value `zoom`.
-
+Zoom in/out camera to given scale. The value overwrites camera zoom.  
 Limits set with `.minZoom` and `.maxZoom`
 
 | Name               | Type      | Description |
@@ -455,7 +452,7 @@ Fit the viewport to the sphere or the bounding sphere of the object.
 
 #### `setLookAt( positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition )`
 
-Make a orbit with given points.
+Make an orbit with given points.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -520,9 +517,8 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 #### `setBoundary( box3? )`
 
-Set the boundary box that encloses the target of the camera. `box3` is in `THREE.Box3`
-
-Return its current position.
+Set the boundary box that encloses the target of the camera. `box3` is in `THREE.Box3`  
+Returns its current position.
 
 | Name   | Type          | Description |
 | ------ | ------------- | ----------- |
@@ -532,8 +528,7 @@ Return its current position.
 
 #### `setViewport( vector4? )`
 
-Set (or unset) the current viewport.
-
+Set (or unset) the current viewport.  
 Set this when you want to use renderer viewport and [`.dollyToCursor`](#properties) feature at the same time.
 
 See: [THREE.WebGLRenderer.setViewport()](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setViewport)
@@ -557,7 +552,7 @@ Same as [`setViewport( vector4 )`](#setviewport-vector4-|-null-), but you can gi
 
 #### `getPosition( out )`
 
-Return its current position.
+Returns its current position.
 
 | Name  | Type            | Description |
 | ----- | --------------- | ----------- |
@@ -567,7 +562,7 @@ Return its current position.
 
 #### `getTarget( out )`
 
-Return its current gazing target, which is the center position of the orbit.
+Returns its current gazing target, which is the center position of the orbit.
 
 | Name  | Type            | Description |
 | ----- | --------------- | ----------- |
@@ -577,7 +572,7 @@ Return its current gazing target, which is the center position of the orbit.
 
 #### `getFocalOffset( out )`
 
-Return its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
+Returns its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
 
 | Name  | Type            | Description |
 | ----- | --------------- | ----------- |
