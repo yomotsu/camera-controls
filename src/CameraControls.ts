@@ -1555,14 +1555,17 @@ export class CameraControls extends EventDispatcher {
 		_yColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 1 );
 		_zColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 2 );
 
-		const cameraToPoint = _v3A.set( targetX, targetY, targetZ ).sub( this._camera.position );
+		const position = _v3A.set( targetX, targetY, targetZ );
+		const distance = position.distanceTo( this._camera.position );
+		const cameraToPoint = position.sub( this._camera.position );
 		_xColumn.multiplyScalar( cameraToPoint.x );
 		_yColumn.multiplyScalar( cameraToPoint.y );
 		_zColumn.multiplyScalar( cameraToPoint.z );
 
 		_v3A.copy( _xColumn ).add( _yColumn ).add( _zColumn );
-		_v3A.z = _v3A.z + this.distance;
+		_v3A.z = _v3A.z + distance;
 
+		this.dollyTo( distance, false );
 		this.setFocalOffset( - _v3A.x, _v3A.y, - _v3A.z, false );
 		this.moveTo( targetX, targetY, targetZ, false );
 
