@@ -82,6 +82,7 @@ function setOrbitPoint( mouseX, mouseY ) {
 		( ( elRect.height - canvasY ) / elRect.height ) * 2.0 - 1.0
 	);
 
+	camera.updateMatrixWorld();
 	raycaster.setFromCamera( normalizedMouse, camera );
 
 	const intersections = raycaster.intersectObjects( scene.children );
