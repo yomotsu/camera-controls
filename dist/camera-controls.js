@@ -1089,12 +1089,15 @@
 	        _xColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 0);
 	        _yColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 1);
 	        _zColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 2);
-	        var cameraToPoint = _v3A.set(targetX, targetY, targetZ).sub(this._camera.position);
+	        var position = _v3A.set(targetX, targetY, targetZ);
+	        var distance = position.distanceTo(this._camera.position);
+	        var cameraToPoint = position.sub(this._camera.position);
 	        _xColumn.multiplyScalar(cameraToPoint.x);
 	        _yColumn.multiplyScalar(cameraToPoint.y);
 	        _zColumn.multiplyScalar(cameraToPoint.z);
 	        _v3A.copy(_xColumn).add(_yColumn).add(_zColumn);
-	        _v3A.z = _v3A.z + this.distance;
+	        _v3A.z = _v3A.z + distance;
+	        this.dollyTo(distance, false);
 	        this.setFocalOffset(-_v3A.x, _v3A.y, -_v3A.z, false);
 	        this.moveTo(targetX, targetY, targetZ, false);
 	    };
@@ -1181,7 +1184,7 @@
 	    };
 	    CameraControls.prototype.update = function (delta) {
 	        var dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-	        var lerpRatio = dampingFactor >= 1 ? 1 : dampingFactor * delta * 60;
+	        var lerpRatio = Math.min(dampingFactor * delta * 60, 1);
 	        var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 	        var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 	        var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
