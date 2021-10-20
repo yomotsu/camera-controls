@@ -1762,7 +1762,7 @@ export class CameraControls extends EventDispatcher {
 		// (that must be a problem of the original one though)
 		// To to emulate the speed of the original one under 60 FPS, multiply `60` to delta,
 		// but ours are more flexible to any FPS unlike the original.
-		const lerpRatio = dampingFactor >= 1 ? 1 : dampingFactor * delta * 60;
+		const lerpRatio = Math.min( dampingFactor * delta * 60, 1 );
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
