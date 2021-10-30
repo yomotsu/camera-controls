@@ -1575,7 +1575,7 @@ export class CameraControls extends EventDispatcher {
 	 * Set the boundary box that encloses the target of the camera. box3 is in THREE.Box3
 	 * @param box3
 	 */
-	setBoundary( box3: _THREE.Box3 ): void {
+	setBoundary( box3?: _THREE.Box3 ): void {
 
 		if ( ! box3 ) {
 
