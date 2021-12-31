@@ -257,14 +257,6 @@ export class CameraControls extends EventDispatcher {
 			const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
 			const dollyStart = new THREE.Vector2() as _THREE.Vector2;
 
-			const cancelDragging = (): void => {
-
-				this._state = ACTION.NONE;
-				this._activePointers.length = 0;
-				endDragging();
-
-			};
-
 			const onPointerDown = ( event: PointerEvent ) => {
 
 				if ( ! this._enabled ) return;
@@ -785,9 +777,9 @@ export class CameraControls extends EventDispatcher {
 					this._domElement.ownerDocument.removeEventListener( 'touchmove', onTouchMove, { passive: false } as AddEventListenerOptions );
 					this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
 
-				}
+					this.dispatchEvent( { type: 'controlend' } );
 
-				this.dispatchEvent( { type: 'controlend' } );
+				}
 
 			};
 
@@ -823,9 +815,11 @@ export class CameraControls extends EventDispatcher {
 
 			this.cancel = (): void => {
 
-				cancelDragging();
+				if ( this._state === ACTION.NONE ) return;
 
-				this.dispatchEvent( { type: 'controlend' } );
+				this._state = ACTION.NONE;
+				this._activePointers.length = 0;
+				endDragging();
 
 			};
 
