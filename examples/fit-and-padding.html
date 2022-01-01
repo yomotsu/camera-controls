@@ -20,8 +20,8 @@
 	<button onclick="rotateTo( 'left' ), paddingInCssPixel( 100, 100, 200, 100 )">fit left side with padding in pixel( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
 </div>
 
-<script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
-<script src="https://unpkg.com/@tweenjs/tween.js@18.5.0/dist/tween.umd.js"></script>
+<script src="https://unpkg.com/three@0.135.0/build/three.min.js"></script>
+<script src="https://unpkg.com/gsap@3.9.1/dist/gsap.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -64,7 +64,6 @@ renderer.render( scene, camera );
 	// if ( elapsed > 30 ) { return; }
 
 	requestAnimationFrame( anim );
-	TWEEN.update();
 
 	if ( updated ) {
 
@@ -84,38 +83,38 @@ function rotateTo( side ) {
 
 		case 'front':
 			cameraControls.rotateTo( 0, DEG90, true );
-			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: 0, z:  0.5 }, 800 ).start();
-			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: 0 }, 800 ).start();
+			gsap.to( gridHelper.position, { duration: 0.8, x: 0, y: 0, z:  0.5 } );
+			gsap.to( gridHelper.rotation, { duration: 0.8, x: - DEG90, y: 0, z: 0 } );
 			break;
 
 		case 'back':
 			cameraControls.rotateTo( DEG180, DEG90, true );
-			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: 0, z:  - 0.5 }, 800 ).start();
-			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: 0 }, 800 ).start();
+			gsap.to( gridHelper.position, { duration: 0.8, x: 0, y: 0, z:  - 0.5 } );
+			gsap.to( gridHelper.rotation, { duration: 0.8, x: - DEG90, y: 0, z: 0 } );
 			break;
 
 		case 'up':
 			cameraControls.rotateTo( 0, 0, true );
-			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: 1, z: 0 }, 800 ).start();
-			new TWEEN.Tween( gridHelper.rotation ).to( { x: 0, y: 0, z: 0 }, 800 ).start();
+			gsap.to( gridHelper.position, { duration: 0.8, x: 0, y: 1, z: 0 } );
+			gsap.to( gridHelper.rotation, { duration: 0.8, x: 0, y: 0, z: 0 } );
 			break;
 
 		case 'down':
 			cameraControls.rotateTo( 0, DEG180, true );
-			new TWEEN.Tween( gridHelper.position ).to( { x: 0, y: - 1, z: 0 }, 800 ).start();
-			new TWEEN.Tween( gridHelper.rotation ).to( { x: 0, y: 0, z: 0 }, 800 ).start();
+			gsap.to( gridHelper.position, { duration: 0.8, x: 0, y: - 1, z: 0 } );
+			gsap.to( gridHelper.rotation, { duration: 0.8, x: 0, y: 0, z: 0 } );
 			break;
 
 		case 'right':
 			cameraControls.rotateTo( DEG90, DEG90, true );
-			new TWEEN.Tween( gridHelper.position ).to( { x: 1, y: 0, z: 0 }, 800 ).start();
-			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: DEG90 }, 800 ).start();
+			gsap.to( gridHelper.position, { duration: 0.8, x: 1, y: 0, z: 0 } );
+			gsap.to( gridHelper.rotation, { duration: 0.8, x: - DEG90, y: 0, z: DEG90 } );
 			break;
 
 		case 'left':
 			cameraControls.rotateTo( - DEG90, DEG90, true );
-			new TWEEN.Tween( gridHelper.position ).to( { x: - 1, y: 0, z: 0 }, 800 ).start();
-			new TWEEN.Tween( gridHelper.rotation ).to( { x: - DEG90, y: 0, z: DEG90 }, 800 ).start();
+			gsap.to( gridHelper.position, { duration: 0.8, x: - 1, y: 0, z: 0 } );
+			gsap.to( gridHelper.rotation, { duration: 0.8, x: - DEG90, y: 0, z: DEG90 } );
 			break;
 
 	}
