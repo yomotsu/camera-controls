@@ -14,8 +14,8 @@
 	<button onclick="rotate0To120()">rotate 0 to 120 deg with easing in 3 sec</button><br>
 </div>
 
-<script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
-<script src="https://unpkg.com/popmotion@8.6.1/dist/popmotion.global.min.js"></script>
+<script src="https://unpkg.com/three@0.135.0/build/three.min.js"></script>
+<script src="https://unpkg.com/gsap@3.9.1/dist/gsap.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -46,54 +46,38 @@ scene.add( gridHelper );
 
 const rotate45 = function () {
 
-	const animation = popmotion.tween( {
-		from: cameraControls.azimuthAngle,
-		to: cameraControls.azimuthAngle + 45 * THREE.MathUtils.DEG2RAD,
-		duration: 1000,
-		ease: popmotion.easing.backOut,
-	} );
-	const animationAction = {
-		update( azimuthAngle ) {
-
-			cameraControls.azimuthAngle = azimuthAngle;
-
+	const tween = gsap.to(
+		cameraControls,
+		{
+			azimuthAngle: cameraControls.azimuthAngle + 45 * THREE.MathUtils.DEG2RAD,
+			duration: 1,
+			ease: 'elastic',
+			paused: true
 		},
-		complete() {
-
-			cameraControls.enabled = true;
-
-		},
-	};
+	);
 
 	cameraControls.enabled = false;
-	animation.start( animationAction );
+	tween.play( 0 );
 
 }
 
 
 const rotate0To120 = function () {
 
-	const animation = popmotion.tween( {
-		from: 0,
-		to: 120 * THREE.MathUtils.DEG2RAD,
-		duration: 3000,
-		ease: popmotion.easing.easeOut,
-	} );
-	const animationAction = {
-		update( azimuthAngle ) {
-
-			cameraControls.azimuthAngle = azimuthAngle;
-
+	const tween = gsap.fromTo(
+		cameraControls,
+		{
+			azimuthAngle: 0,
 		},
-		complete() {
-
-			cameraControls.enabled = true;
-
+		{
+			azimuthAngle: 120 * THREE.MathUtils.DEG2RAD,
+			duration: 3,
+			paused: true
 		},
-	};
+	);
 
 	cameraControls.enabled = false;
-	animation.start( animationAction );
+	tween.play( 0 );
 
 }
 

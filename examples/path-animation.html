@@ -11,13 +11,13 @@
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
 	<button onclick="moveToStartPoint()">move to the animation start point</button>
 	<br>
-	<button onclick="animateIt()">path animation</button>
+	<button onclick="pathAnimation.play( 0 )">path animation</button>
 	<br>
 	<button onclick="cameraControls.reset( true )">reset</button>
 </div>
 
-<script src="https://unpkg.com/three@0.118.3/build/three.min.js"></script>
-<script src="https://unpkg.com/popmotion@8.6.1/dist/popmotion.global.min.js"></script>
+<script src="https://unpkg.com/three@0.135.0/build/three.min.js"></script>
+<script src="https://unpkg.com/gsap@3.9.1/dist/gsap.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -65,46 +65,50 @@ const moveToStartPoint = () => {
 };
 
 const _tmp = new THREE.Vector3();
-const pathAnimation = popmotion.tween( {
-	from: 0,
-	to: 1,
-	duration: 3000,
-} );
-const pathAnimationAction = {
-	update( progress ) {
+const animationProgress = { value: 0 };
+const pathAnimation = gsap.fromTo(
+  animationProgress,
+  {
+    value: 0,
+  },
+  {
+    value: 1,
+    duration: 3,
+		paused: true,
+    onUpdateParams: [ animationProgress ],
+    onUpdate( { value } ) {
 
-		curve.getPoint ( progress, _tmp );
-		const cameraX = _tmp.x;
-		const cameraY = _tmp.y;
-		const cameraZ = _tmp.z;
-		const lookAtX = 0;
-		const lookAtY = 0;
-		const lookAtZ = 0;
+			curve.getPoint ( value, _tmp );
+			const cameraX = _tmp.x;
+			const cameraY = _tmp.y;
+			const cameraZ = _tmp.z;
+			const lookAtX = 0;
+			const lookAtY = 0;
+			const lookAtZ = 0;
 
-		cameraControls.setLookAt(
-			cameraX,
-			cameraY,
-			cameraZ,
-			lookAtX,
-			lookAtY,
-			lookAtZ,
-			false
-		);
+			cameraControls.setLookAt(
+				cameraX,
+				cameraY,
+				cameraZ,
+				lookAtX,
+				lookAtY,
+				lookAtZ,
+				false
+			);
 
-	},
-	complete() {
+    },
+		onStart() {
 
-		cameraControls.enabled = true;
+			cameraControls.enabled = false;
 
-	},
-};
+		},
+		onComplete() {
 
-const animateIt = () => {
+			cameraControls.enabled = true;
 
-	cameraControls.enabled = false;
-	pathAnimation.start( pathAnimationAction );
-
-}
+		}
+  }
+);
 
 renderer.render( scene, camera );
 
