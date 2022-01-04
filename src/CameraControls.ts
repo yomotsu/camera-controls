@@ -163,7 +163,7 @@ export class CameraControls extends EventDispatcher {
 
 	protected _needsUpdate = true;
 	protected _updatedLastTime = false;
-	protected _elementRect: _THREE.Vector4;
+	protected _elementRect = new DOMRect();
 
 	protected _activePointers: PointerInput[] = [];
 
@@ -248,8 +248,6 @@ export class CameraControls extends EventDispatcher {
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
 		};
-
-		this._elementRect = new THREE.Vector4();
 
 		if ( this._domElement ) {
 
@@ -578,8 +576,8 @@ export class CameraControls extends EventDispatcher {
 				// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 				const deltaYFactor = isMac ? - 1 : - 3;
 				const delta = ( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor : event.deltaY / ( deltaYFactor * 10 );
-				const x = this.dollyToCursor ? ( event.clientX - this._elementRect.x ) / this._elementRect.z *   2 - 1 : 0;
-				const y = this.dollyToCursor ? ( event.clientY - this._elementRect.y ) / this._elementRect.w * - 2 + 1 : 0;
+				const x = this.dollyToCursor ? ( event.clientX - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
+				const y = this.dollyToCursor ? ( event.clientY - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
 				switch ( this.mouseButtons.wheel ) {
 
@@ -689,8 +687,8 @@ export class CameraControls extends EventDispatcher {
 					case ACTION.DOLLY:
 					case ACTION.ZOOM: {
 
-						const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.z *   2 - 1 : 0;
-						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.w * - 2 + 1 : 0;
+						const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
+						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 						this._state === ACTION.DOLLY ?
 							this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
 							this._zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
@@ -711,8 +709,8 @@ export class CameraControls extends EventDispatcher {
 						const dollyDelta = dollyStart.y - distance;
 						dollyStart.set( 0, distance );
 
-						const dollyX = this.dollyToCursor ? ( lastDragPosition.x - this._elementRect.x ) / this._elementRect.z *   2 - 1 : 0;
-						const dollyY = this.dollyToCursor ? ( lastDragPosition.y - this._elementRect.y ) / this._elementRect.w * - 2 + 1 : 0;
+						const dollyX = this.dollyToCursor ? ( lastDragPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
+						const dollyY = this.dollyToCursor ? ( lastDragPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
 						this._state === ACTION.TOUCH_DOLLY ||
 						this._state === ACTION.TOUCH_DOLLY_TRUCK ||
@@ -2124,8 +2122,8 @@ export class CameraControls extends EventDispatcher {
 			// half of the fov is center to top of screen
 			const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 			const targetDistance = offset.length() * Math.tan( fov * 0.5 );
-			const truckX    = ( this.truckSpeed * deltaX * targetDistance / this._elementRect.w );
-			const pedestalY = ( this.truckSpeed * deltaY * targetDistance / this._elementRect.w );
+			const truckX    = ( this.truckSpeed * deltaX * targetDistance / this._elementRect.height );
+			const pedestalY = ( this.truckSpeed * deltaY * targetDistance / this._elementRect.height );
 			if ( this.verticalDragToForward ) {
 
 				dragToOffset ?
@@ -2155,8 +2153,8 @@ export class CameraControls extends EventDispatcher {
 
 			// orthographic
 			const camera = this._camera;
-			const truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / this._elementRect.z;
-			const pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / this._elementRect.w;
+			const truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / this._elementRect.width;
+			const pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / this._elementRect.height;
 			dragToOffset ?
 				this.setFocalOffset( this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, this._focalOffsetEnd.z, true ) :
 				this.truck( truckX, pedestalY, true );
@@ -2167,8 +2165,8 @@ export class CameraControls extends EventDispatcher {
 
 	protected _rotateInternal = ( deltaX: number, deltaY: number ): void => {
 
-		const theta = PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.w; // divide by *height* to refer the resolution
-		const phi   = PI_2 * this.polarRotateSpeed   * deltaY / this._elementRect.w;
+		const theta = PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.height; // divide by *height* to refer the resolution
+		const phi   = PI_2 * this.polarRotateSpeed   * deltaY / this._elementRect.height;
 		this.rotate( theta, phi, true );
 
 	};
@@ -2266,9 +2264,9 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Get its client rect and package into given `THREE.Vector4` .
+	 * Get its client rect and package into given `DOMRect` .
 	 */
-	protected _getClientRect( target: _THREE.Vector4 ): _THREE.Vector4 {
+	protected _getClientRect( target: DOMRect ): DOMRect {
 
 		const rect = this._domElement.getBoundingClientRect();
 
@@ -2279,13 +2277,13 @@ export class CameraControls extends EventDispatcher {
 
 			target.x += this._viewport.x;
 			target.y += rect.height - this._viewport.w - this._viewport.y;
-			target.z = this._viewport.z;
-			target.w = this._viewport.w;
+			target.width = this._viewport.z;
+			target.height = this._viewport.w;
 
 		} else {
 
-			target.z = rect.width;
-			target.w = rect.height;
+			target.width = rect.width;
+			target.height = rect.height;
 
 		}
 
