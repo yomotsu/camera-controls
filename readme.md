@@ -187,16 +187,17 @@ To unsubscribe, use `cameraControl.removeEventListener( 'eventname', function )`
 
 | Event name          | Timing |
 | ------------------- | ------ |
-| `'controlstart'`    | When the user starts to control the camera via mouse / touches. |
+| `'controlstart'`    | When the user starts to control the camera via mouse / touches. ¹ |
 | `'control'`         | When the user controls the camera (dragging). |
-| `'controlend'`      | When the user ends to control the camera. |
+| `'controlend'`      | When the user ends to control the camera. ¹ |
 | `'transitionstart'` | When any kind of transition starts, either user control or using a method with `enableTransition = true` |
 | `'update'`          | When the camera position is updated. |
 | `'wake'`            | When the camera starts moving. |
-| `'rest'`            | When the camera movement is below `.restThreshold` ¹. |
+| `'rest'`            | When the camera movement is below `.restThreshold` ². |
 | `'sleep'`           | When the camera end moving. |
 
-1. Due to damping, `sleep` will usually fire a few seconds after the camera _appears_ to have stopped moving. If you want to do something (e.g. enable UI, perform another transition) at the point when the camera has stopped, you probably want the `rest` event. This can be fine tuned using the `.restThreshold` parameter. See the [Rest and Sleep Example](https://yomotsu.github.io/camera-controls/examples/rest-and-sleep.html).
+1. `mouseButtons.wheel` (Mouse wheel control) does not emit `'controlstart'` and `'controlend'`. `mouseButtons.wheel` uses scroll-event internally, and scroll-event happens intermittently. That means "start" and "end" cannot be detected.
+2. Due to damping, `sleep` will usually fire a few seconds after the camera _appears_ to have stopped moving. If you want to do something (e.g. enable UI, perform another transition) at the point when the camera has stopped, you probably want the `rest` event. This can be fine tuned using the `.restThreshold` parameter. See the [Rest and Sleep Example](https://yomotsu.github.io/camera-controls/examples/rest-and-sleep.html).
 
 ## User input config
 
