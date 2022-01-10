@@ -8,7 +8,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.CameraControls = factory());
-}(this, (function () { 'use strict';
+})(this, (function () { 'use strict';
 
 	/*! *****************************************************************************
 	Copyright (c) Microsoft Corporation.
@@ -106,7 +106,7 @@
 
 	function notSupportedInOrthographicCamera(camera, message) {
 	    if (isOrthographicCamera(camera)) {
-	        console.warn(message + " is not supported in OrthographicCamera");
+	        console.warn("".concat(message, " is not supported in OrthographicCamera"));
 	        return true;
 	    }
 	    return false;
@@ -223,14 +223,15 @@
 	        _this._boundaryEnclosesCamera = false;
 	        _this._needsUpdate = true;
 	        _this._updatedLastTime = false;
+	        _this._elementRect = new DOMRect();
 	        _this._activePointers = [];
 	        _this._truckInternal = function (deltaX, deltaY, dragToOffset) {
 	            if (isPerspectiveCamera(_this._camera)) {
 	                var offset = _v3A.copy(_this._camera.position).sub(_this._target);
 	                var fov = _this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 	                var targetDistance = offset.length() * Math.tan(fov * 0.5);
-	                var truckX = (_this.truckSpeed * deltaX * targetDistance / _this._elementRect.w);
-	                var pedestalY = (_this.truckSpeed * deltaY * targetDistance / _this._elementRect.w);
+	                var truckX = (_this.truckSpeed * deltaX * targetDistance / _this._elementRect.height);
+	                var pedestalY = (_this.truckSpeed * deltaY * targetDistance / _this._elementRect.height);
 	                if (_this.verticalDragToForward) {
 	                    dragToOffset ?
 	                        _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y, _this._focalOffsetEnd.z, true) :
@@ -245,16 +246,16 @@
 	            }
 	            else if (isOrthographicCamera(_this._camera)) {
 	                var camera = _this._camera;
-	                var truckX = deltaX * (camera.right - camera.left) / camera.zoom / _this._elementRect.z;
-	                var pedestalY = deltaY * (camera.top - camera.bottom) / camera.zoom / _this._elementRect.w;
+	                var truckX = deltaX * (camera.right - camera.left) / camera.zoom / _this._elementRect.width;
+	                var pedestalY = deltaY * (camera.top - camera.bottom) / camera.zoom / _this._elementRect.height;
 	                dragToOffset ?
 	                    _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y + pedestalY, _this._focalOffsetEnd.z, true) :
 	                    _this.truck(truckX, pedestalY, true);
 	            }
 	        };
 	        _this._rotateInternal = function (deltaX, deltaY) {
-	            var theta = PI_2 * _this.azimuthRotateSpeed * deltaX / _this._elementRect.w;
-	            var phi = PI_2 * _this.polarRotateSpeed * deltaY / _this._elementRect.w;
+	            var theta = PI_2 * _this.azimuthRotateSpeed * deltaX / _this._elementRect.height;
+	            var phi = PI_2 * _this.polarRotateSpeed * deltaY / _this._elementRect.height;
 	            _this.rotate(theta, phi, true);
 	        };
 	        _this._dollyInternal = function (delta, x, y) {
@@ -333,16 +334,10 @@
 	                    ACTION.NONE,
 	            three: ACTION.TOUCH_TRUCK,
 	        };
-	        _this._elementRect = new THREE.Vector4();
 	        if (_this._domElement) {
 	            var dragStartPosition_1 = new THREE.Vector2();
 	            var lastDragPosition_1 = new THREE.Vector2();
 	            var dollyStart_1 = new THREE.Vector2();
-	            var cancelDragging_1 = function () {
-	                _this._state = ACTION.NONE;
-	                _this._activePointers.length = 0;
-	                endDragging_1();
-	            };
 	            var onPointerDown_1 = function (event) {
 	                if (!_this._enabled)
 	                    return;
@@ -537,8 +532,8 @@
 	                }
 	                var deltaYFactor = isMac ? -1 : -3;
 	                var delta = (event.deltaMode === 1) ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
-	                var x = _this.dollyToCursor ? (event.clientX - _this._elementRect.x) / _this._elementRect.z * 2 - 1 : 0;
-	                var y = _this.dollyToCursor ? (event.clientY - _this._elementRect.y) / _this._elementRect.w * -2 + 1 : 0;
+	                var x = _this.dollyToCursor ? (event.clientX - _this._elementRect.x) / _this._elementRect.width * 2 - 1 : 0;
+	                var y = _this.dollyToCursor ? (event.clientY - _this._elementRect.y) / _this._elementRect.height * -2 + 1 : 0;
 	                switch (_this.mouseButtons.wheel) {
 	                    case ACTION.ROTATE: {
 	                        _this._rotateInternal(event.deltaX, event.deltaY);
@@ -602,8 +597,8 @@
 	                    }
 	                    case ACTION.DOLLY:
 	                    case ACTION.ZOOM: {
-	                        var dollyX = _this.dollyToCursor ? (dragStartPosition_1.x - _this._elementRect.x) / _this._elementRect.z * 2 - 1 : 0;
-	                        var dollyY = _this.dollyToCursor ? (dragStartPosition_1.y - _this._elementRect.y) / _this._elementRect.w * -2 + 1 : 0;
+	                        var dollyX = _this.dollyToCursor ? (dragStartPosition_1.x - _this._elementRect.x) / _this._elementRect.width * 2 - 1 : 0;
+	                        var dollyY = _this.dollyToCursor ? (dragStartPosition_1.y - _this._elementRect.y) / _this._elementRect.height * -2 + 1 : 0;
 	                        _this._state === ACTION.DOLLY ?
 	                            _this._dollyInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
 	                            _this._zoomInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
@@ -620,8 +615,8 @@
 	                        var distance = Math.sqrt(dx * dx + dy * dy);
 	                        var dollyDelta = dollyStart_1.y - distance;
 	                        dollyStart_1.set(0, distance);
-	                        var dollyX = _this.dollyToCursor ? (lastDragPosition_1.x - _this._elementRect.x) / _this._elementRect.z * 2 - 1 : 0;
-	                        var dollyY = _this.dollyToCursor ? (lastDragPosition_1.y - _this._elementRect.y) / _this._elementRect.w * -2 + 1 : 0;
+	                        var dollyX = _this.dollyToCursor ? (lastDragPosition_1.x - _this._elementRect.x) / _this._elementRect.width * 2 - 1 : 0;
+	                        var dollyY = _this.dollyToCursor ? (lastDragPosition_1.y - _this._elementRect.y) / _this._elementRect.height * -2 + 1 : 0;
 	                        _this._state === ACTION.TOUCH_DOLLY ||
 	                            _this._state === ACTION.TOUCH_DOLLY_TRUCK ||
 	                            _this._state === ACTION.TOUCH_DOLLY_OFFSET ?
@@ -658,8 +653,8 @@
 	                    _this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp_1);
 	                    _this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove_1, { passive: false });
 	                    _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
+	                    _this.dispatchEvent({ type: 'controlend' });
 	                }
-	                _this.dispatchEvent({ type: 'controlend' });
 	            };
 	            _this._domElement.addEventListener('pointerdown', onPointerDown_1);
 	            isPointerEventsNotSupported && _this._domElement.addEventListener('mousedown', onMouseDown_1);
@@ -682,8 +677,11 @@
 	                _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
 	            };
 	            _this.cancel = function () {
-	                cancelDragging_1();
-	                _this.dispatchEvent({ type: 'controlend' });
+	                if (_this._state === ACTION.NONE)
+	                    return;
+	                _this._state = ACTION.NONE;
+	                _this._activePointers.length = 0;
+	                endDragging_1();
 	            };
 	        }
 	        _this.update(0);
@@ -1449,12 +1447,12 @@
 	        if (this._viewport) {
 	            target.x += this._viewport.x;
 	            target.y += rect.height - this._viewport.w - this._viewport.y;
-	            target.z = this._viewport.z;
-	            target.w = this._viewport.w;
+	            target.width = this._viewport.z;
+	            target.height = this._viewport.w;
 	        }
 	        else {
-	            target.z = rect.width;
-	            target.w = rect.height;
+	            target.width = rect.width;
+	            target.height = rect.height;
 	        }
 	        return target;
 	    };
@@ -1514,4 +1512,4 @@
 
 	return CameraControls;
 
-})));
+}));

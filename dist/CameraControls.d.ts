@@ -62,7 +62,7 @@ export declare class CameraControls extends EventDispatcher {
     protected _boundaryEnclosesCamera: boolean;
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
-    protected _elementRect: _THREE.Vector4;
+    protected _elementRect: DOMRect;
     protected _activePointers: PointerInput[];
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
     camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
@@ -96,7 +96,7 @@ export declare class CameraControls extends EventDispatcher {
     setTarget(targetX: number, targetY: number, targetZ: number, enableTransition?: boolean): Promise<void>;
     setFocalOffset(x: number, y: number, z: number, enableTransition?: boolean): Promise<void>;
     setOrbitPoint(targetX: number, targetY: number, targetZ: number): void;
-    setBoundary(box3: _THREE.Box3): void;
+    setBoundary(box3?: _THREE.Box3): void;
     setViewport(viewportOrX: _THREE.Vector4 | number | null, y: number, width: number, height: number): void;
     getDistanceToFitBox(width: number, height: number, depth: number): number;
     getDistanceToFit(width: number, height: number, depth: number): number;
@@ -120,7 +120,7 @@ export declare class CameraControls extends EventDispatcher {
     protected _dollyInternal: (delta: number, x: number, y: number) => void;
     protected _zoomInternal: (delta: number, x: number, y: number) => void;
     protected _collisionTest(): number;
-    protected _getClientRect(target: _THREE.Vector4): _THREE.Vector4;
+    protected _getClientRect(target: DOMRect): DOMRect;
     protected _createOnRestPromise(resolveImmediately: boolean): Promise<void>;
     protected _removeAllEventListeners(): void;
 }
