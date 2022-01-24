@@ -35,6 +35,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [gsap](https://www.npmjs.com/package/gsap))
 - [complex transitions with `await`](https://yomotsu.github.io/camera-controls/examples/await-transitions.html)
 - [dragging outside the iframe](https://yomotsu.github.io/camera-controls/examples/iframe.html)
+- [in react-three-fiber](https://codesandbox.io/s/react-three-fiber-camera-controls-4jjor?file=/src/App.tsx)
 
 ## Usage
 
