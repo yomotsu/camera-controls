@@ -10,37 +10,6 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.CameraControls = factory());
 })(this, (function () { 'use strict';
 
-	/*! *****************************************************************************
-	Copyright (c) Microsoft Corporation.
-
-	Permission to use, copy, modify, and/or distribute this software for any
-	purpose with or without fee is hereby granted.
-
-	THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-	REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-	AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-	INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-	LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-	OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-	PERFORMANCE OF THIS SOFTWARE.
-	***************************************************************************** */
-	/* global Reflect, Promise */
-
-	var extendStatics = function(d, b) {
-	    extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-	    return extendStatics(d, b);
-	};
-
-	function __extends(d, b) {
-	    if (typeof b !== "function" && b !== null)
-	        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-	    extendStatics(d, b);
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	}
-
 	var ACTION;
 	(function (ACTION) {
 	    ACTION[ACTION["NONE"] = 0] = "NONE";
@@ -66,16 +35,14 @@
 	    return camera.isOrthographicCamera;
 	}
 
-	var PI_2 = Math.PI * 2;
-	var PI_HALF = Math.PI / 2;
+	const PI_2 = Math.PI * 2;
+	const PI_HALF = Math.PI / 2;
 
-	var EPSILON = 1e-5;
-	function approxZero(number, error) {
-	    if (error === void 0) { error = EPSILON; }
+	const EPSILON = 1e-5;
+	function approxZero(number, error = EPSILON) {
 	    return Math.abs(number) < error;
 	}
-	function approxEquals(a, b, error) {
-	    if (error === void 0) { error = EPSILON; }
+	function approxEquals(a, b, error = EPSILON) {
 	    return approxZero(a - b, error);
 	}
 	function roundToStep(value, step) {
@@ -96,7 +63,7 @@
 
 	function extractClientCoordFromEvent(pointers, out) {
 	    out.set(0, 0);
-	    pointers.forEach(function (pointer) {
+	    pointers.forEach((pointer) => {
 	        out.x += pointer.clientX;
 	        out.y += pointer.clientY;
 	    });
@@ -106,7 +73,7 @@
 
 	function notSupportedInOrthographicCamera(camera, message) {
 	    if (isOrthographicCamera(camera)) {
-	        console.warn("".concat(message, " is not supported in OrthographicCamera"));
+	        console.warn(`${message} is not supported in OrthographicCamera`);
 	        return true;
 	    }
 	    return false;
@@ -122,486 +89,484 @@
 	    return target;
 	}
 
-	var EventDispatcher = (function () {
-	    function EventDispatcher() {
+	class EventDispatcher {
+	    constructor() {
 	        this._listeners = {};
 	    }
-	    EventDispatcher.prototype.addEventListener = function (type, listener) {
-	        var listeners = this._listeners;
+	    addEventListener(type, listener) {
+	        const listeners = this._listeners;
 	        if (listeners[type] === undefined)
 	            listeners[type] = [];
 	        if (listeners[type].indexOf(listener) === -1)
 	            listeners[type].push(listener);
-	    };
-	    EventDispatcher.prototype.removeEventListener = function (type, listener) {
-	        var listeners = this._listeners;
-	        var listenerArray = listeners[type];
+	    }
+	    removeEventListener(type, listener) {
+	        const listeners = this._listeners;
+	        const listenerArray = listeners[type];
 	        if (listenerArray !== undefined) {
-	            var index = listenerArray.indexOf(listener);
+	            const index = listenerArray.indexOf(listener);
 	            if (index !== -1)
 	                listenerArray.splice(index, 1);
 	        }
-	    };
-	    EventDispatcher.prototype.removeAllEventListeners = function (type) {
+	    }
+	    removeAllEventListeners(type) {
 	        if (!type) {
 	            this._listeners = {};
 	            return;
 	        }
 	        if (Array.isArray(this._listeners[type]))
 	            this._listeners[type].length = 0;
-	    };
-	    EventDispatcher.prototype.dispatchEvent = function (event) {
-	        var listeners = this._listeners;
-	        var listenerArray = listeners[event.type];
+	    }
+	    dispatchEvent(event) {
+	        const listeners = this._listeners;
+	        const listenerArray = listeners[event.type];
 	        if (listenerArray !== undefined) {
 	            event.target = this;
-	            var array = listenerArray.slice(0);
-	            for (var i = 0, l = array.length; i < l; i++) {
+	            const array = listenerArray.slice(0);
+	            for (let i = 0, l = array.length; i < l; i++) {
 	                array[i].call(this, event);
 	            }
 	        }
-	    };
-	    return EventDispatcher;
-	}());
+	    }
+	}
 
-	var isBrowser = typeof window !== 'undefined';
-	var isMac = isBrowser && /Mac/.test(navigator.platform);
-	var isPointerEventsNotSupported = !(isBrowser && 'PointerEvent' in window);
-	var readonlyACTION = Object.freeze(ACTION);
-	var TOUCH_DOLLY_FACTOR = 1 / 8;
-	var THREE;
-	var _ORIGIN;
-	var _AXIS_Y;
-	var _AXIS_Z;
-	var _v2;
-	var _v3A;
-	var _v3B;
-	var _v3C;
-	var _xColumn;
-	var _yColumn;
-	var _zColumn;
-	var _sphericalA;
-	var _sphericalB;
-	var _box3A;
-	var _box3B;
-	var _sphere;
-	var _quaternionA;
-	var _quaternionB;
-	var _rotationMatrix;
-	var _raycaster;
-	var CameraControls = (function (_super) {
-	    __extends(CameraControls, _super);
-	    function CameraControls(camera, domElement) {
-	        var _this = _super.call(this) || this;
-	        _this.minPolarAngle = 0;
-	        _this.maxPolarAngle = Math.PI;
-	        _this.minAzimuthAngle = -Infinity;
-	        _this.maxAzimuthAngle = Infinity;
-	        _this.minDistance = 0;
-	        _this.maxDistance = Infinity;
-	        _this.infinityDolly = false;
-	        _this.minZoom = 0.01;
-	        _this.maxZoom = Infinity;
-	        _this.dampingFactor = 0.05;
-	        _this.draggingDampingFactor = 0.25;
-	        _this.azimuthRotateSpeed = 1.0;
-	        _this.polarRotateSpeed = 1.0;
-	        _this.dollySpeed = 1.0;
-	        _this.truckSpeed = 2.0;
-	        _this.dollyToCursor = false;
-	        _this.dragToOffset = false;
-	        _this.verticalDragToForward = false;
-	        _this.boundaryFriction = 0.0;
-	        _this.restThreshold = 0.01;
-	        _this.colliderMeshes = [];
-	        _this.cancel = function () { };
-	        _this._enabled = true;
-	        _this._state = ACTION.NONE;
-	        _this._viewport = null;
-	        _this._dollyControlAmount = 0;
-	        _this._hasRested = true;
-	        _this._boundaryEnclosesCamera = false;
-	        _this._needsUpdate = true;
-	        _this._updatedLastTime = false;
-	        _this._elementRect = new DOMRect();
-	        _this._activePointers = [];
-	        _this._truckInternal = function (deltaX, deltaY, dragToOffset) {
-	            if (isPerspectiveCamera(_this._camera)) {
-	                var offset = _v3A.copy(_this._camera.position).sub(_this._target);
-	                var fov = _this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
-	                var targetDistance = offset.length() * Math.tan(fov * 0.5);
-	                var truckX = (_this.truckSpeed * deltaX * targetDistance / _this._elementRect.height);
-	                var pedestalY = (_this.truckSpeed * deltaY * targetDistance / _this._elementRect.height);
-	                if (_this.verticalDragToForward) {
+	const isBrowser = typeof window !== 'undefined';
+	const isMac = isBrowser && /Mac/.test(navigator.platform);
+	const isPointerEventsNotSupported = !(isBrowser && 'PointerEvent' in window);
+	const readonlyACTION = Object.freeze(ACTION);
+	const TOUCH_DOLLY_FACTOR = 1 / 8;
+	let THREE;
+	let _ORIGIN;
+	let _AXIS_Y;
+	let _AXIS_Z;
+	let _v2;
+	let _v3A;
+	let _v3B;
+	let _v3C;
+	let _xColumn;
+	let _yColumn;
+	let _zColumn;
+	let _sphericalA;
+	let _sphericalB;
+	let _box3A;
+	let _box3B;
+	let _sphere;
+	let _quaternionA;
+	let _quaternionB;
+	let _rotationMatrix;
+	let _raycaster;
+	class CameraControls extends EventDispatcher {
+	    constructor(camera, domElement) {
+	        super();
+	        this.minPolarAngle = 0;
+	        this.maxPolarAngle = Math.PI;
+	        this.minAzimuthAngle = -Infinity;
+	        this.maxAzimuthAngle = Infinity;
+	        this.minDistance = 0;
+	        this.maxDistance = Infinity;
+	        this.infinityDolly = false;
+	        this.minZoom = 0.01;
+	        this.maxZoom = Infinity;
+	        this.dampingFactor = 0.05;
+	        this.draggingDampingFactor = 0.25;
+	        this.azimuthRotateSpeed = 1.0;
+	        this.polarRotateSpeed = 1.0;
+	        this.dollySpeed = 1.0;
+	        this.truckSpeed = 2.0;
+	        this.dollyToCursor = false;
+	        this.dragToOffset = false;
+	        this.verticalDragToForward = false;
+	        this.boundaryFriction = 0.0;
+	        this.restThreshold = 0.01;
+	        this.colliderMeshes = [];
+	        this.cancel = () => { };
+	        this._enabled = true;
+	        this._state = ACTION.NONE;
+	        this._viewport = null;
+	        this._dollyControlAmount = 0;
+	        this._hasRested = true;
+	        this._boundaryEnclosesCamera = false;
+	        this._needsUpdate = true;
+	        this._updatedLastTime = false;
+	        this._elementRect = new DOMRect();
+	        this._activePointers = [];
+	        this._truckInternal = (deltaX, deltaY, dragToOffset) => {
+	            if (isPerspectiveCamera(this._camera)) {
+	                const offset = _v3A.copy(this._camera.position).sub(this._target);
+	                const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	                const targetDistance = offset.length() * Math.tan(fov * 0.5);
+	                const truckX = (this.truckSpeed * deltaX * targetDistance / this._elementRect.height);
+	                const pedestalY = (this.truckSpeed * deltaY * targetDistance / this._elementRect.height);
+	                if (this.verticalDragToForward) {
 	                    dragToOffset ?
-	                        _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y, _this._focalOffsetEnd.z, true) :
-	                        _this.truck(truckX, 0, true);
-	                    _this.forward(-pedestalY, true);
+	                        this.setFocalOffset(this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y, this._focalOffsetEnd.z, true) :
+	                        this.truck(truckX, 0, true);
+	                    this.forward(-pedestalY, true);
 	                }
 	                else {
 	                    dragToOffset ?
-	                        _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y + pedestalY, _this._focalOffsetEnd.z, true) :
-	                        _this.truck(truckX, pedestalY, true);
+	                        this.setFocalOffset(this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, this._focalOffsetEnd.z, true) :
+	                        this.truck(truckX, pedestalY, true);
 	                }
 	            }
-	            else if (isOrthographicCamera(_this._camera)) {
-	                var camera = _this._camera;
-	                var truckX = deltaX * (camera.right - camera.left) / camera.zoom / _this._elementRect.width;
-	                var pedestalY = deltaY * (camera.top - camera.bottom) / camera.zoom / _this._elementRect.height;
+	            else if (isOrthographicCamera(this._camera)) {
+	                const camera = this._camera;
+	                const truckX = deltaX * (camera.right - camera.left) / camera.zoom / this._elementRect.width;
+	                const pedestalY = deltaY * (camera.top - camera.bottom) / camera.zoom / this._elementRect.height;
 	                dragToOffset ?
-	                    _this.setFocalOffset(_this._focalOffsetEnd.x + truckX, _this._focalOffsetEnd.y + pedestalY, _this._focalOffsetEnd.z, true) :
-	                    _this.truck(truckX, pedestalY, true);
+	                    this.setFocalOffset(this._focalOffsetEnd.x + truckX, this._focalOffsetEnd.y + pedestalY, this._focalOffsetEnd.z, true) :
+	                    this.truck(truckX, pedestalY, true);
 	            }
 	        };
-	        _this._rotateInternal = function (deltaX, deltaY) {
-	            var theta = PI_2 * _this.azimuthRotateSpeed * deltaX / _this._elementRect.height;
-	            var phi = PI_2 * _this.polarRotateSpeed * deltaY / _this._elementRect.height;
-	            _this.rotate(theta, phi, true);
+	        this._rotateInternal = (deltaX, deltaY) => {
+	            const theta = PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.height;
+	            const phi = PI_2 * this.polarRotateSpeed * deltaY / this._elementRect.height;
+	            this.rotate(theta, phi, true);
 	        };
-	        _this._dollyInternal = function (delta, x, y) {
-	            var dollyScale = Math.pow(0.95, -delta * _this.dollySpeed);
-	            var distance = _this._sphericalEnd.radius * dollyScale;
-	            var prevRadius = _this._sphericalEnd.radius;
-	            var signedPrevRadius = prevRadius * (delta >= 0 ? -1 : 1);
-	            _this.dollyTo(distance);
-	            if (_this.infinityDolly && (distance < _this.minDistance || _this.maxDistance === _this.minDistance)) {
-	                _this._camera.getWorldDirection(_v3A);
-	                _this._targetEnd.add(_v3A.normalize().multiplyScalar(signedPrevRadius));
-	                _this._target.add(_v3A.normalize().multiplyScalar(signedPrevRadius));
+	        this._dollyInternal = (delta, x, y) => {
+	            const dollyScale = Math.pow(0.95, -delta * this.dollySpeed);
+	            const distance = this._sphericalEnd.radius * dollyScale;
+	            const prevRadius = this._sphericalEnd.radius;
+	            const signedPrevRadius = prevRadius * (delta >= 0 ? -1 : 1);
+	            this.dollyTo(distance);
+	            if (this.infinityDolly && (distance < this.minDistance || this.maxDistance === this.minDistance)) {
+	                this._camera.getWorldDirection(_v3A);
+	                this._targetEnd.add(_v3A.normalize().multiplyScalar(signedPrevRadius));
+	                this._target.add(_v3A.normalize().multiplyScalar(signedPrevRadius));
 	            }
-	            if (_this.dollyToCursor) {
-	                _this._dollyControlAmount += _this._sphericalEnd.radius - prevRadius;
-	                if (_this.infinityDolly && (distance < _this.minDistance || _this.maxDistance === _this.minDistance)) {
-	                    _this._dollyControlAmount -= signedPrevRadius;
+	            if (this.dollyToCursor) {
+	                this._dollyControlAmount += this._sphericalEnd.radius - prevRadius;
+	                if (this.infinityDolly && (distance < this.minDistance || this.maxDistance === this.minDistance)) {
+	                    this._dollyControlAmount -= signedPrevRadius;
 	                }
-	                _this._dollyControlCoord.set(x, y);
+	                this._dollyControlCoord.set(x, y);
 	            }
 	            return;
 	        };
-	        _this._zoomInternal = function (delta, x, y) {
-	            var zoomScale = Math.pow(0.95, delta * _this.dollySpeed);
-	            _this.zoomTo(_this._zoom * zoomScale);
-	            if (_this.dollyToCursor) {
-	                _this._dollyControlAmount = _this._zoomEnd;
-	                _this._dollyControlCoord.set(x, y);
+	        this._zoomInternal = (delta, x, y) => {
+	            const zoomScale = Math.pow(0.95, delta * this.dollySpeed);
+	            this.zoomTo(this._zoom * zoomScale);
+	            if (this.dollyToCursor) {
+	                this._dollyControlAmount = this._zoomEnd;
+	                this._dollyControlCoord.set(x, y);
 	            }
 	            return;
 	        };
 	        if (typeof THREE === 'undefined') {
 	            console.error('camera-controls: `THREE` is undefined. You must first run `CameraControls.install( { THREE: THREE } )`. Check the docs for further information.');
 	        }
-	        _this._camera = camera;
-	        _this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(_this._camera.up, _AXIS_Y);
-	        _this._yAxisUpSpaceInverse = quatInvertCompat(_this._yAxisUpSpace.clone());
-	        _this._state = ACTION.NONE;
-	        _this._domElement = domElement;
-	        _this._domElement.style.touchAction = 'none';
-	        _this._target = new THREE.Vector3();
-	        _this._targetEnd = _this._target.clone();
-	        _this._focalOffset = new THREE.Vector3();
-	        _this._focalOffsetEnd = _this._focalOffset.clone();
-	        _this._spherical = new THREE.Spherical().setFromVector3(_v3A.copy(_this._camera.position).applyQuaternion(_this._yAxisUpSpace));
-	        _this._sphericalEnd = _this._spherical.clone();
-	        _this._zoom = _this._camera.zoom;
-	        _this._zoomEnd = _this._zoom;
-	        _this._nearPlaneCorners = [
+	        this._camera = camera;
+	        this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(this._camera.up, _AXIS_Y);
+	        this._yAxisUpSpaceInverse = quatInvertCompat(this._yAxisUpSpace.clone());
+	        this._state = ACTION.NONE;
+	        this._domElement = domElement;
+	        this._domElement.style.touchAction = 'none';
+	        this._target = new THREE.Vector3();
+	        this._targetEnd = this._target.clone();
+	        this._focalOffset = new THREE.Vector3();
+	        this._focalOffsetEnd = this._focalOffset.clone();
+	        this._spherical = new THREE.Spherical().setFromVector3(_v3A.copy(this._camera.position).applyQuaternion(this._yAxisUpSpace));
+	        this._sphericalEnd = this._spherical.clone();
+	        this._zoom = this._camera.zoom;
+	        this._zoomEnd = this._zoom;
+	        this._nearPlaneCorners = [
 	            new THREE.Vector3(),
 	            new THREE.Vector3(),
 	            new THREE.Vector3(),
 	            new THREE.Vector3(),
 	        ];
-	        _this._updateNearPlaneCorners();
-	        _this._boundary = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
-	        _this._target0 = _this._target.clone();
-	        _this._position0 = _this._camera.position.clone();
-	        _this._zoom0 = _this._zoom;
-	        _this._focalOffset0 = _this._focalOffset.clone();
-	        _this._dollyControlAmount = 0;
-	        _this._dollyControlCoord = new THREE.Vector2();
-	        _this.mouseButtons = {
+	        this._updateNearPlaneCorners();
+	        this._boundary = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
+	        this._target0 = this._target.clone();
+	        this._position0 = this._camera.position.clone();
+	        this._zoom0 = this._zoom;
+	        this._focalOffset0 = this._focalOffset.clone();
+	        this._dollyControlAmount = 0;
+	        this._dollyControlCoord = new THREE.Vector2();
+	        this.mouseButtons = {
 	            left: ACTION.ROTATE,
 	            middle: ACTION.DOLLY,
 	            right: ACTION.TRUCK,
-	            wheel: isPerspectiveCamera(_this._camera) ? ACTION.DOLLY :
-	                isOrthographicCamera(_this._camera) ? ACTION.ZOOM :
+	            wheel: isPerspectiveCamera(this._camera) ? ACTION.DOLLY :
+	                isOrthographicCamera(this._camera) ? ACTION.ZOOM :
 	                    ACTION.NONE,
 	            shiftLeft: ACTION.NONE,
 	        };
-	        _this.touches = {
+	        this.touches = {
 	            one: ACTION.TOUCH_ROTATE,
-	            two: isPerspectiveCamera(_this._camera) ? ACTION.TOUCH_DOLLY_TRUCK :
-	                isOrthographicCamera(_this._camera) ? ACTION.TOUCH_ZOOM_TRUCK :
+	            two: isPerspectiveCamera(this._camera) ? ACTION.TOUCH_DOLLY_TRUCK :
+	                isOrthographicCamera(this._camera) ? ACTION.TOUCH_ZOOM_TRUCK :
 	                    ACTION.NONE,
 	            three: ACTION.TOUCH_TRUCK,
 	        };
-	        if (_this._domElement) {
-	            var dragStartPosition_1 = new THREE.Vector2();
-	            var lastDragPosition_1 = new THREE.Vector2();
-	            var dollyStart_1 = new THREE.Vector2();
-	            var onPointerDown_1 = function (event) {
-	                if (!_this._enabled)
+	        if (this._domElement) {
+	            const dragStartPosition = new THREE.Vector2();
+	            const lastDragPosition = new THREE.Vector2();
+	            const dollyStart = new THREE.Vector2();
+	            const onPointerDown = (event) => {
+	                if (!this._enabled)
 	                    return;
-	                var pointer = {
+	                const pointer = {
 	                    pointerId: event.pointerId,
 	                    clientX: event.clientX,
 	                    clientY: event.clientY,
 	                };
-	                _this._activePointers.push(pointer);
+	                this._activePointers.push(pointer);
 	                switch (event.button) {
 	                    case THREE.MOUSE.LEFT:
-	                        _this._state = event.shiftKey ? _this.mouseButtons.shiftLeft : _this.mouseButtons.left;
+	                        this._state = event.shiftKey ? this.mouseButtons.shiftLeft : this.mouseButtons.left;
 	                        break;
 	                    case THREE.MOUSE.MIDDLE:
-	                        _this._state = _this.mouseButtons.middle;
+	                        this._state = this.mouseButtons.middle;
 	                        break;
 	                    case THREE.MOUSE.RIGHT:
-	                        _this._state = _this.mouseButtons.right;
+	                        this._state = this.mouseButtons.right;
 	                        break;
 	                }
 	                if (event.pointerType === 'touch') {
-	                    switch (_this._activePointers.length) {
+	                    switch (this._activePointers.length) {
 	                        case 1:
-	                            _this._state = _this.touches.one;
+	                            this._state = this.touches.one;
 	                            break;
 	                        case 2:
-	                            _this._state = _this.touches.two;
+	                            this._state = this.touches.two;
 	                            break;
 	                        case 3:
-	                            _this._state = _this.touches.three;
+	                            this._state = this.touches.three;
 	                            break;
 	                    }
 	                }
-	                _this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove_1, { passive: false });
-	                _this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp_1);
-	                _this._domElement.ownerDocument.addEventListener('pointermove', onPointerMove_1, { passive: false });
-	                _this._domElement.ownerDocument.addEventListener('pointerup', onPointerUp_1);
-	                startDragging_1();
+	                this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+	                this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+	                this._domElement.ownerDocument.addEventListener('pointermove', onPointerMove, { passive: false });
+	                this._domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+	                startDragging();
 	            };
-	            var onMouseDown_1 = function (event) {
-	                if (!_this._enabled)
+	            const onMouseDown = (event) => {
+	                if (!this._enabled)
 	                    return;
-	                var pointer = {
+	                const pointer = {
 	                    pointerId: 0,
 	                    clientX: event.clientX,
 	                    clientY: event.clientY,
 	                };
-	                _this._activePointers.push(pointer);
+	                this._activePointers.push(pointer);
 	                switch (event.button) {
 	                    case THREE.MOUSE.LEFT:
-	                        _this._state = event.shiftKey ? _this.mouseButtons.shiftLeft : _this.mouseButtons.left;
+	                        this._state = event.shiftKey ? this.mouseButtons.shiftLeft : this.mouseButtons.left;
 	                        break;
 	                    case THREE.MOUSE.MIDDLE:
-	                        _this._state = _this.mouseButtons.middle;
+	                        this._state = this.mouseButtons.middle;
 	                        break;
 	                    case THREE.MOUSE.RIGHT:
-	                        _this._state = _this.mouseButtons.right;
+	                        this._state = this.mouseButtons.right;
 	                        break;
 	                }
-	                _this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove_1);
-	                _this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp_1);
-	                _this._domElement.ownerDocument.addEventListener('mousemove', onMouseMove_1);
-	                _this._domElement.ownerDocument.addEventListener('mouseup', onMouseUp_1);
-	                startDragging_1();
+	                this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+	                this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
+	                this._domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
+	                this._domElement.ownerDocument.addEventListener('mouseup', onMouseUp);
+	                startDragging();
 	            };
-	            var onTouchStart_1 = function (event) {
-	                if (!_this._enabled)
+	            const onTouchStart = (event) => {
+	                if (!this._enabled)
 	                    return;
 	                event.preventDefault();
-	                Array.prototype.forEach.call(event.changedTouches, function (touch) {
-	                    var pointer = {
+	                Array.prototype.forEach.call(event.changedTouches, (touch) => {
+	                    const pointer = {
 	                        pointerId: touch.identifier,
 	                        clientX: touch.clientX,
 	                        clientY: touch.clientY,
 	                    };
-	                    _this._activePointers.push(pointer);
+	                    this._activePointers.push(pointer);
 	                });
-	                switch (_this._activePointers.length) {
+	                switch (this._activePointers.length) {
 	                    case 1:
-	                        _this._state = _this.touches.one;
+	                        this._state = this.touches.one;
 	                        break;
 	                    case 2:
-	                        _this._state = _this.touches.two;
+	                        this._state = this.touches.two;
 	                        break;
 	                    case 3:
-	                        _this._state = _this.touches.three;
+	                        this._state = this.touches.three;
 	                        break;
 	                }
-	                _this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove_1, { passive: false });
-	                _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
-	                _this._domElement.ownerDocument.addEventListener('touchmove', onTouchMove_1, { passive: false });
-	                _this._domElement.ownerDocument.addEventListener('touchend', onTouchEnd_1);
-	                startDragging_1();
+	                this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
+	                this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
+	                this._domElement.ownerDocument.addEventListener('touchmove', onTouchMove, { passive: false });
+	                this._domElement.ownerDocument.addEventListener('touchend', onTouchEnd);
+	                startDragging();
 	            };
-	            var onPointerMove_1 = function (event) {
+	            const onPointerMove = (event) => {
 	                if (event.cancelable)
 	                    event.preventDefault();
-	                var pointerId = event.pointerId;
-	                var pointer = _this._findPointerById(pointerId);
+	                const pointerId = event.pointerId;
+	                const pointer = this._findPointerById(pointerId);
 	                if (!pointer)
 	                    return;
 	                pointer.clientX = event.clientX;
 	                pointer.clientY = event.clientY;
-	                dragging_1();
+	                dragging();
 	            };
-	            var onMouseMove_1 = function (event) {
-	                var pointer = _this._findPointerById(0);
+	            const onMouseMove = (event) => {
+	                const pointer = this._findPointerById(0);
 	                if (!pointer)
 	                    return;
 	                pointer.clientX = event.clientX;
 	                pointer.clientY = event.clientY;
-	                dragging_1();
+	                dragging();
 	            };
-	            var onTouchMove_1 = function (event) {
+	            const onTouchMove = (event) => {
 	                if (event.cancelable)
 	                    event.preventDefault();
-	                Array.prototype.forEach.call(event.changedTouches, function (touch) {
-	                    var pointerId = touch.identifier;
-	                    var pointer = _this._findPointerById(pointerId);
+	                Array.prototype.forEach.call(event.changedTouches, (touch) => {
+	                    const pointerId = touch.identifier;
+	                    const pointer = this._findPointerById(pointerId);
 	                    if (!pointer)
 	                        return;
 	                    pointer.clientX = touch.clientX;
 	                    pointer.clientY = touch.clientY;
 	                });
-	                dragging_1();
+	                dragging();
 	            };
-	            var onPointerUp_1 = function (event) {
-	                var pointerId = event.pointerId;
-	                var pointer = _this._findPointerById(pointerId);
-	                pointer && _this._activePointers.splice(_this._activePointers.indexOf(pointer), 1);
+	            const onPointerUp = (event) => {
+	                const pointerId = event.pointerId;
+	                const pointer = this._findPointerById(pointerId);
+	                pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
 	                if (event.pointerType === 'touch') {
-	                    switch (_this._activePointers.length) {
+	                    switch (this._activePointers.length) {
 	                        case 0:
-	                            _this._state = ACTION.NONE;
+	                            this._state = ACTION.NONE;
 	                            break;
 	                        case 1:
-	                            _this._state = _this.touches.one;
+	                            this._state = this.touches.one;
 	                            break;
 	                        case 2:
-	                            _this._state = _this.touches.two;
+	                            this._state = this.touches.two;
 	                            break;
 	                        case 3:
-	                            _this._state = _this.touches.three;
+	                            this._state = this.touches.three;
 	                            break;
 	                    }
 	                }
 	                else {
-	                    _this._state = ACTION.NONE;
+	                    this._state = ACTION.NONE;
 	                }
-	                endDragging_1();
+	                endDragging();
 	            };
-	            var onMouseUp_1 = function () {
-	                var pointer = _this._findPointerById(0);
-	                pointer && _this._activePointers.splice(_this._activePointers.indexOf(pointer), 1);
-	                _this._state = ACTION.NONE;
-	                endDragging_1();
+	            const onMouseUp = () => {
+	                const pointer = this._findPointerById(0);
+	                pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
+	                this._state = ACTION.NONE;
+	                endDragging();
 	            };
-	            var onTouchEnd_1 = function (event) {
-	                Array.prototype.forEach.call(event.changedTouches, function (touch) {
-	                    var pointerId = touch.identifier;
-	                    var pointer = _this._findPointerById(pointerId);
-	                    pointer && _this._activePointers.splice(_this._activePointers.indexOf(pointer), 1);
+	            const onTouchEnd = (event) => {
+	                Array.prototype.forEach.call(event.changedTouches, (touch) => {
+	                    const pointerId = touch.identifier;
+	                    const pointer = this._findPointerById(pointerId);
+	                    pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
 	                });
-	                switch (_this._activePointers.length) {
+	                switch (this._activePointers.length) {
 	                    case 0:
-	                        _this._state = ACTION.NONE;
+	                        this._state = ACTION.NONE;
 	                        break;
 	                    case 1:
-	                        _this._state = _this.touches.one;
+	                        this._state = this.touches.one;
 	                        break;
 	                    case 2:
-	                        _this._state = _this.touches.two;
+	                        this._state = this.touches.two;
 	                        break;
 	                    case 3:
-	                        _this._state = _this.touches.three;
+	                        this._state = this.touches.three;
 	                        break;
 	                }
-	                endDragging_1();
+	                endDragging();
 	            };
-	            var lastScrollTimeStamp_1 = -1;
-	            var onMouseWheel_1 = function (event) {
-	                if (!_this._enabled || _this.mouseButtons.wheel === ACTION.NONE)
+	            let lastScrollTimeStamp = -1;
+	            const onMouseWheel = (event) => {
+	                if (!this._enabled || this.mouseButtons.wheel === ACTION.NONE)
 	                    return;
 	                event.preventDefault();
-	                if (_this.dollyToCursor ||
-	                    _this.mouseButtons.wheel === ACTION.ROTATE ||
-	                    _this.mouseButtons.wheel === ACTION.TRUCK) {
-	                    var now = performance.now();
-	                    if (lastScrollTimeStamp_1 - now < 1000)
-	                        _this._getClientRect(_this._elementRect);
-	                    lastScrollTimeStamp_1 = now;
+	                if (this.dollyToCursor ||
+	                    this.mouseButtons.wheel === ACTION.ROTATE ||
+	                    this.mouseButtons.wheel === ACTION.TRUCK) {
+	                    const now = performance.now();
+	                    if (lastScrollTimeStamp - now < 1000)
+	                        this._getClientRect(this._elementRect);
+	                    lastScrollTimeStamp = now;
 	                }
-	                var deltaYFactor = isMac ? -1 : -3;
-	                var delta = (event.deltaMode === 1) ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
-	                var x = _this.dollyToCursor ? (event.clientX - _this._elementRect.x) / _this._elementRect.width * 2 - 1 : 0;
-	                var y = _this.dollyToCursor ? (event.clientY - _this._elementRect.y) / _this._elementRect.height * -2 + 1 : 0;
-	                switch (_this.mouseButtons.wheel) {
+	                const deltaYFactor = isMac ? -1 : -3;
+	                const delta = (event.deltaMode === 1) ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
+	                const x = this.dollyToCursor ? (event.clientX - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
+	                const y = this.dollyToCursor ? (event.clientY - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
+	                switch (this.mouseButtons.wheel) {
 	                    case ACTION.ROTATE: {
-	                        _this._rotateInternal(event.deltaX, event.deltaY);
+	                        this._rotateInternal(event.deltaX, event.deltaY);
 	                        break;
 	                    }
 	                    case ACTION.TRUCK: {
-	                        _this._truckInternal(event.deltaX, event.deltaY, false);
+	                        this._truckInternal(event.deltaX, event.deltaY, false);
 	                        break;
 	                    }
 	                    case ACTION.OFFSET: {
-	                        _this._truckInternal(event.deltaX, event.deltaY, true);
+	                        this._truckInternal(event.deltaX, event.deltaY, true);
 	                        break;
 	                    }
 	                    case ACTION.DOLLY: {
-	                        _this._dollyInternal(-delta, x, y);
+	                        this._dollyInternal(-delta, x, y);
 	                        break;
 	                    }
 	                    case ACTION.ZOOM: {
-	                        _this._zoomInternal(-delta, x, y);
+	                        this._zoomInternal(-delta, x, y);
 	                        break;
 	                    }
 	                }
-	                _this.dispatchEvent({ type: 'control' });
+	                this.dispatchEvent({ type: 'control' });
 	            };
-	            var onContextMenu_1 = function (event) {
-	                if (!_this._enabled)
+	            const onContextMenu = (event) => {
+	                if (!this._enabled)
 	                    return;
 	                event.preventDefault();
 	            };
-	            var startDragging_1 = function () {
-	                if (!_this._enabled)
+	            const startDragging = () => {
+	                if (!this._enabled)
 	                    return;
-	                extractClientCoordFromEvent(_this._activePointers, _v2);
-	                _this._getClientRect(_this._elementRect);
-	                dragStartPosition_1.copy(_v2);
-	                lastDragPosition_1.copy(_v2);
-	                var isMultiTouch = _this._activePointers.length >= 2;
+	                extractClientCoordFromEvent(this._activePointers, _v2);
+	                this._getClientRect(this._elementRect);
+	                dragStartPosition.copy(_v2);
+	                lastDragPosition.copy(_v2);
+	                const isMultiTouch = this._activePointers.length >= 2;
 	                if (isMultiTouch) {
-	                    var dx = _v2.x - _this._activePointers[1].clientX;
-	                    var dy = _v2.y - _this._activePointers[1].clientY;
-	                    var distance = Math.sqrt(dx * dx + dy * dy);
-	                    dollyStart_1.set(0, distance);
-	                    var x = (_this._activePointers[0].clientX + _this._activePointers[1].clientX) * 0.5;
-	                    var y = (_this._activePointers[0].clientY + _this._activePointers[1].clientY) * 0.5;
-	                    lastDragPosition_1.set(x, y);
+	                    const dx = _v2.x - this._activePointers[1].clientX;
+	                    const dy = _v2.y - this._activePointers[1].clientY;
+	                    const distance = Math.sqrt(dx * dx + dy * dy);
+	                    dollyStart.set(0, distance);
+	                    const x = (this._activePointers[0].clientX + this._activePointers[1].clientX) * 0.5;
+	                    const y = (this._activePointers[0].clientY + this._activePointers[1].clientY) * 0.5;
+	                    lastDragPosition.set(x, y);
 	                }
-	                _this.dispatchEvent({ type: 'controlstart' });
+	                this.dispatchEvent({ type: 'controlstart' });
 	            };
-	            var dragging_1 = function () {
-	                if (!_this._enabled)
+	            const dragging = () => {
+	                if (!this._enabled)
 	                    return;
-	                extractClientCoordFromEvent(_this._activePointers, _v2);
-	                var deltaX = lastDragPosition_1.x - _v2.x;
-	                var deltaY = lastDragPosition_1.y - _v2.y;
-	                lastDragPosition_1.copy(_v2);
-	                switch (_this._state) {
+	                extractClientCoordFromEvent(this._activePointers, _v2);
+	                const deltaX = lastDragPosition.x - _v2.x;
+	                const deltaY = lastDragPosition.y - _v2.y;
+	                lastDragPosition.copy(_v2);
+	                switch (this._state) {
 	                    case ACTION.ROTATE:
 	                    case ACTION.TOUCH_ROTATE: {
-	                        _this._rotateInternal(deltaX, deltaY);
+	                        this._rotateInternal(deltaX, deltaY);
 	                        break;
 	                    }
 	                    case ACTION.DOLLY:
 	                    case ACTION.ZOOM: {
-	                        var dollyX = _this.dollyToCursor ? (dragStartPosition_1.x - _this._elementRect.x) / _this._elementRect.width * 2 - 1 : 0;
-	                        var dollyY = _this.dollyToCursor ? (dragStartPosition_1.y - _this._elementRect.y) / _this._elementRect.height * -2 + 1 : 0;
-	                        _this._state === ACTION.DOLLY ?
-	                            _this._dollyInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
-	                            _this._zoomInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
+	                        const dollyX = this.dollyToCursor ? (dragStartPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
+	                        const dollyY = this.dollyToCursor ? (dragStartPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
+	                        this._state === ACTION.DOLLY ?
+	                            this._dollyInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
+	                            this._zoomInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
 	                        break;
 	                    }
 	                    case ACTION.TOUCH_DOLLY:
@@ -610,84 +575,83 @@
 	                    case ACTION.TOUCH_ZOOM_TRUCK:
 	                    case ACTION.TOUCH_DOLLY_OFFSET:
 	                    case ACTION.TOUCH_ZOOM_OFFSET: {
-	                        var dx = _v2.x - _this._activePointers[1].clientX;
-	                        var dy = _v2.y - _this._activePointers[1].clientY;
-	                        var distance = Math.sqrt(dx * dx + dy * dy);
-	                        var dollyDelta = dollyStart_1.y - distance;
-	                        dollyStart_1.set(0, distance);
-	                        var dollyX = _this.dollyToCursor ? (lastDragPosition_1.x - _this._elementRect.x) / _this._elementRect.width * 2 - 1 : 0;
-	                        var dollyY = _this.dollyToCursor ? (lastDragPosition_1.y - _this._elementRect.y) / _this._elementRect.height * -2 + 1 : 0;
-	                        _this._state === ACTION.TOUCH_DOLLY ||
-	                            _this._state === ACTION.TOUCH_DOLLY_TRUCK ||
-	                            _this._state === ACTION.TOUCH_DOLLY_OFFSET ?
-	                            _this._dollyInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
-	                            _this._zoomInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
-	                        if (_this._state === ACTION.TOUCH_DOLLY_TRUCK ||
-	                            _this._state === ACTION.TOUCH_ZOOM_TRUCK) {
-	                            _this._truckInternal(deltaX, deltaY, false);
+	                        const dx = _v2.x - this._activePointers[1].clientX;
+	                        const dy = _v2.y - this._activePointers[1].clientY;
+	                        const distance = Math.sqrt(dx * dx + dy * dy);
+	                        const dollyDelta = dollyStart.y - distance;
+	                        dollyStart.set(0, distance);
+	                        const dollyX = this.dollyToCursor ? (lastDragPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
+	                        const dollyY = this.dollyToCursor ? (lastDragPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
+	                        this._state === ACTION.TOUCH_DOLLY ||
+	                            this._state === ACTION.TOUCH_DOLLY_TRUCK ||
+	                            this._state === ACTION.TOUCH_DOLLY_OFFSET ?
+	                            this._dollyInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
+	                            this._zoomInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
+	                        if (this._state === ACTION.TOUCH_DOLLY_TRUCK ||
+	                            this._state === ACTION.TOUCH_ZOOM_TRUCK) {
+	                            this._truckInternal(deltaX, deltaY, false);
 	                        }
-	                        else if (_this._state === ACTION.TOUCH_DOLLY_OFFSET ||
-	                            _this._state === ACTION.TOUCH_ZOOM_OFFSET) {
-	                            _this._truckInternal(deltaX, deltaY, true);
+	                        else if (this._state === ACTION.TOUCH_DOLLY_OFFSET ||
+	                            this._state === ACTION.TOUCH_ZOOM_OFFSET) {
+	                            this._truckInternal(deltaX, deltaY, true);
 	                        }
 	                        break;
 	                    }
 	                    case ACTION.TRUCK:
 	                    case ACTION.TOUCH_TRUCK: {
-	                        _this._truckInternal(deltaX, deltaY, false);
+	                        this._truckInternal(deltaX, deltaY, false);
 	                        break;
 	                    }
 	                    case ACTION.OFFSET:
 	                    case ACTION.TOUCH_OFFSET: {
-	                        _this._truckInternal(deltaX, deltaY, true);
+	                        this._truckInternal(deltaX, deltaY, true);
 	                        break;
 	                    }
 	                }
-	                _this.dispatchEvent({ type: 'control' });
+	                this.dispatchEvent({ type: 'control' });
 	            };
-	            var endDragging_1 = function () {
-	                extractClientCoordFromEvent(_this._activePointers, _v2);
-	                lastDragPosition_1.copy(_v2);
-	                if (_this._activePointers.length === 0) {
-	                    _this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove_1, { passive: false });
-	                    _this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp_1);
-	                    _this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove_1, { passive: false });
-	                    _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
-	                    _this.dispatchEvent({ type: 'controlend' });
+	            const endDragging = () => {
+	                extractClientCoordFromEvent(this._activePointers, _v2);
+	                lastDragPosition.copy(_v2);
+	                if (this._activePointers.length === 0) {
+	                    this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+	                    this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+	                    this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
+	                    this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
+	                    this.dispatchEvent({ type: 'controlend' });
 	                }
 	            };
-	            _this._domElement.addEventListener('pointerdown', onPointerDown_1);
-	            isPointerEventsNotSupported && _this._domElement.addEventListener('mousedown', onMouseDown_1);
-	            isPointerEventsNotSupported && _this._domElement.addEventListener('touchstart', onTouchStart_1);
-	            _this._domElement.addEventListener('pointercancel', onPointerUp_1);
-	            _this._domElement.addEventListener('wheel', onMouseWheel_1, { passive: false });
-	            _this._domElement.addEventListener('contextmenu', onContextMenu_1);
-	            _this._removeAllEventListeners = function () {
-	                _this._domElement.removeEventListener('pointerdown', onPointerDown_1);
-	                _this._domElement.removeEventListener('mousedown', onMouseDown_1);
-	                _this._domElement.removeEventListener('touchstart', onTouchStart_1);
-	                _this._domElement.removeEventListener('pointercancel', onPointerUp_1);
-	                _this._domElement.removeEventListener('wheel', onMouseWheel_1, { passive: false });
-	                _this._domElement.removeEventListener('contextmenu', onContextMenu_1);
-	                _this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove_1, { passive: false });
-	                _this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove_1);
-	                _this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove_1, { passive: false });
-	                _this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp_1);
-	                _this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp_1);
-	                _this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd_1);
+	            this._domElement.addEventListener('pointerdown', onPointerDown);
+	            isPointerEventsNotSupported && this._domElement.addEventListener('mousedown', onMouseDown);
+	            isPointerEventsNotSupported && this._domElement.addEventListener('touchstart', onTouchStart);
+	            this._domElement.addEventListener('pointercancel', onPointerUp);
+	            this._domElement.addEventListener('wheel', onMouseWheel, { passive: false });
+	            this._domElement.addEventListener('contextmenu', onContextMenu);
+	            this._removeAllEventListeners = () => {
+	                this._domElement.removeEventListener('pointerdown', onPointerDown);
+	                this._domElement.removeEventListener('mousedown', onMouseDown);
+	                this._domElement.removeEventListener('touchstart', onTouchStart);
+	                this._domElement.removeEventListener('pointercancel', onPointerUp);
+	                this._domElement.removeEventListener('wheel', onMouseWheel, { passive: false });
+	                this._domElement.removeEventListener('contextmenu', onContextMenu);
+	                this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+	                this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+	                this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
+	                this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+	                this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
+	                this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
 	            };
-	            _this.cancel = function () {
-	                if (_this._state === ACTION.NONE)
+	            this.cancel = () => {
+	                if (this._state === ACTION.NONE)
 	                    return;
-	                _this._state = ACTION.NONE;
-	                _this._activePointers.length = 0;
-	                endDragging_1();
+	                this._state = ACTION.NONE;
+	                this._activePointers.length = 0;
+	                endDragging();
 	            };
 	        }
-	        _this.update(0);
-	        return _this;
+	        this.update(0);
 	    }
-	    CameraControls.install = function (libs) {
+	    static install(libs) {
 	        THREE = libs.THREE;
 	        _ORIGIN = Object.freeze(new THREE.Vector3(0, 0, 0));
 	        _AXIS_Y = Object.freeze(new THREE.Vector3(0, 1, 0));
@@ -708,132 +672,92 @@
 	        _quaternionB = new THREE.Quaternion();
 	        _rotationMatrix = new THREE.Matrix4();
 	        _raycaster = new THREE.Raycaster();
-	    };
-	    Object.defineProperty(CameraControls, "ACTION", {
-	        get: function () {
-	            return readonlyACTION;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "camera", {
-	        get: function () {
-	            return this._camera;
-	        },
-	        set: function (camera) {
-	            this._camera = camera;
-	            this.updateCameraUp();
-	            this._camera.updateProjectionMatrix();
-	            this._updateNearPlaneCorners();
-	            this._needsUpdate = true;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "enabled", {
-	        get: function () {
-	            return this._enabled;
-	        },
-	        set: function (enabled) {
-	            this._enabled = enabled;
-	            if (!enabled)
-	                this.cancel();
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "active", {
-	        get: function () {
-	            return !this._hasRested;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "currentAction", {
-	        get: function () {
-	            return this._state;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "distance", {
-	        get: function () {
-	            return this._spherical.radius;
-	        },
-	        set: function (distance) {
-	            if (this._spherical.radius === distance &&
-	                this._sphericalEnd.radius === distance)
-	                return;
-	            this._spherical.radius = distance;
-	            this._sphericalEnd.radius = distance;
-	            this._needsUpdate = true;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "azimuthAngle", {
-	        get: function () {
-	            return this._spherical.theta;
-	        },
-	        set: function (azimuthAngle) {
-	            if (this._spherical.theta === azimuthAngle &&
-	                this._sphericalEnd.theta === azimuthAngle)
-	                return;
-	            this._spherical.theta = azimuthAngle;
-	            this._sphericalEnd.theta = azimuthAngle;
-	            this._needsUpdate = true;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "polarAngle", {
-	        get: function () {
-	            return this._spherical.phi;
-	        },
-	        set: function (polarAngle) {
-	            if (this._spherical.phi === polarAngle &&
-	                this._sphericalEnd.phi === polarAngle)
-	                return;
-	            this._spherical.phi = polarAngle;
-	            this._sphericalEnd.phi = polarAngle;
-	            this._needsUpdate = true;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    Object.defineProperty(CameraControls.prototype, "boundaryEnclosesCamera", {
-	        get: function () {
-	            return this._boundaryEnclosesCamera;
-	        },
-	        set: function (boundaryEnclosesCamera) {
-	            this._boundaryEnclosesCamera = boundaryEnclosesCamera;
-	            this._needsUpdate = true;
-	        },
-	        enumerable: false,
-	        configurable: true
-	    });
-	    CameraControls.prototype.addEventListener = function (type, listener) {
-	        _super.prototype.addEventListener.call(this, type, listener);
-	    };
-	    CameraControls.prototype.removeEventListener = function (type, listener) {
-	        _super.prototype.removeEventListener.call(this, type, listener);
-	    };
-	    CameraControls.prototype.rotate = function (azimuthAngle, polarAngle, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    static get ACTION() {
+	        return readonlyACTION;
+	    }
+	    get camera() {
+	        return this._camera;
+	    }
+	    set camera(camera) {
+	        this._camera = camera;
+	        this.updateCameraUp();
+	        this._camera.updateProjectionMatrix();
+	        this._updateNearPlaneCorners();
+	        this._needsUpdate = true;
+	    }
+	    get enabled() {
+	        return this._enabled;
+	    }
+	    set enabled(enabled) {
+	        this._enabled = enabled;
+	        if (!enabled)
+	            this.cancel();
+	    }
+	    get active() {
+	        return !this._hasRested;
+	    }
+	    get currentAction() {
+	        return this._state;
+	    }
+	    get distance() {
+	        return this._spherical.radius;
+	    }
+	    set distance(distance) {
+	        if (this._spherical.radius === distance &&
+	            this._sphericalEnd.radius === distance)
+	            return;
+	        this._spherical.radius = distance;
+	        this._sphericalEnd.radius = distance;
+	        this._needsUpdate = true;
+	    }
+	    get azimuthAngle() {
+	        return this._spherical.theta;
+	    }
+	    set azimuthAngle(azimuthAngle) {
+	        if (this._spherical.theta === azimuthAngle &&
+	            this._sphericalEnd.theta === azimuthAngle)
+	            return;
+	        this._spherical.theta = azimuthAngle;
+	        this._sphericalEnd.theta = azimuthAngle;
+	        this._needsUpdate = true;
+	    }
+	    get polarAngle() {
+	        return this._spherical.phi;
+	    }
+	    set polarAngle(polarAngle) {
+	        if (this._spherical.phi === polarAngle &&
+	            this._sphericalEnd.phi === polarAngle)
+	            return;
+	        this._spherical.phi = polarAngle;
+	        this._sphericalEnd.phi = polarAngle;
+	        this._needsUpdate = true;
+	    }
+	    get boundaryEnclosesCamera() {
+	        return this._boundaryEnclosesCamera;
+	    }
+	    set boundaryEnclosesCamera(boundaryEnclosesCamera) {
+	        this._boundaryEnclosesCamera = boundaryEnclosesCamera;
+	        this._needsUpdate = true;
+	    }
+	    addEventListener(type, listener) {
+	        super.addEventListener(type, listener);
+	    }
+	    removeEventListener(type, listener) {
+	        super.removeEventListener(type, listener);
+	    }
+	    rotate(azimuthAngle, polarAngle, enableTransition = false) {
 	        return this.rotateTo(this._sphericalEnd.theta + azimuthAngle, this._sphericalEnd.phi + polarAngle, enableTransition);
-	    };
-	    CameraControls.prototype.rotateAzimuthTo = function (azimuthAngle, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        return this.rotateTo(this._sphericalEnd.theta + azimuthAngle, this._sphericalEnd.phi, enableTransition);
-	    };
-	    CameraControls.prototype.rotatePolarTo = function (polarAngle, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        return this.rotateTo(this._sphericalEnd.theta, this._sphericalEnd.phi + polarAngle, enableTransition);
-	    };
-	    CameraControls.prototype.rotateTo = function (azimuthAngle, polarAngle, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var theta = THREE.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
-	        var phi = THREE.MathUtils.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
+	    }
+	    rotateAzimuthTo(azimuthAngle, enableTransition = false) {
+	        return this.rotateTo(azimuthAngle, this._sphericalEnd.phi, enableTransition);
+	    }
+	    rotatePolarTo(polarAngle, enableTransition = false) {
+	        return this.rotateTo(this._sphericalEnd.theta, polarAngle, enableTransition);
+	    }
+	    rotateTo(azimuthAngle, polarAngle, enableTransition = false) {
+	        const theta = THREE.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
+	        const phi = THREE.MathUtils.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
 	        this._sphericalEnd.theta = theta;
 	        this._sphericalEnd.phi = phi;
 	        this._sphericalEnd.makeSafe();
@@ -842,24 +766,22 @@
 	            this._spherical.theta = this._sphericalEnd.theta;
 	            this._spherical.phi = this._sphericalEnd.phi;
 	        }
-	        var resolveImmediately = !enableTransition ||
+	        const resolveImmediately = !enableTransition ||
 	            approxEquals(this._spherical.theta, this._sphericalEnd.theta, this.restThreshold) &&
 	                approxEquals(this._spherical.phi, this._sphericalEnd.phi, this.restThreshold);
 	        return this._createOnRestPromise(resolveImmediately);
-	    };
-	    CameraControls.prototype.dolly = function (distance, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    dolly(distance, enableTransition = false) {
 	        return this.dollyTo(this._sphericalEnd.radius - distance, enableTransition);
-	    };
-	    CameraControls.prototype.dollyTo = function (distance, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var lastRadius = this._sphericalEnd.radius;
-	        var newRadius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
-	        var hasCollider = this.colliderMeshes.length >= 1;
+	    }
+	    dollyTo(distance, enableTransition = false) {
+	        const lastRadius = this._sphericalEnd.radius;
+	        const newRadius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
+	        const hasCollider = this.colliderMeshes.length >= 1;
 	        if (hasCollider) {
-	            var maxDistanceByCollisionTest = this._collisionTest();
-	            var isCollided = approxEquals(maxDistanceByCollisionTest, this._spherical.radius);
-	            var isDollyIn = lastRadius > newRadius;
+	            const maxDistanceByCollisionTest = this._collisionTest();
+	            const isCollided = approxEquals(maxDistanceByCollisionTest, this._spherical.radius);
+	            const isDollyIn = lastRadius > newRadius;
 	            if (!isDollyIn && isCollided)
 	                return Promise.resolve();
 	            this._sphericalEnd.radius = Math.min(newRadius, maxDistanceByCollisionTest);
@@ -871,81 +793,74 @@
 	        if (!enableTransition) {
 	            this._spherical.radius = this._sphericalEnd.radius;
 	        }
-	        var resolveImmediately = !enableTransition || approxEquals(this._spherical.radius, this._sphericalEnd.radius, this.restThreshold);
+	        const resolveImmediately = !enableTransition || approxEquals(this._spherical.radius, this._sphericalEnd.radius, this.restThreshold);
 	        return this._createOnRestPromise(resolveImmediately);
-	    };
-	    CameraControls.prototype.zoom = function (zoomStep, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    zoom(zoomStep, enableTransition = false) {
 	        return this.zoomTo(this._zoomEnd + zoomStep, enableTransition);
-	    };
-	    CameraControls.prototype.zoomTo = function (zoom, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    zoomTo(zoom, enableTransition = false) {
 	        this._zoomEnd = THREE.MathUtils.clamp(zoom, this.minZoom, this.maxZoom);
 	        this._needsUpdate = true;
 	        if (!enableTransition) {
 	            this._zoom = this._zoomEnd;
 	        }
-	        var resolveImmediately = !enableTransition || approxEquals(this._zoom, this._zoomEnd, this.restThreshold);
+	        const resolveImmediately = !enableTransition || approxEquals(this._zoom, this._zoomEnd, this.restThreshold);
 	        return this._createOnRestPromise(resolveImmediately);
-	    };
-	    CameraControls.prototype.pan = function (x, y, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    pan(x, y, enableTransition = false) {
 	        console.warn('`pan` has been renamed to `truck`');
 	        return this.truck(x, y, enableTransition);
-	    };
-	    CameraControls.prototype.truck = function (x, y, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    truck(x, y, enableTransition = false) {
 	        this._camera.updateMatrix();
 	        _xColumn.setFromMatrixColumn(this._camera.matrix, 0);
 	        _yColumn.setFromMatrixColumn(this._camera.matrix, 1);
 	        _xColumn.multiplyScalar(x);
 	        _yColumn.multiplyScalar(-y);
-	        var offset = _v3A.copy(_xColumn).add(_yColumn);
-	        var to = _v3B.copy(this._targetEnd).add(offset);
+	        const offset = _v3A.copy(_xColumn).add(_yColumn);
+	        const to = _v3B.copy(this._targetEnd).add(offset);
 	        return this.moveTo(to.x, to.y, to.z, enableTransition);
-	    };
-	    CameraControls.prototype.forward = function (distance, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    forward(distance, enableTransition = false) {
 	        _v3A.setFromMatrixColumn(this._camera.matrix, 0);
 	        _v3A.crossVectors(this._camera.up, _v3A);
 	        _v3A.multiplyScalar(distance);
-	        var to = _v3B.copy(this._targetEnd).add(_v3A);
+	        const to = _v3B.copy(this._targetEnd).add(_v3A);
 	        return this.moveTo(to.x, to.y, to.z, enableTransition);
-	    };
-	    CameraControls.prototype.moveTo = function (x, y, z, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var offset = _v3A.set(x, y, z).sub(this._targetEnd);
+	    }
+	    moveTo(x, y, z, enableTransition = false) {
+	        const offset = _v3A.set(x, y, z).sub(this._targetEnd);
 	        this._encloseToBoundary(this._targetEnd, offset, this.boundaryFriction);
 	        this._needsUpdate = true;
 	        if (!enableTransition) {
 	            this._target.copy(this._targetEnd);
 	        }
-	        var resolveImmediately = !enableTransition ||
+	        const resolveImmediately = !enableTransition ||
 	            approxEquals(this._target.x, this._targetEnd.x, this.restThreshold) &&
 	                approxEquals(this._target.y, this._targetEnd.y, this.restThreshold) &&
 	                approxEquals(this._target.z, this._targetEnd.z, this.restThreshold);
 	        return this._createOnRestPromise(resolveImmediately);
-	    };
-	    CameraControls.prototype.fitToBox = function (box3OrObject, enableTransition, _a) {
-	        var _b = _a === void 0 ? {} : _a, _c = _b.paddingLeft, paddingLeft = _c === void 0 ? 0 : _c, _d = _b.paddingRight, paddingRight = _d === void 0 ? 0 : _d, _e = _b.paddingBottom, paddingBottom = _e === void 0 ? 0 : _e, _f = _b.paddingTop, paddingTop = _f === void 0 ? 0 : _f;
-	        var promises = [];
-	        var aabb = box3OrObject.isBox3
+	    }
+	    fitToBox(box3OrObject, enableTransition, { paddingLeft = 0, paddingRight = 0, paddingBottom = 0, paddingTop = 0 } = {}) {
+	        const promises = [];
+	        const aabb = box3OrObject.isBox3
 	            ? _box3A.copy(box3OrObject)
 	            : _box3A.setFromObject(box3OrObject);
 	        if (aabb.isEmpty()) {
 	            console.warn('camera-controls: fitTo() cannot be used with an empty box. Aborting');
 	            Promise.resolve();
 	        }
-	        var theta = roundToStep(this._sphericalEnd.theta, PI_HALF);
-	        var phi = roundToStep(this._sphericalEnd.phi, PI_HALF);
+	        const theta = roundToStep(this._sphericalEnd.theta, PI_HALF);
+	        const phi = roundToStep(this._sphericalEnd.phi, PI_HALF);
 	        promises.push(this.rotateTo(theta, phi, enableTransition));
-	        var normal = _v3A.setFromSpherical(this._sphericalEnd).normalize();
-	        var rotation = _quaternionA.setFromUnitVectors(normal, _AXIS_Z);
-	        var viewFromPolar = approxEquals(Math.abs(normal.y), 1);
+	        const normal = _v3A.setFromSpherical(this._sphericalEnd).normalize();
+	        const rotation = _quaternionA.setFromUnitVectors(normal, _AXIS_Z);
+	        const viewFromPolar = approxEquals(Math.abs(normal.y), 1);
 	        if (viewFromPolar) {
 	            rotation.multiply(_quaternionB.setFromAxisAngle(_AXIS_Y, theta));
 	        }
-	        var bb = _box3B.makeEmpty();
+	        const bb = _box3B.makeEmpty();
 	        _v3B.copy(aabb.min).applyQuaternion(rotation);
 	        bb.expandByPoint(_v3B);
 	        _v3B.copy(aabb.min).setX(aabb.max.x).applyQuaternion(rotation);
@@ -967,55 +882,53 @@
 	        bb.min.y -= paddingBottom;
 	        bb.max.x += paddingRight;
 	        bb.max.y += paddingTop;
-	        var bbSize = bb.getSize(_v3A);
-	        var center = bb.getCenter(_v3B).applyQuaternion(rotation);
+	        const bbSize = bb.getSize(_v3A);
+	        const center = bb.getCenter(_v3B).applyQuaternion(rotation);
 	        if (isPerspectiveCamera(this._camera)) {
-	            var distance = this.getDistanceToFitBox(bbSize.x, bbSize.y, bbSize.z);
+	            const distance = this.getDistanceToFitBox(bbSize.x, bbSize.y, bbSize.z);
 	            promises.push(this.moveTo(center.x, center.y, center.z, enableTransition));
 	            promises.push(this.dollyTo(distance, enableTransition));
 	            promises.push(this.setFocalOffset(0, 0, 0, enableTransition));
 	        }
 	        else if (isOrthographicCamera(this._camera)) {
-	            var camera = this._camera;
-	            var width = camera.right - camera.left;
-	            var height = camera.top - camera.bottom;
-	            var zoom = Math.min(width / bbSize.x, height / bbSize.y);
+	            const camera = this._camera;
+	            const width = camera.right - camera.left;
+	            const height = camera.top - camera.bottom;
+	            const zoom = Math.min(width / bbSize.x, height / bbSize.y);
 	            promises.push(this.moveTo(center.x, center.y, center.z, enableTransition));
 	            promises.push(this.zoomTo(zoom, enableTransition));
 	            promises.push(this.setFocalOffset(0, 0, 0, enableTransition));
 	        }
 	        return Promise.all(promises);
-	    };
-	    CameraControls.prototype.fitTo = function (box3OrObject, enableTransition, fitToOptions) {
-	        if (fitToOptions === void 0) { fitToOptions = {}; }
+	    }
+	    fitTo(box3OrObject, enableTransition, fitToOptions = {}) {
 	        console.warn('camera-controls: fitTo() has been renamed to fitToBox()');
 	        return this.fitToBox(box3OrObject, enableTransition, fitToOptions);
-	    };
-	    CameraControls.prototype.fitToSphere = function (sphereOrMesh, enableTransition) {
-	        var promises = [];
-	        var isSphere = sphereOrMesh instanceof THREE.Sphere;
-	        var boundingSphere = isSphere ?
+	    }
+	    fitToSphere(sphereOrMesh, enableTransition) {
+	        const promises = [];
+	        const isSphere = sphereOrMesh instanceof THREE.Sphere;
+	        const boundingSphere = isSphere ?
 	            _sphere.copy(sphereOrMesh) :
 	            createBoundingSphere(sphereOrMesh, _sphere);
 	        promises.push(this.moveTo(boundingSphere.center.x, boundingSphere.center.y, boundingSphere.center.z, enableTransition));
 	        if (isPerspectiveCamera(this._camera)) {
-	            var distanceToFit = this.getDistanceToFitSphere(boundingSphere.radius);
+	            const distanceToFit = this.getDistanceToFitSphere(boundingSphere.radius);
 	            promises.push(this.dollyTo(distanceToFit, enableTransition));
 	        }
 	        else if (isOrthographicCamera(this._camera)) {
-	            var width = this._camera.right - this._camera.left;
-	            var height = this._camera.top - this._camera.bottom;
-	            var diameter = 2 * boundingSphere.radius;
-	            var zoom = Math.min(width / diameter, height / diameter);
+	            const width = this._camera.right - this._camera.left;
+	            const height = this._camera.top - this._camera.bottom;
+	            const diameter = 2 * boundingSphere.radius;
+	            const zoom = Math.min(width / diameter, height / diameter);
 	            promises.push(this.zoomTo(zoom, enableTransition));
 	        }
 	        promises.push(this.setFocalOffset(0, 0, 0, enableTransition));
 	        return Promise.all(promises);
-	    };
-	    CameraControls.prototype.setLookAt = function (positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var target = _v3B.set(targetX, targetY, targetZ);
-	        var position = _v3A.set(positionX, positionY, positionZ);
+	    }
+	    setLookAt(positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition = false) {
+	        const target = _v3B.set(targetX, targetY, targetZ);
+	        const position = _v3A.set(positionX, positionY, positionZ);
 	        this._targetEnd.copy(target);
 	        this._sphericalEnd.setFromVector3(position.sub(target).applyQuaternion(this._yAxisUpSpace));
 	        this.normalizeRotations();
@@ -1024,7 +937,7 @@
 	            this._target.copy(this._targetEnd);
 	            this._spherical.copy(this._sphericalEnd);
 	        }
-	        var resolveImmediately = !enableTransition ||
+	        const resolveImmediately = !enableTransition ||
 	            approxEquals(this._target.x, this._targetEnd.x, this.restThreshold) &&
 	                approxEquals(this._target.y, this._targetEnd.y, this.restThreshold) &&
 	                approxEquals(this._target.z, this._targetEnd.z, this.restThreshold) &&
@@ -1032,19 +945,18 @@
 	                approxEquals(this._spherical.phi, this._sphericalEnd.phi, this.restThreshold) &&
 	                approxEquals(this._spherical.radius, this._sphericalEnd.radius, this.restThreshold);
 	        return this._createOnRestPromise(resolveImmediately);
-	    };
-	    CameraControls.prototype.lerpLookAt = function (positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, t, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var targetA = _v3A.set(targetAX, targetAY, targetAZ);
-	        var positionA = _v3B.set(positionAX, positionAY, positionAZ);
+	    }
+	    lerpLookAt(positionAX, positionAY, positionAZ, targetAX, targetAY, targetAZ, positionBX, positionBY, positionBZ, targetBX, targetBY, targetBZ, t, enableTransition = false) {
+	        const targetA = _v3A.set(targetAX, targetAY, targetAZ);
+	        const positionA = _v3B.set(positionAX, positionAY, positionAZ);
 	        _sphericalA.setFromVector3(positionA.sub(targetA).applyQuaternion(this._yAxisUpSpace));
-	        var targetB = _v3C.set(targetBX, targetBY, targetBZ);
-	        var positionB = _v3B.set(positionBX, positionBY, positionBZ);
+	        const targetB = _v3C.set(targetBX, targetBY, targetBZ);
+	        const positionB = _v3B.set(positionBX, positionBY, positionBZ);
 	        _sphericalB.setFromVector3(positionB.sub(targetB).applyQuaternion(this._yAxisUpSpace));
 	        this._targetEnd.copy(targetA.lerp(targetB, t));
-	        var deltaTheta = _sphericalB.theta - _sphericalA.theta;
-	        var deltaPhi = _sphericalB.phi - _sphericalA.phi;
-	        var deltaRadius = _sphericalB.radius - _sphericalA.radius;
+	        const deltaTheta = _sphericalB.theta - _sphericalA.theta;
+	        const deltaPhi = _sphericalB.phi - _sphericalA.phi;
+	        const deltaRadius = _sphericalB.radius - _sphericalA.radius;
 	        this._sphericalEnd.set(_sphericalA.radius + deltaRadius * t, _sphericalA.phi + deltaPhi * t, _sphericalA.theta + deltaTheta * t);
 	        this.normalizeRotations();
 	        this._needsUpdate = true;
@@ -1052,7 +964,7 @@
 	            this._target.copy(this._targetEnd);
 	            this._spherical.copy(this._sphericalEnd);
 	        }
-	        var resolveImmediately = !enableTransition ||
+	        const resolveImmediately = !enableTransition ||
 	            approxEquals(this._target.x, this._targetEnd.x, this.restThreshold) &&
 	                approxEquals(this._target.y, this._targetEnd.y, this.restThreshold) &&
 	                approxEquals(this._target.z, this._targetEnd.z, this.restThreshold) &&
@@ -1060,36 +972,33 @@
 	                approxEquals(this._spherical.phi, this._sphericalEnd.phi, this.restThreshold) &&
 	                approxEquals(this._spherical.radius, this._sphericalEnd.radius, this.restThreshold);
 	        return this._createOnRestPromise(resolveImmediately);
-	    };
-	    CameraControls.prototype.setPosition = function (positionX, positionY, positionZ, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    setPosition(positionX, positionY, positionZ, enableTransition = false) {
 	        return this.setLookAt(positionX, positionY, positionZ, this._targetEnd.x, this._targetEnd.y, this._targetEnd.z, enableTransition);
-	    };
-	    CameraControls.prototype.setTarget = function (targetX, targetY, targetZ, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var pos = this.getPosition(_v3A);
+	    }
+	    setTarget(targetX, targetY, targetZ, enableTransition = false) {
+	        const pos = this.getPosition(_v3A);
 	        return this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
-	    };
-	    CameraControls.prototype.setFocalOffset = function (x, y, z, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
+	    }
+	    setFocalOffset(x, y, z, enableTransition = false) {
 	        this._focalOffsetEnd.set(x, y, z);
 	        this._needsUpdate = true;
 	        if (!enableTransition) {
 	            this._focalOffset.copy(this._focalOffsetEnd);
 	        }
-	        var resolveImmediately = !enableTransition ||
+	        const resolveImmediately = !enableTransition ||
 	            approxEquals(this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold) &&
 	                approxEquals(this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold) &&
 	                approxEquals(this._focalOffset.z, this._focalOffsetEnd.z, this.restThreshold);
 	        return this._createOnRestPromise(resolveImmediately);
-	    };
-	    CameraControls.prototype.setOrbitPoint = function (targetX, targetY, targetZ) {
+	    }
+	    setOrbitPoint(targetX, targetY, targetZ) {
 	        _xColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 0);
 	        _yColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 1);
 	        _zColumn.setFromMatrixColumn(this._camera.matrixWorldInverse, 2);
-	        var position = _v3A.set(targetX, targetY, targetZ);
-	        var distance = position.distanceTo(this._camera.position);
-	        var cameraToPoint = position.sub(this._camera.position);
+	        const position = _v3A.set(targetX, targetY, targetZ);
+	        const distance = position.distanceTo(this._camera.position);
+	        const cameraToPoint = position.sub(this._camera.position);
 	        _xColumn.multiplyScalar(cameraToPoint.x);
 	        _yColumn.multiplyScalar(cameraToPoint.y);
 	        _zColumn.multiplyScalar(cameraToPoint.z);
@@ -1098,8 +1007,8 @@
 	        this.dollyTo(distance, false);
 	        this.setFocalOffset(-_v3A.x, _v3A.y, -_v3A.z, false);
 	        this.moveTo(targetX, targetY, targetZ, false);
-	    };
-	    CameraControls.prototype.setBoundary = function (box3) {
+	    }
+	    setBoundary(box3) {
 	        if (!box3) {
 	            this._boundary.min.set(-Infinity, -Infinity, -Infinity);
 	            this._boundary.max.set(Infinity, Infinity, Infinity);
@@ -1109,8 +1018,8 @@
 	        this._boundary.copy(box3);
 	        this._boundary.clampPoint(this._targetEnd, this._targetEnd);
 	        this._needsUpdate = true;
-	    };
-	    CameraControls.prototype.setViewport = function (viewportOrX, y, width, height) {
+	    }
+	    setViewport(viewportOrX, y, width, height) {
 	        if (viewportOrX === null) {
 	            this._viewport = null;
 	            return;
@@ -1122,72 +1031,71 @@
 	        else {
 	            this._viewport.copy(viewportOrX);
 	        }
-	    };
-	    CameraControls.prototype.getDistanceToFitBox = function (width, height, depth) {
+	    }
+	    getDistanceToFitBox(width, height, depth) {
 	        if (notSupportedInOrthographicCamera(this._camera, 'getDistanceToFitBox'))
 	            return this._spherical.radius;
-	        var boundingRectAspect = width / height;
-	        var fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
-	        var aspect = this._camera.aspect;
-	        var heightToFit = boundingRectAspect < aspect ? height : width / aspect;
+	        const boundingRectAspect = width / height;
+	        const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	        const aspect = this._camera.aspect;
+	        const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
 	        return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
-	    };
-	    CameraControls.prototype.getDistanceToFit = function (width, height, depth) {
+	    }
+	    getDistanceToFit(width, height, depth) {
 	        console.warn('camera-controls: getDistanceToFit() has been renamed to getDistanceToFitBox()');
 	        return this.getDistanceToFitBox(width, height, depth);
-	    };
-	    CameraControls.prototype.getDistanceToFitSphere = function (radius) {
+	    }
+	    getDistanceToFitSphere(radius) {
 	        if (notSupportedInOrthographicCamera(this._camera, 'getDistanceToFitSphere'))
 	            return this._spherical.radius;
-	        var vFOV = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
-	        var hFOV = Math.atan(Math.tan(vFOV * 0.5) * this._camera.aspect) * 2;
-	        var fov = 1 < this._camera.aspect ? vFOV : hFOV;
+	        const vFOV = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	        const hFOV = Math.atan(Math.tan(vFOV * 0.5) * this._camera.aspect) * 2;
+	        const fov = 1 < this._camera.aspect ? vFOV : hFOV;
 	        return radius / (Math.sin(fov * 0.5));
-	    };
-	    CameraControls.prototype.getTarget = function (out) {
-	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
+	    }
+	    getTarget(out) {
+	        const _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 	        return _out.copy(this._targetEnd);
-	    };
-	    CameraControls.prototype.getPosition = function (out) {
-	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
+	    }
+	    getPosition(out) {
+	        const _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 	        return _out.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).add(this._targetEnd);
-	    };
-	    CameraControls.prototype.getFocalOffset = function (out) {
-	        var _out = !!out && out.isVector3 ? out : new THREE.Vector3();
+	    }
+	    getFocalOffset(out) {
+	        const _out = !!out && out.isVector3 ? out : new THREE.Vector3();
 	        return _out.copy(this._focalOffsetEnd);
-	    };
-	    CameraControls.prototype.normalizeRotations = function () {
+	    }
+	    normalizeRotations() {
 	        this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
 	        if (this._sphericalEnd.theta < 0)
 	            this._sphericalEnd.theta += PI_2;
 	        this._spherical.theta += PI_2 * Math.round((this._sphericalEnd.theta - this._spherical.theta) / PI_2);
-	    };
-	    CameraControls.prototype.reset = function (enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var promises = [
+	    }
+	    reset(enableTransition = false) {
+	        const promises = [
 	            this.setLookAt(this._position0.x, this._position0.y, this._position0.z, this._target0.x, this._target0.y, this._target0.z, enableTransition),
 	            this.setFocalOffset(this._focalOffset0.x, this._focalOffset0.y, this._focalOffset0.z, enableTransition),
 	            this.zoomTo(this._zoom0, enableTransition),
 	        ];
 	        return Promise.all(promises);
-	    };
-	    CameraControls.prototype.saveState = function () {
+	    }
+	    saveState() {
 	        this._target0.copy(this._target);
 	        this._position0.copy(this._camera.position);
 	        this._zoom0 = this._zoom;
-	    };
-	    CameraControls.prototype.updateCameraUp = function () {
+	    }
+	    updateCameraUp() {
 	        this._yAxisUpSpace.setFromUnitVectors(this._camera.up, _AXIS_Y);
 	        quatInvertCompat(this._yAxisUpSpaceInverse.copy(this._yAxisUpSpace));
-	    };
-	    CameraControls.prototype.update = function (delta) {
-	        var dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-	        var lerpRatio = Math.min(dampingFactor * delta * 60, 1);
-	        var deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
-	        var deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
-	        var deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-	        var deltaTarget = _v3A.subVectors(this._targetEnd, this._target);
-	        var deltaOffset = _v3B.subVectors(this._focalOffsetEnd, this._focalOffset);
+	    }
+	    update(delta) {
+	        const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
+	        const lerpRatio = Math.min(dampingFactor * delta * 60, 1);
+	        const deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
+	        const deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
+	        const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
+	        const deltaTarget = _v3A.subVectors(this._targetEnd, this._target);
+	        const deltaOffset = _v3B.subVectors(this._focalOffsetEnd, this._focalOffset);
 	        if (!approxZero(deltaTheta) ||
 	            !approxZero(deltaPhi) ||
 	            !approxZero(deltaRadius) ||
@@ -1209,39 +1117,39 @@
 	        }
 	        if (this._dollyControlAmount !== 0) {
 	            if (isPerspectiveCamera(this._camera)) {
-	                var camera = this._camera;
-	                var direction = _v3A.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).normalize().negate();
-	                var planeX = _v3B.copy(direction).cross(camera.up).normalize();
+	                const camera = this._camera;
+	                const direction = _v3A.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).normalize().negate();
+	                const planeX = _v3B.copy(direction).cross(camera.up).normalize();
 	                if (planeX.lengthSq() === 0)
 	                    planeX.x = 1.0;
-	                var planeY = _v3C.crossVectors(planeX, direction);
-	                var worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5);
-	                var prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
-	                var lerpRatio_1 = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
-	                var cursor = _v3A.copy(this._targetEnd)
+	                const planeY = _v3C.crossVectors(planeX, direction);
+	                const worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5);
+	                const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
+	                const lerpRatio = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
+	                const cursor = _v3A.copy(this._targetEnd)
 	                    .add(planeX.multiplyScalar(this._dollyControlCoord.x * worldToScreen * camera.aspect))
 	                    .add(planeY.multiplyScalar(this._dollyControlCoord.y * worldToScreen));
-	                this._targetEnd.lerp(cursor, lerpRatio_1);
+	                this._targetEnd.lerp(cursor, lerpRatio);
 	                this._target.copy(this._targetEnd);
 	            }
 	            else if (isOrthographicCamera(this._camera)) {
-	                var camera = this._camera;
-	                var worldPosition = _v3A.set(this._dollyControlCoord.x, this._dollyControlCoord.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera);
-	                var quaternion = _v3B.set(0, 0, -1).applyQuaternion(camera.quaternion);
-	                var divisor = quaternion.dot(camera.up);
-	                var distance = approxZero(divisor) ? -worldPosition.dot(camera.up) : -worldPosition.dot(camera.up) / divisor;
-	                var cursor = _v3C.copy(worldPosition).add(quaternion.multiplyScalar(distance));
+	                const camera = this._camera;
+	                const worldPosition = _v3A.set(this._dollyControlCoord.x, this._dollyControlCoord.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera);
+	                const quaternion = _v3B.set(0, 0, -1).applyQuaternion(camera.quaternion);
+	                const divisor = quaternion.dot(camera.up);
+	                const distance = approxZero(divisor) ? -worldPosition.dot(camera.up) : -worldPosition.dot(camera.up) / divisor;
+	                const cursor = _v3C.copy(worldPosition).add(quaternion.multiplyScalar(distance));
 	                this._targetEnd.lerp(cursor, 1 - camera.zoom / this._dollyControlAmount);
 	                this._target.copy(this._targetEnd);
 	            }
 	            this._dollyControlAmount = 0;
 	        }
-	        var maxDistance = this._collisionTest();
+	        const maxDistance = this._collisionTest();
 	        this._spherical.radius = Math.min(this._spherical.radius, maxDistance);
 	        this._spherical.makeSafe();
 	        this._camera.position.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).add(this._target);
 	        this._camera.lookAt(this._target);
-	        var affectOffset = !approxZero(this._focalOffset.x) ||
+	        const affectOffset = !approxZero(this._focalOffset.x) ||
 	            !approxZero(this._focalOffset.y) ||
 	            !approxZero(this._focalOffset.z);
 	        if (affectOffset) {
@@ -1258,7 +1166,7 @@
 	        if (this._boundaryEnclosesCamera) {
 	            this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse), 1.0);
 	        }
-	        var zoomDelta = this._zoomEnd - this._zoom;
+	        const zoomDelta = this._zoomEnd - this._zoom;
 	        this._zoom += zoomDelta * lerpRatio;
 	        if (this._camera.zoom !== this._zoom) {
 	            if (approxZero(zoomDelta))
@@ -1268,7 +1176,7 @@
 	            this._updateNearPlaneCorners();
 	            this._needsUpdate = true;
 	        }
-	        var updated = this._needsUpdate;
+	        const updated = this._needsUpdate;
 	        if (updated && !this._updatedLastTime) {
 	            this._hasRested = false;
 	            this.dispatchEvent({ type: 'wake' });
@@ -1296,8 +1204,8 @@
 	        this._updatedLastTime = updated;
 	        this._needsUpdate = false;
 	        return updated;
-	    };
-	    CameraControls.prototype.toJSON = function () {
+	    }
+	    toJSON() {
 	        return JSON.stringify({
 	            enabled: this._enabled,
 	            minDistance: this.minDistance,
@@ -1323,11 +1231,10 @@
 	            zoom0: this._zoom0,
 	            focalOffset0: this._focalOffset0.toArray(),
 	        });
-	    };
-	    CameraControls.prototype.fromJSON = function (json, enableTransition) {
-	        if (enableTransition === void 0) { enableTransition = false; }
-	        var obj = JSON.parse(json);
-	        var position = _v3A.fromArray(obj.position);
+	    }
+	    fromJSON(json, enableTransition = false) {
+	        const obj = JSON.parse(json);
+	        const position = _v3A.fromArray(obj.position);
 	        this.enabled = obj.enabled;
 	        this.minDistance = obj.minDistance;
 	        this.maxDistance = maxNumberToInfinity(obj.maxDistance);
@@ -1353,13 +1260,13 @@
 	        this.zoomTo(obj.zoom, enableTransition);
 	        this.setFocalOffset(obj.focalOffset[0], obj.focalOffset[1], obj.focalOffset[2], enableTransition);
 	        this._needsUpdate = true;
-	    };
-	    CameraControls.prototype.dispose = function () {
+	    }
+	    dispose() {
 	        this._removeAllEventListeners();
-	    };
-	    CameraControls.prototype._findPointerById = function (pointerId) {
-	        var pointer = null;
-	        this._activePointers.some(function (activePointer) {
+	    }
+	    _findPointerById(pointerId) {
+	        let pointer = null;
+	        this._activePointers.some((activePointer) => {
 	            if (activePointer.pointerId === pointerId) {
 	                pointer = activePointer;
 	                return true;
@@ -1367,16 +1274,16 @@
 	            return false;
 	        });
 	        return pointer;
-	    };
-	    CameraControls.prototype._encloseToBoundary = function (position, offset, friction) {
-	        var offsetLength2 = offset.lengthSq();
+	    }
+	    _encloseToBoundary(position, offset, friction) {
+	        const offsetLength2 = offset.lengthSq();
 	        if (offsetLength2 === 0.0) {
 	            return position;
 	        }
-	        var newTarget = _v3B.copy(offset).add(position);
-	        var clampedTarget = this._boundary.clampPoint(newTarget, _v3C);
-	        var deltaClampedTarget = clampedTarget.sub(newTarget);
-	        var deltaClampedTargetLength2 = deltaClampedTarget.lengthSq();
+	        const newTarget = _v3B.copy(offset).add(position);
+	        const clampedTarget = this._boundary.clampPoint(newTarget, _v3C);
+	        const deltaClampedTarget = clampedTarget.sub(newTarget);
+	        const deltaClampedTargetLength2 = deltaClampedTarget.lengthSq();
 	        if (deltaClampedTargetLength2 === 0.0) {
 	            return position.add(offset);
 	        }
@@ -1387,61 +1294,61 @@
 	            return position.add(offset).add(deltaClampedTarget);
 	        }
 	        else {
-	            var offsetFactor = 1.0 + friction * deltaClampedTargetLength2 / offset.dot(deltaClampedTarget);
+	            const offsetFactor = 1.0 + friction * deltaClampedTargetLength2 / offset.dot(deltaClampedTarget);
 	            return position
 	                .add(_v3B.copy(offset).multiplyScalar(offsetFactor))
 	                .add(deltaClampedTarget.multiplyScalar(1.0 - friction));
 	        }
-	    };
-	    CameraControls.prototype._updateNearPlaneCorners = function () {
+	    }
+	    _updateNearPlaneCorners() {
 	        if (isPerspectiveCamera(this._camera)) {
-	            var camera = this._camera;
-	            var near = camera.near;
-	            var fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
-	            var heightHalf = Math.tan(fov * 0.5) * near;
-	            var widthHalf = heightHalf * camera.aspect;
+	            const camera = this._camera;
+	            const near = camera.near;
+	            const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+	            const heightHalf = Math.tan(fov * 0.5) * near;
+	            const widthHalf = heightHalf * camera.aspect;
 	            this._nearPlaneCorners[0].set(-widthHalf, -heightHalf, 0);
 	            this._nearPlaneCorners[1].set(widthHalf, -heightHalf, 0);
 	            this._nearPlaneCorners[2].set(widthHalf, heightHalf, 0);
 	            this._nearPlaneCorners[3].set(-widthHalf, heightHalf, 0);
 	        }
 	        else if (isOrthographicCamera(this._camera)) {
-	            var camera = this._camera;
-	            var zoomInv = 1 / camera.zoom;
-	            var left = camera.left * zoomInv;
-	            var right = camera.right * zoomInv;
-	            var top_1 = camera.top * zoomInv;
-	            var bottom = camera.bottom * zoomInv;
-	            this._nearPlaneCorners[0].set(left, top_1, 0);
-	            this._nearPlaneCorners[1].set(right, top_1, 0);
+	            const camera = this._camera;
+	            const zoomInv = 1 / camera.zoom;
+	            const left = camera.left * zoomInv;
+	            const right = camera.right * zoomInv;
+	            const top = camera.top * zoomInv;
+	            const bottom = camera.bottom * zoomInv;
+	            this._nearPlaneCorners[0].set(left, top, 0);
+	            this._nearPlaneCorners[1].set(right, top, 0);
 	            this._nearPlaneCorners[2].set(right, bottom, 0);
 	            this._nearPlaneCorners[3].set(left, bottom, 0);
 	        }
-	    };
-	    CameraControls.prototype._collisionTest = function () {
-	        var distance = Infinity;
-	        var hasCollider = this.colliderMeshes.length >= 1;
+	    }
+	    _collisionTest() {
+	        let distance = Infinity;
+	        const hasCollider = this.colliderMeshes.length >= 1;
 	        if (!hasCollider)
 	            return distance;
 	        if (notSupportedInOrthographicCamera(this._camera, '_collisionTest'))
 	            return distance;
-	        var direction = _v3A.setFromSpherical(this._spherical).divideScalar(this._spherical.radius);
+	        const direction = _v3A.setFromSpherical(this._spherical).divideScalar(this._spherical.radius);
 	        _rotationMatrix.lookAt(_ORIGIN, direction, this._camera.up);
-	        for (var i = 0; i < 4; i++) {
-	            var nearPlaneCorner = _v3B.copy(this._nearPlaneCorners[i]);
+	        for (let i = 0; i < 4; i++) {
+	            const nearPlaneCorner = _v3B.copy(this._nearPlaneCorners[i]);
 	            nearPlaneCorner.applyMatrix4(_rotationMatrix);
-	            var origin_1 = _v3C.addVectors(this._target, nearPlaneCorner);
-	            _raycaster.set(origin_1, direction);
+	            const origin = _v3C.addVectors(this._target, nearPlaneCorner);
+	            _raycaster.set(origin, direction);
 	            _raycaster.far = this._spherical.radius + 1;
-	            var intersects = _raycaster.intersectObjects(this.colliderMeshes);
+	            const intersects = _raycaster.intersectObjects(this.colliderMeshes);
 	            if (intersects.length !== 0 && intersects[0].distance < distance) {
 	                distance = intersects[0].distance;
 	            }
 	        }
 	        return distance;
-	    };
-	    CameraControls.prototype._getClientRect = function (target) {
-	        var rect = this._domElement.getBoundingClientRect();
+	    }
+	    _getClientRect(target) {
+	        const rect = this._domElement.getBoundingClientRect();
 	        target.x = rect.left;
 	        target.y = rect.top;
 	        if (this._viewport) {
@@ -1455,52 +1362,50 @@
 	            target.height = rect.height;
 	        }
 	        return target;
-	    };
-	    CameraControls.prototype._createOnRestPromise = function (resolveImmediately) {
-	        var _this = this;
+	    }
+	    _createOnRestPromise(resolveImmediately) {
 	        if (resolveImmediately)
 	            return Promise.resolve();
 	        this._hasRested = false;
 	        this.dispatchEvent({ type: 'transitionstart' });
-	        return new Promise(function (resolve) {
-	            var onResolve = function () {
-	                _this.removeEventListener('rest', onResolve);
+	        return new Promise((resolve) => {
+	            const onResolve = () => {
+	                this.removeEventListener('rest', onResolve);
 	                resolve();
 	            };
-	            _this.addEventListener('rest', onResolve);
+	            this.addEventListener('rest', onResolve);
 	        });
-	    };
-	    CameraControls.prototype._removeAllEventListeners = function () { };
-	    return CameraControls;
-	}(EventDispatcher));
+	    }
+	    _removeAllEventListeners() { }
+	}
 	function createBoundingSphere(object3d, out) {
-	    var boundingSphere = out;
-	    var center = boundingSphere.center;
-	    object3d.traverse(function (object) {
+	    const boundingSphere = out;
+	    const center = boundingSphere.center;
+	    object3d.traverse((object) => {
 	        if (!object.isMesh)
 	            return;
 	        _box3A.expandByObject(object);
 	    });
 	    _box3A.getCenter(center);
-	    var maxRadiusSq = 0;
-	    object3d.traverse(function (object) {
+	    let maxRadiusSq = 0;
+	    object3d.traverse((object) => {
 	        if (!object.isMesh)
 	            return;
-	        var mesh = object;
-	        var geometry = mesh.geometry.clone();
+	        const mesh = object;
+	        const geometry = mesh.geometry.clone();
 	        geometry.applyMatrix4(mesh.matrixWorld);
 	        if (geometry.isBufferGeometry) {
-	            var bufferGeometry = geometry;
-	            var position = bufferGeometry.attributes.position;
-	            for (var i = 0, l = position.count; i < l; i++) {
+	            const bufferGeometry = geometry;
+	            const position = bufferGeometry.attributes.position;
+	            for (let i = 0, l = position.count; i < l; i++) {
 	                _v3A.fromBufferAttribute(position, i);
 	                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_v3A));
 	            }
 	        }
 	        else {
-	            var position = geometry.attributes.position;
-	            var vector = new THREE.Vector3();
-	            for (var i = 0, l = position.count; i < l; i++) {
+	            const position = geometry.attributes.position;
+	            const vector = new THREE.Vector3();
+	            for (let i = 0, l = position.count; i < l; i++) {
 	                vector.fromBufferAttribute(position, i);
 	                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(vector));
 	            }
