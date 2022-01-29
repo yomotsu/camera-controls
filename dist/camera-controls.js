@@ -261,6 +261,8 @@
 	        this._state = ACTION.NONE;
 	        this._domElement = domElement;
 	        this._domElement.style.touchAction = 'none';
+	        this._domElement.style.userSelect = 'none';
+	        this._domElement.style.webkitUserSelect = 'none';
 	        this._target = new THREE.Vector3();
 	        this._targetEnd = this._target.clone();
 	        this._focalOffset = new THREE.Vector3();
@@ -691,8 +693,17 @@
 	    }
 	    set enabled(enabled) {
 	        this._enabled = enabled;
-	        if (!enabled)
+	        if (enabled) {
+	            this._domElement.style.touchAction = 'none';
+	            this._domElement.style.userSelect = 'none';
+	            this._domElement.style.webkitUserSelect = 'none';
+	        }
+	        else {
 	            this.cancel();
+	            this._domElement.style.touchAction = '';
+	            this._domElement.style.userSelect = '';
+	            this._domElement.style.webkitUserSelect = '';
+	        }
 	    }
 	    get active() {
 	        return !this._hasRested;
