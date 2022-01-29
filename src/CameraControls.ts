@@ -188,6 +188,8 @@ export class CameraControls extends EventDispatcher {
 
 		this._domElement = domElement;
 		this._domElement.style.touchAction = 'none';
+		this._domElement.style.userSelect = 'none';
+		this._domElement.style.webkitUserSelect = 'none';
 
 		// the location
 		this._target = new THREE.Vector3();
@@ -852,7 +854,20 @@ export class CameraControls extends EventDispatcher {
 	set enabled( enabled: boolean ) {
 
 		this._enabled = enabled;
-		if ( ! enabled ) this.cancel();
+		if ( enabled ) {
+
+			this._domElement.style.touchAction = 'none';
+			this._domElement.style.userSelect = 'none';
+			this._domElement.style.webkitUserSelect = 'none';
+
+		} else {
+
+			this.cancel();
+			this._domElement.style.touchAction = '';
+			this._domElement.style.userSelect = '';
+			this._domElement.style.webkitUserSelect = '';
+
+		}
 
 	}
 
