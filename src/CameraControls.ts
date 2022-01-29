@@ -992,7 +992,7 @@ export class CameraControls extends EventDispatcher {
 	rotateAzimuthTo( azimuthAngle: number, enableTransition: boolean = false ): Promise<void> {
 
 		return this.rotateTo(
-			this._sphericalEnd.theta + azimuthAngle,
+			azimuthAngle,
 			this._sphericalEnd.phi,
 			enableTransition,
 		);
@@ -1008,7 +1008,7 @@ export class CameraControls extends EventDispatcher {
 
 		return this.rotateTo(
 			this._sphericalEnd.theta,
-			this._sphericalEnd.phi + polarAngle,
+			polarAngle,
 			enableTransition,
 		);
 
