@@ -30,8 +30,8 @@
     "lint": "eslint src --ext ts"
   },
   "browserslist": [
-    "last 2 versions",
-    "ie >= 11"
+    "last 3 versions",
+    "not ie <= 11"
   ],
   "eslintConfig": {
     "root": true,
