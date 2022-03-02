@@ -2337,6 +2337,7 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 	const boundingSphere = out;
 	const center = boundingSphere.center;
 
+	_box3A.makeEmpty();
 	// find the center
 	object3d.traverse( ( object ) => {
 
