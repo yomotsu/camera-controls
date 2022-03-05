@@ -1392,14 +1392,15 @@
 	function createBoundingSphere(object3d, out) {
 	    const boundingSphere = out;
 	    const center = boundingSphere.center;
-	    object3d.traverse((object) => {
+	    _box3A.makeEmpty();
+	    object3d.traverseVisible((object) => {
 	        if (!object.isMesh)
 	            return;
 	        _box3A.expandByObject(object);
 	    });
 	    _box3A.getCenter(center);
 	    let maxRadiusSq = 0;
-	    object3d.traverse((object) => {
+	    object3d.traverseVisible((object) => {
 	        if (!object.isMesh)
 	            return;
 	        const mesh = object;
