@@ -2339,7 +2339,7 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 
 	_box3A.makeEmpty();
 	// find the center
-	object3d.traverse( ( object ) => {
+	object3d.traverseVisible( ( object ) => {
 
 		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
 
@@ -2350,7 +2350,7 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 
 	// find the radius
 	let maxRadiusSq = 0;
-	object3d.traverse( ( object ) => {
+	object3d.traverseVisible( ( object ) => {
 
 		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
 
