@@ -9,7 +9,7 @@ export class EventDispatcher {
 
 	private _listeners: { [ type: string ]: Listener[] } = {};
 
-	addEventListener( type: string, listener: Listener ): void {
+	protected addEventListener( type: string, listener: Listener ): void {
 
 		const listeners = this._listeners;
 
@@ -27,7 +27,7 @@ export class EventDispatcher {
 
 	// }
 
-	removeEventListener( type: string, listener: Listener ): void {
+	protected removeEventListener( type: string, listener: Listener ): void {
 
 		const listeners = this._listeners;
 		const listenerArray = listeners[ type ];
@@ -42,7 +42,7 @@ export class EventDispatcher {
 
 	}
 
-	removeAllEventListeners( type?: string ): void {
+	protected removeAllEventListeners( type?: string ): void {
 
 		if ( ! type ) {
 
@@ -55,7 +55,7 @@ export class EventDispatcher {
 
 	}
 
-	dispatchEvent( event: DispatcherEvent ): void {
+	protected dispatchEvent( event: DispatcherEvent ): void {
 
 		const listeners = this._listeners;
 		const listenerArray = listeners[ event.type ];

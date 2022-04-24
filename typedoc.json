@@ -1,0 +1,22 @@
+{
+	"includeVersion": true,
+	"markedOptions": {
+		"breaks": true
+	},
+	"entryPoints": ["./src/CameraControls.ts"],
+	"out": "docs",
+	"excludePrivate": true,
+	"excludeProtected": true,
+	"excludeInternal": true,
+	"excludeExternals": true,
+	"sort": [ "source-order" ],
+	"categorizeByGroup": false,
+	"categoryOrder": [
+		"Statics",
+		"Constructor",
+		"Properties",
+		"Methods",
+		"*"
+	],
+	"tsconfig": "tsconfig.json"
+}
