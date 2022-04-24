@@ -519,8 +519,7 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 #### `setBoundary( box3? )`
 
-Set the boundary box that encloses the target of the camera. `box3` is in `THREE.Box3`  
-Returns its current position.
+Set the boundary box that encloses the target of the camera. `box3` is in `THREE.Box3`
 
 | Name   | Type          | Description |
 | ------ | ------------- | ----------- |
