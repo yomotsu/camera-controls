@@ -88,7 +88,6 @@ export declare class CameraControls extends EventDispatcher {
     forward(distance: number, enableTransition?: boolean): Promise<void>;
     moveTo(x: number, y: number, z: number, enableTransition?: boolean): Promise<void>;
     fitToBox(box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, { paddingLeft, paddingRight, paddingBottom, paddingTop }?: Partial<FitToOptions>): Promise<void[]>;
-    fitTo(box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, fitToOptions?: Partial<FitToOptions>): Promise<void[]>;
     fitToSphere(sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean): Promise<void[]>;
     setLookAt(positionX: number, positionY: number, positionZ: number, targetX: number, targetY: number, targetZ: number, enableTransition?: boolean): Promise<void>;
     lerpLookAt(positionAX: number, positionAY: number, positionAZ: number, targetAX: number, targetAY: number, targetAZ: number, positionBX: number, positionBY: number, positionBZ: number, targetBX: number, targetBY: number, targetBZ: number, t: number, enableTransition?: boolean): Promise<void>;
@@ -99,7 +98,6 @@ export declare class CameraControls extends EventDispatcher {
     setBoundary(box3?: _THREE.Box3): void;
     setViewport(viewportOrX: _THREE.Vector4 | number | null, y: number, width: number, height: number): void;
     getDistanceToFitBox(width: number, height: number, depth: number): number;
-    getDistanceToFit(width: number, height: number, depth: number): number;
     getDistanceToFitSphere(radius: number): number;
     getTarget(out: _THREE.Vector3): _THREE.Vector3;
     getPosition(out: _THREE.Vector3): _THREE.Vector3;

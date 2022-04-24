@@ -140,6 +140,8 @@ let _v3C;
 let _xColumn;
 let _yColumn;
 let _zColumn;
+let _deltaTarget;
+let _deltaOffset;
 let _sphericalA;
 let _sphericalB;
 let _box3A;
@@ -659,6 +661,8 @@ class CameraControls extends EventDispatcher {
         _xColumn = new THREE.Vector3();
         _yColumn = new THREE.Vector3();
         _zColumn = new THREE.Vector3();
+        _deltaTarget = new THREE.Vector3();
+        _deltaOffset = new THREE.Vector3();
         _sphericalA = new THREE.Spherical();
         _sphericalB = new THREE.Spherical();
         _box3A = new THREE.Box3();
@@ -906,10 +910,6 @@ class CameraControls extends EventDispatcher {
         }
         return Promise.all(promises);
     }
-    fitTo(box3OrObject, enableTransition, fitToOptions = {}) {
-        console.warn('camera-controls: fitTo() has been renamed to fitToBox()');
-        return this.fitToBox(box3OrObject, enableTransition, fitToOptions);
-    }
     fitToSphere(sphereOrMesh, enableTransition) {
         const promises = [];
         const isSphere = sphereOrMesh instanceof THREE.Sphere;
@@ -1046,10 +1046,6 @@ class CameraControls extends EventDispatcher {
         const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
         return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
     }
-    getDistanceToFit(width, height, depth) {
-        console.warn('camera-controls: getDistanceToFit() has been renamed to getDistanceToFitBox()');
-        return this.getDistanceToFitBox(width, height, depth);
-    }
     getDistanceToFitSphere(radius) {
         if (notSupportedInOrthographicCamera(this._camera, 'getDistanceToFitSphere'))
             return this._spherical.radius;
@@ -1099,8 +1095,8 @@ class CameraControls extends EventDispatcher {
         const deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
         const deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
         const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
-        const deltaTarget = _v3A.subVectors(this._targetEnd, this._target);
-        const deltaOffset = _v3B.subVectors(this._focalOffsetEnd, this._focalOffset);
+        const deltaTarget = _deltaTarget.subVectors(this._targetEnd, this._target);
+        const deltaOffset = _deltaOffset.subVectors(this._focalOffsetEnd, this._focalOffset);
         if (!approxZero(deltaTheta) ||
             !approxZero(deltaPhi) ||
             !approxZero(deltaRadius) ||
