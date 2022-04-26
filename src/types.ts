@@ -65,6 +65,7 @@ export interface MouseButtons {
 	right    : mouseButtonAction;
 	wheel    : mouseWheelAction;
 	shiftLeft: mouseButtonAction;
+	shiftMiddle: mouseButtonAction;
 	// We can also add altLeft and etc if someone wants...
 }
 

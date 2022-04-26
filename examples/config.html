@@ -62,6 +62,17 @@
 	</select>
 	<br>
 
+	cameraControls.mouseButtons.shiftMiddle =
+	<select onchange="cameraControls.mouseButtons.shiftMiddle = CameraControls.ACTION[ this.value ]">
+		<option value="ROTATE">CameraControls.ACTION.ROTATE</option>
+		<option value="TRUCK">CameraControls.ACTION.TRUCK</option>
+		<option value="OFFSET">CameraControls.ACTION.OFFSET</option>
+		<option value="DOLLY" selected>CameraControls.ACTION.DOLLY</option>
+		<option value="ZOOM">CameraControls.ACTION.ZOOM</option>
+		<option value="NONE">CameraControls.ACTION.NONE</option>
+	</select>
+	<br>
+
 	cameraControls.touches.one =
 	<select onchange="cameraControls.touches.one = CameraControls.ACTION[ this.value ]">
 		<option value="ROTATE" selected>CameraControls.ACTION.TOUCH_ROTATE</option>
