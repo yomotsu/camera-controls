@@ -57,6 +57,10 @@
       "no-multi-spaces": [
         0
       ],
+      "no-trailing-spaces": [
+        "error",
+        { "ignoreComments": true }
+      ],
       "key-spacing": [
         0
       ]

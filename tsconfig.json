@@ -7,7 +7,7 @@
     "target": "es2017",
     "lib": ["es2017", "dom"],
     "strict": true,
-    "removeComments": true,
+    "removeComments": false,
     "experimentalDecorators": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
