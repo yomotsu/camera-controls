@@ -5,8 +5,30 @@ export interface DispatcherEvent {
 }
 export declare class EventDispatcher {
     private _listeners;
-    protected addEventListener(type: string, listener: Listener): void;
-    protected removeEventListener(type: string, listener: Listener): void;
-    protected removeAllEventListeners(type?: string): void;
-    protected dispatchEvent(event: DispatcherEvent): void;
+    /**
+     * Adds the specified event listener.
+     * @param type event name
+     * @param listener handler function
+     * @category Methods
+     */
+    addEventListener(type: string, listener: Listener): void;
+    /**
+     * Removes the specified event listener
+     * @param type event name
+     * @param listener handler function
+     * @category Methods
+     */
+    removeEventListener(type: string, listener: Listener): void;
+    /**
+     * Removes all event listeners
+     * @param type event name
+     * @category Methods
+     */
+    removeAllEventListeners(type?: string): void;
+    /**
+     * Fire an event type.
+     * @param event DispatcherEvent
+     * @category Methods
+     */
+    dispatchEvent(event: DispatcherEvent): void;
 }
