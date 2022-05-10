@@ -9,7 +9,13 @@ export class EventDispatcher {
 
 	private _listeners: { [ type: string ]: Listener[] } = {};
 
-	protected addEventListener( type: string, listener: Listener ): void {
+	/**
+	 * Adds the specified event listener.
+	 * @param type event name
+	 * @param listener handler function
+	 * @category Methods
+	 */
+	addEventListener( type: string, listener: Listener ): void {
 
 		const listeners = this._listeners;
 
@@ -27,7 +33,13 @@ export class EventDispatcher {
 
 	// }
 
-	protected removeEventListener( type: string, listener: Listener ): void {
+	/**
+	 * Removes the specified event listener
+	 * @param type event name
+	 * @param listener handler function
+	 * @category Methods
+	 */
+	removeEventListener( type: string, listener: Listener ): void {
 
 		const listeners = this._listeners;
 		const listenerArray = listeners[ type ];
@@ -42,7 +54,12 @@ export class EventDispatcher {
 
 	}
 
-	protected removeAllEventListeners( type?: string ): void {
+	/**
+	 * Removes all event listeners
+	 * @param type event name
+	 * @category Methods
+	 */
+	removeAllEventListeners( type?: string ): void {
 
 		if ( ! type ) {
 
@@ -55,7 +72,12 @@ export class EventDispatcher {
 
 	}
 
-	protected dispatchEvent( event: DispatcherEvent ): void {
+	/**
+	 * Fire an event type.
+	 * @param event DispatcherEvent
+	 * @category Methods
+	 */
+	dispatchEvent( event: DispatcherEvent ): void {
 
 		const listeners = this._listeners;
 		const listenerArray = listeners[ event.type ];
