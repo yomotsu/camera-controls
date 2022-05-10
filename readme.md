@@ -4,6 +4,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 
 [![Latest NPM release](https://img.shields.io/npm/v/camera-controls.svg)](https://www.npmjs.com/package/camera-controls)
 
+[documentation](https://camera-controls.pages.dev/classes/CameraControls)
 ## Examples
 
 | camera move    | default user input (Configurable) |
