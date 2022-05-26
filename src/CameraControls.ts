@@ -29,7 +29,6 @@ import { EventDispatcher, Listener } from './EventDispatcher';
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test( navigator.platform );
 const isPointerEventsNotSupported = ! ( isBrowser && 'PointerEvent' in window ); // Safari 12 does not support PointerEvents API
-const readonlyACTION = Object.freeze( ACTION );
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 
 let THREE: THREESubset;
@@ -134,9 +133,9 @@ export class CameraControls extends EventDispatcher {
 	 * list all ACTIONs
 	 * @category Statics
 	 */
-	static get ACTION(): Readonly<typeof ACTION> {
+	static get ACTION(): typeof ACTION {
 
-		return readonlyACTION;
+		return ACTION;
 
 	}
 

@@ -20,23 +20,26 @@ export interface THREESubset {
 	[ key: string ]: any;
 }
 
-export enum ACTION {
-	NONE,
-	ROTATE,
-	TRUCK,
-	OFFSET,
-	DOLLY,
-	ZOOM,
-	TOUCH_ROTATE,
-	TOUCH_TRUCK,
-	TOUCH_OFFSET,
-	TOUCH_DOLLY,
-	TOUCH_ZOOM,
-	TOUCH_DOLLY_TRUCK,
-	TOUCH_DOLLY_OFFSET,
-	TOUCH_ZOOM_TRUCK,
-	TOUCH_ZOOM_OFFSET,
-}
+export const ACTION = Object.freeze( {
+	NONE: 0,
+	ROTATE: 1,
+	TRUCK: 2,
+	OFFSET: 3,
+	DOLLY: 4,
+	ZOOM: 5,
+	TOUCH_ROTATE: 6,
+	TOUCH_TRUCK: 7,
+	TOUCH_OFFSET: 8,
+	TOUCH_DOLLY: 9,
+	TOUCH_ZOOM: 10,
+	TOUCH_DOLLY_TRUCK: 11,
+	TOUCH_DOLLY_OFFSET: 12,
+	TOUCH_ZOOM_TRUCK: 13,
+	TOUCH_ZOOM_OFFSET: 14,
+} as const );
+// Readonly<typeof ACTION>
+// export type ACTION = typeof ACTION[ keyof typeof ACTION ];
+export type ACTION = Readonly<typeof ACTION[ keyof typeof ACTION ]>;
 
 export interface PointerInput {
 	pointerId: number;
@@ -44,20 +47,20 @@ export interface PointerInput {
 	clientY: number;
 }
 
-type mouseButtonAction = ACTION.ROTATE | ACTION.TRUCK | ACTION.OFFSET | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
-type mouseWheelAction  = ACTION.ROTATE | ACTION.TRUCK | ACTION.OFFSET | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
-type singleTouchAction = ACTION.TOUCH_ROTATE | ACTION.TOUCH_TRUCK | ACTION.TOUCH_OFFSET | ACTION.DOLLY | ACTION.ZOOM | ACTION.NONE;
+type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
+type mouseWheelAction  = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
+type singleTouchAction = typeof ACTION.TOUCH_ROTATE | typeof ACTION.TOUCH_TRUCK | typeof ACTION.TOUCH_OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
 type multiTouchAction =
-	ACTION.TOUCH_DOLLY_TRUCK |
-	ACTION.TOUCH_DOLLY_OFFSET |
-	ACTION.TOUCH_ZOOM_TRUCK |
-	ACTION.TOUCH_ZOOM_OFFSET |
-	ACTION.TOUCH_DOLLY |
-	ACTION.TOUCH_ZOOM |
-	ACTION.TOUCH_ROTATE |
-	ACTION.TOUCH_TRUCK |
-	ACTION.TOUCH_OFFSET |
-	ACTION.NONE;
+	typeof ACTION.TOUCH_DOLLY_TRUCK |
+	typeof ACTION.TOUCH_DOLLY_OFFSET |
+	typeof ACTION.TOUCH_ZOOM_TRUCK |
+	typeof ACTION.TOUCH_ZOOM_OFFSET |
+	typeof ACTION.TOUCH_DOLLY |
+	typeof ACTION.TOUCH_ZOOM |
+	typeof ACTION.TOUCH_ROTATE |
+	typeof ACTION.TOUCH_TRUCK |
+	typeof ACTION.TOUCH_OFFSET |
+	typeof ACTION.NONE;
 
 export interface MouseButtons {
 	left     : mouseButtonAction;
