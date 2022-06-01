@@ -2259,12 +2259,12 @@ export class CameraControls extends EventDispatcher {
 		}
 
 		// zoom
-		const zoomDelta = this._zoomEnd - this._zoom;
-		this._zoom += zoomDelta * lerpRatio;
+		const deltaZoom = this._zoomEnd - this._zoom;
+		this._zoom += deltaZoom * lerpRatio;
 
 		if ( this._camera.zoom !== this._zoom ) {
 
-			if ( approxZero( zoomDelta ) ) this._zoom = this._zoomEnd;
+			if ( approxZero( deltaZoom ) ) this._zoom = this._zoomEnd;
 
 			this._camera.zoom = this._zoom;
 			this._camera.updateProjectionMatrix();
@@ -2296,6 +2296,7 @@ export class CameraControls extends EventDispatcher {
 				approxZero( deltaOffset.x, this.restThreshold ) &&
 				approxZero( deltaOffset.y, this.restThreshold ) &&
 				approxZero( deltaOffset.z, this.restThreshold ) &&
+				approxZero( deltaZoom, this.restThreshold ) &&
 				! this._hasRested
 			) {
 
