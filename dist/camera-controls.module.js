@@ -4,24 +4,23 @@
  * (c) 2017 @yomotsu
  * Released under the MIT License.
  */
-var ACTION;
-(function (ACTION) {
-    ACTION[ACTION["NONE"] = 0] = "NONE";
-    ACTION[ACTION["ROTATE"] = 1] = "ROTATE";
-    ACTION[ACTION["TRUCK"] = 2] = "TRUCK";
-    ACTION[ACTION["OFFSET"] = 3] = "OFFSET";
-    ACTION[ACTION["DOLLY"] = 4] = "DOLLY";
-    ACTION[ACTION["ZOOM"] = 5] = "ZOOM";
-    ACTION[ACTION["TOUCH_ROTATE"] = 6] = "TOUCH_ROTATE";
-    ACTION[ACTION["TOUCH_TRUCK"] = 7] = "TOUCH_TRUCK";
-    ACTION[ACTION["TOUCH_OFFSET"] = 8] = "TOUCH_OFFSET";
-    ACTION[ACTION["TOUCH_DOLLY"] = 9] = "TOUCH_DOLLY";
-    ACTION[ACTION["TOUCH_ZOOM"] = 10] = "TOUCH_ZOOM";
-    ACTION[ACTION["TOUCH_DOLLY_TRUCK"] = 11] = "TOUCH_DOLLY_TRUCK";
-    ACTION[ACTION["TOUCH_DOLLY_OFFSET"] = 12] = "TOUCH_DOLLY_OFFSET";
-    ACTION[ACTION["TOUCH_ZOOM_TRUCK"] = 13] = "TOUCH_ZOOM_TRUCK";
-    ACTION[ACTION["TOUCH_ZOOM_OFFSET"] = 14] = "TOUCH_ZOOM_OFFSET";
-})(ACTION || (ACTION = {}));
+const ACTION = Object.freeze({
+    NONE: 0,
+    ROTATE: 1,
+    TRUCK: 2,
+    OFFSET: 3,
+    DOLLY: 4,
+    ZOOM: 5,
+    TOUCH_ROTATE: 6,
+    TOUCH_TRUCK: 7,
+    TOUCH_OFFSET: 8,
+    TOUCH_DOLLY: 9,
+    TOUCH_ZOOM: 10,
+    TOUCH_DOLLY_TRUCK: 11,
+    TOUCH_DOLLY_OFFSET: 12,
+    TOUCH_ZOOM_TRUCK: 13,
+    TOUCH_ZOOM_OFFSET: 14,
+});
 function isPerspectiveCamera(camera) {
     return camera.isPerspectiveCamera;
 }
@@ -159,7 +158,6 @@ class EventDispatcher {
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test(navigator.platform);
 const isPointerEventsNotSupported = !(isBrowser && 'PointerEvent' in window); // Safari 12 does not support PointerEvents API
-const readonlyACTION = Object.freeze(ACTION);
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 let THREE;
 let _ORIGIN;
@@ -928,7 +926,7 @@ class CameraControls extends EventDispatcher {
      * @category Statics
      */
     static get ACTION() {
-        return readonlyACTION;
+        return ACTION;
     }
     /**
      * The camera to be controlled
@@ -1779,10 +1777,10 @@ class CameraControls extends EventDispatcher {
             this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse), 1.0);
         }
         // zoom
-        const zoomDelta = this._zoomEnd - this._zoom;
-        this._zoom += zoomDelta * lerpRatio;
+        const deltaZoom = this._zoomEnd - this._zoom;
+        this._zoom += deltaZoom * lerpRatio;
         if (this._camera.zoom !== this._zoom) {
-            if (approxZero(zoomDelta))
+            if (approxZero(deltaZoom))
                 this._zoom = this._zoomEnd;
             this._camera.zoom = this._zoom;
             this._camera.updateProjectionMatrix();
@@ -1806,6 +1804,7 @@ class CameraControls extends EventDispatcher {
                 approxZero(deltaOffset.x, this.restThreshold) &&
                 approxZero(deltaOffset.y, this.restThreshold) &&
                 approxZero(deltaOffset.z, this.restThreshold) &&
+                approxZero(deltaZoom, this.restThreshold) &&
                 !this._hasRested) {
                 this._hasRested = true;
                 this.dispatchEvent({ type: 'rest' });

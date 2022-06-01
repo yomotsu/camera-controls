@@ -55,7 +55,7 @@ export declare class CameraControls extends EventDispatcher {
     * list all ACTIONs
     * @category Statics
     */
-    static readonly ACTION: Readonly<typeof ACTION>;
+    static readonly ACTION: typeof ACTION;
     /**
      * Minimum vertical angle in radians.
      * The angle has to be between `0` and `.maxPolarAngle` inclusive.
