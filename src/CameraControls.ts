@@ -335,6 +335,13 @@ export class CameraControls extends EventDispatcher {
 	// cancel will be overwritten in the constructor.
 	cancel: () => void = () => {};
 
+	/**
+	 * walk speed lerp ratio afect to speed on moving the camera some position not affected rotation or 
+	 * cursor interactions.
+	 * by default is set 0 and on animation is same value as dampingFactor
+	 */
+	walkSpeed = 0;
+
 	protected _enabled = true;
 	protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
 	protected _yAxisUpSpace: _THREE.Quaternion;
@@ -1562,6 +1569,7 @@ export class CameraControls extends EventDispatcher {
 			approxEquals( this._target.x, this._targetEnd.x, this.restThreshold ) &&
 			approxEquals( this._target.y, this._targetEnd.y, this.restThreshold ) &&
 			approxEquals( this._target.z, this._targetEnd.z, this.restThreshold );
+
 		return this._createOnRestPromise( resolveImmediately );
 
 	}
@@ -2124,6 +2132,16 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
+	 * set animation walk speed
+	 * @param factor float
+	 */
+	setWalkSpeed( factor: number ): void {
+
+		this.walkSpeed = factor;
+
+	}
+
+	/**
 	 * Update camera position and directions.  
 	 * This should be called in your tick loop every time, and returns true if re-rendering is needed.
 	 * @param delta
@@ -2138,6 +2156,9 @@ export class CameraControls extends EventDispatcher {
 		// To to emulate the speed of the original one under 60 FPS, multiply `60` to delta,
 		// but ours are more flexible to any FPS unlike the original.
 		const lerpRatio = Math.min( dampingFactor * delta * 60, 1 );
+		
+		//apply only for camera move | position
+		const lerpWalking = this.walkSpeed || lerpRatio;
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
@@ -2163,23 +2184,23 @@ export class CameraControls extends EventDispatcher {
 				this._spherical.theta  + deltaTheta  * lerpRatio,
 			);
 
-			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
-			this._focalOffset.add( deltaOffset.multiplyScalar( lerpRatio ) );
-
-			this._needsUpdate = true;
-
-		} else {
-
-			this._spherical.copy( this._sphericalEnd );
-			this._target.copy( this._targetEnd );
-			this._focalOffset.copy( this._focalOffsetEnd );
-
-		}
-
-		if ( this._dollyControlAmount !== 0 ) {
-
-			if ( isPerspectiveCamera( this._camera ) ) {
-
+				this._target.add( deltaTarget.multiplyScalar( lerpWalking ) );
+				this._focalOffset.add( deltaOffset.multiplyScalar( lerpRatio ) );
+				
+				this._needsUpdate = true;
+				
+			} else {
+				
+				this._spherical.copy( this._sphericalEnd );
+				this._target.copy( this._targetEnd );
+				this._focalOffset.copy( this._focalOffsetEnd );
+				
+			}
+			
+			if ( this._dollyControlAmount !== 0 ) {
+				
+				if ( isPerspectiveCamera( this._camera ) ) {
+					
 				const camera = this._camera;
 				const direction = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
 				const planeX = _v3B.copy( direction ).cross( camera.up ).normalize();
@@ -2221,7 +2242,7 @@ export class CameraControls extends EventDispatcher {
 
 		const maxDistance = this._collisionTest();
 		this._spherical.radius = Math.min( this._spherical.radius, maxDistance );
-
+		
 		// decompose spherical to the camera position
 		this._spherical.makeSafe();
 		this._camera.position.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._target );
@@ -2704,7 +2725,7 @@ export class CameraControls extends EventDispatcher {
 
 }
 
-function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): _THREE.Sphere {
+const createBoundingSphere = ( object3d: _THREE.Object3D, out: _THREE.Sphere ): _THREE.Sphere => {
 
 	const boundingSphere = out;
 	const center = boundingSphere.center;
@@ -2763,4 +2784,4 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 	boundingSphere.radius = Math.sqrt( maxRadiusSq );
 	return boundingSphere;
 
-}
+};

@@ -164,6 +164,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
 | `.dampingFactor`          | `number`  | `0.05`      | The damping inertia. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
+| `.walkSpeed`          	| `number`  | `0.0`       | Animation walk / camera movement speed this param is not affect rotations. If set as `0` is delegate `.dampingFactor` param. |
 | `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
 | `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
 | `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
@@ -423,6 +424,12 @@ Move `target` position to given point.
 | `y`                | `number`  | y coord to move center position |
 | `z`                | `number`  | z coord to move center position |
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
+
+#### `setWalkSpeed( speed: float)`
+
+Set speed for smoothest or slovest moviment of the camera.
 
 ---
 

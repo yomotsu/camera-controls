@@ -237,6 +237,12 @@ export declare class CameraControls extends EventDispatcher {
      * @category Methods
      */
     cancel: () => void;
+    /**
+     * walk speed lerp ratio afect to speed on moving the camera some position not affected rotation or
+     * cursor interactions.
+     * by default is set 0 and on animation is same value as dampingFactor
+     */
+    walkSpeed: number;
     protected _enabled: boolean;
     protected _camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
     protected _yAxisUpSpace: _THREE.Quaternion;
@@ -660,6 +666,11 @@ export declare class CameraControls extends EventDispatcher {
      * @category Methods
      */
     updateCameraUp(): void;
+    /**
+     * set animation walk speed
+     * @param factor float
+     */
+    setWalkSpeed(factor: number): void;
     /**
      * Update camera position and directions.
      * This should be called in your tick loop every time, and returns true if re-rendering is needed.

@@ -8,7 +8,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.CameraControls = factory());
-})(this, (function () { 'use strict';
+}(this, (function () { 'use strict';
 
 	const ACTION = Object.freeze({
 	    NONE: 0,
@@ -354,6 +354,12 @@
 	         */
 	        // cancel will be overwritten in the constructor.
 	        this.cancel = () => { };
+	        /**
+	         * walk speed lerp ratio afect to speed on moving the camera some position not affected rotation or
+	         * cursor interactions.
+	         * by default is set 0 and on animation is same value as dampingFactor
+	         */
+	        this.walkSpeed = 0;
 	        this._enabled = true;
 	        this._state = ACTION.NONE;
 	        this._viewport = null;
@@ -1692,6 +1698,13 @@
 	        quatInvertCompat(this._yAxisUpSpaceInverse.copy(this._yAxisUpSpace));
 	    }
 	    /**
+	     * set animation walk speed
+	     * @param factor float
+	     */
+	    setWalkSpeed(factor) {
+	        this.walkSpeed = factor;
+	    }
+	    /**
 	     * Update camera position and directions.
 	     * This should be called in your tick loop every time, and returns true if re-rendering is needed.
 	     * @param delta
@@ -1705,6 +1718,8 @@
 	        // To to emulate the speed of the original one under 60 FPS, multiply `60` to delta,
 	        // but ours are more flexible to any FPS unlike the original.
 	        const lerpRatio = Math.min(dampingFactor * delta * 60, 1);
+	        //apply only for camera move | position
+	        const lerpWalking = this.walkSpeed || lerpRatio;
 	        const deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 	        const deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 	        const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
@@ -1720,7 +1735,7 @@
 	            !approxZero(deltaOffset.y) ||
 	            !approxZero(deltaOffset.z)) {
 	            this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
-	            this._target.add(deltaTarget.multiplyScalar(lerpRatio));
+	            this._target.add(deltaTarget.multiplyScalar(lerpWalking));
 	            this._focalOffset.add(deltaOffset.multiplyScalar(lerpRatio));
 	            this._needsUpdate = true;
 	        }
@@ -2017,7 +2032,7 @@
 	    }
 	    _removeAllEventListeners() { }
 	}
-	function createBoundingSphere(object3d, out) {
+	const createBoundingSphere = (object3d, out) => {
 	    const boundingSphere = out;
 	    const center = boundingSphere.center;
 	    _box3A.makeEmpty();
@@ -2057,8 +2072,8 @@
 	    });
 	    boundingSphere.radius = Math.sqrt(maxRadiusSq);
 	    return boundingSphere;
-	}
+	};
 
 	return CameraControls;
 
-}));
+})));
