@@ -1353,12 +1353,12 @@ class CameraControls extends EventDispatcher {
         // right top front corner
         _v3B.copy(aabb.max).applyQuaternion(rotation);
         bb.expandByPoint(_v3B);
-        rotation.setFromUnitVectors(_AXIS_Z, normal);
         // add padding
         bb.min.x -= paddingLeft;
         bb.min.y -= paddingBottom;
         bb.max.x += paddingRight;
         bb.max.y += paddingTop;
+        rotation.setFromUnitVectors(_AXIS_Z, normal).multiply(this._yAxisUpSpace);
         const bbSize = bb.getSize(_v3A);
         const center = bb.getCenter(_v3B).applyQuaternion(rotation);
         if (isPerspectiveCamera(this._camera)) {
