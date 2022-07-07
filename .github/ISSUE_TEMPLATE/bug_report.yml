@@ -1,0 +1,96 @@
+name: Bug report
+# title: ""
+description: Create a report to help us improve
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: To Reproduce
+      placeholder: |
+        Steps to reproduce the behavior:
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
+      value: |
+        Steps to reproduce the behavior:
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code
+      render: js
+      placeholder: |
+        // code goes here
+
+  - type: textarea
+    id: live-example
+    attributes:
+      label: Live example
+      description: Link URL of live examples.
+      placeholder: |
+        https://codesandbox.io/s/react-three-fiber-camera-controls-4jjor
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots-or-video
+    attributes:
+      label: Screenshots or Video
+      description: If applicable, add screenshots or videos to help explain your problem.
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Platform
+
+  - type: dropdown
+    id: platform-device
+    attributes:
+      label: Device
+      multiple: true
+      options:
+        - Desktop
+        - Mobile
+
+  - type: dropdown
+    id: platform-os
+    attributes:
+      label: OS
+      multiple: true
+      options:
+        - Windows
+        - MacOS
+        - Linux
+        - Android
+        - iOS
+
+  - type: dropdown
+    id: platform-browser
+    attributes:
+      label: Browser
+      multiple: true
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
