@@ -1,6 +1,7 @@
 import type * as _THREE from 'three';
 import {
 	THREESubset,
+	MOUSE_BUTTON,
 	ACTION,
 	PointerInput,
 	MouseButtons,
@@ -68,7 +69,6 @@ export class CameraControls extends EventDispatcher {
 	 *
 	 * ```js
 	 * import {
-	 * 	MOUSE,
 	 * 	Vector2,
 	 * 	Vector3,
 	 * 	Vector4,
@@ -82,7 +82,6 @@ export class CameraControls extends EventDispatcher {
 	 * } from 'three';
 	 *
 	 * const subsetOfTHREE = {
-	 * 	MOUSE     : MOUSE,
 	 * 	Vector2   : Vector2,
 	 * 	Vector3   : Vector3,
 	 * 	Vector4   : Vector4,
@@ -298,7 +297,7 @@ export class CameraControls extends EventDispatcher {
 	 * | --------------------- | -------- |
 	 * | `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 	 * | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 * | `mouseButtons.shiftLeft`   | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`* |
+	 * | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE`* |
 	 * | `mouseButtons.wheel` ¹ | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 	 * | `mouseButtons.middle` ² | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY`* \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 	 *
@@ -469,8 +468,6 @@ export class CameraControls extends EventDispatcher {
 				isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
 				isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
 				ACTION.NONE,
-			shiftLeft: ACTION.NONE,
-			// We can also add altLeft and etc if someone wants...
 		};
 
 		this.touches = {
@@ -503,48 +500,6 @@ export class CameraControls extends EventDispatcher {
 				};
 				this._activePointers.push( pointer );
 
-				switch ( event.button ) {
-
-					case THREE.MOUSE.LEFT:
-
-						this._state = event.shiftKey ? this.mouseButtons.shiftLeft : this.mouseButtons.left;
-						break;
-
-					case THREE.MOUSE.MIDDLE:
-
-						this._state = this.mouseButtons.middle;
-						break;
-
-					case THREE.MOUSE.RIGHT:
-
-						this._state = this.mouseButtons.right;
-						break;
-
-				}
-
-				if ( event.pointerType === 'touch' ) {
-
-					switch ( this._activePointers.length ) {
-
-						case 1:
-
-							this._state = this.touches.one;
-							break;
-
-						case 2:
-
-							this._state = this.touches.two;
-							break;
-
-						case 3:
-
-							this._state = this.touches.three;
-							break;
-
-					}
-
-				}
-
 				// eslint-disable-next-line no-undef
 				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
 				this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
@@ -566,25 +521,6 @@ export class CameraControls extends EventDispatcher {
 					clientY: event.clientY,
 				};
 				this._activePointers.push( pointer );
-
-				switch ( event.button ) {
-
-					case THREE.MOUSE.LEFT:
-
-						this._state = event.shiftKey ? this.mouseButtons.shiftLeft : this.mouseButtons.left;
-						break;
-
-					case THREE.MOUSE.MIDDLE:
-
-						this._state = this.mouseButtons.middle;
-						break;
-
-					case THREE.MOUSE.RIGHT:
-
-						this._state = this.mouseButtons.right;
-						break;
-
-				}
 
 				// see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
 				// eslint-disable-next-line no-undef
@@ -657,6 +593,51 @@ export class CameraControls extends EventDispatcher {
 				pointer.clientX = event.clientX;
 				pointer.clientY = event.clientY;
 
+				if ( event.pointerType === 'touch' ) {
+
+					switch ( this._activePointers.length ) {
+
+						case 1:
+
+							this._state = this.touches.one;
+							break;
+
+						case 2:
+
+							this._state = this.touches.two;
+							break;
+
+						case 3:
+
+							this._state = this.touches.three;
+							break;
+
+					}
+
+				} else {
+
+					this._state = 0;
+
+					if ( ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
+
+						this._state = this._state | this.mouseButtons.left;
+
+					}
+
+					if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
+
+						this._state = this._state | this.mouseButtons.middle;
+
+					}
+
+					if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
+
+						this._state = this._state | this.mouseButtons.right;
+
+					}
+
+				}
+
 				dragging();
 
 			};
@@ -669,6 +650,26 @@ export class CameraControls extends EventDispatcher {
 
 				pointer.clientX = event.clientX;
 				pointer.clientY = event.clientY;
+
+				this._state = 0;
+
+				if ( ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
+
+					this._state = this._state | this.mouseButtons.left;
+
+				}
+
+				if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
+
+					this._state = this._state | this.mouseButtons.middle;
+
+				}
+
+				if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
+
+					this._state = this._state | this.mouseButtons.right;
+
+				}
 
 				dragging();
 
@@ -907,85 +908,73 @@ export class CameraControls extends EventDispatcher {
 
 				lastDragPosition.copy( _v2 );
 
-				switch ( this._state ) {
+				if (
+					( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
+					( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE
+				) {
 
-					case ACTION.ROTATE:
-					case ACTION.TOUCH_ROTATE: {
+					this._rotateInternal( deltaX, deltaY );
 
-						this._rotateInternal( deltaX, deltaY );
-						break;
+				}
 
-					}
+				if (
+					( this._state & ACTION.DOLLY ) === ACTION.DOLLY ||
+					( this._state & ACTION.ZOOM ) === ACTION.ZOOM
+				) {
 
-					case ACTION.DOLLY:
-					case ACTION.ZOOM: {
+					const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
+					const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
+					this._state === ACTION.DOLLY ?
+						this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
+						this._zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
-						const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
-						const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
-						this._state === ACTION.DOLLY ?
-							this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							this._zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
-						break;
+				}
 
-					}
+				if (
+					( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
+					( this._state & ACTION.TOUCH_ZOOM ) === ACTION.TOUCH_ZOOM ||
+					( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
+					( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
+					( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
+					( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET
+				) {
 
-					case ACTION.TOUCH_DOLLY:
-					case ACTION.TOUCH_ZOOM:
-					case ACTION.TOUCH_DOLLY_TRUCK:
-					case ACTION.TOUCH_ZOOM_TRUCK:
-					case ACTION.TOUCH_DOLLY_OFFSET:
-					case ACTION.TOUCH_ZOOM_OFFSET: {
+					const dx = _v2.x - this._activePointers[ 1 ].clientX;
+					const dy = _v2.y - this._activePointers[ 1 ].clientY;
+					const distance = Math.sqrt( dx * dx + dy * dy );
+					const dollyDelta = dollyStart.y - distance;
+					dollyStart.set( 0, distance );
 
-						const dx = _v2.x - this._activePointers[ 1 ].clientX;
-						const dy = _v2.y - this._activePointers[ 1 ].clientY;
-						const distance = Math.sqrt( dx * dx + dy * dy );
-						const dollyDelta = dollyStart.y - distance;
-						dollyStart.set( 0, distance );
+					const dollyX = this.dollyToCursor ? ( lastDragPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
+					const dollyY = this.dollyToCursor ? ( lastDragPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
-						const dollyX = this.dollyToCursor ? ( lastDragPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
-						const dollyY = this.dollyToCursor ? ( lastDragPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
+					this._state === ACTION.TOUCH_DOLLY ||
+					this._state === ACTION.TOUCH_DOLLY_TRUCK ||
+					this._state === ACTION.TOUCH_DOLLY_OFFSET ?
+						this._dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
+						this._zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
-						this._state === ACTION.TOUCH_DOLLY ||
-						this._state === ACTION.TOUCH_DOLLY_TRUCK ||
-						this._state === ACTION.TOUCH_DOLLY_OFFSET ?
-							this._dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
-							this._zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+				}
 
-						if (
-							this._state === ACTION.TOUCH_DOLLY_TRUCK ||
-							this._state === ACTION.TOUCH_ZOOM_TRUCK
-						) {
+				if (
+					( this._state & ACTION.TRUCK ) === ACTION.TRUCK ||
+					( this._state & ACTION.TOUCH_TRUCK ) === ACTION.TOUCH_TRUCK ||
+					( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
+					( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK
+				) {
 
-							this._truckInternal( deltaX, deltaY, false );
+					this._truckInternal( deltaX, deltaY, false );
 
-						} else if (
-							this._state === ACTION.TOUCH_DOLLY_OFFSET ||
-							this._state === ACTION.TOUCH_ZOOM_OFFSET
-						) {
+				}
 
-							this._truckInternal( deltaX, deltaY, true );
+				if (
+					( this._state & ACTION.OFFSET ) === ACTION.OFFSET ||
+					( this._state & ACTION.TOUCH_OFFSET ) === ACTION.TOUCH_OFFSET ||
+					( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
+					( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET
+				) {
 
-						}
-
-						break;
-
-					}
-
-					case ACTION.TRUCK:
-					case ACTION.TOUCH_TRUCK: {
-
-						this._truckInternal( deltaX, deltaY, false );
-						break;
-
-					}
-
-					case ACTION.OFFSET:
-					case ACTION.TOUCH_OFFSET: {
-
-						this._truckInternal( deltaX, deltaY, true );
-						break;
-
-					}
+					this._truckInternal( deltaX, deltaY, true );
 
 				}
 
