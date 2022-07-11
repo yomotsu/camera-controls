@@ -45,6 +45,8 @@ export interface PointerInput {
 	pointerId: number;
 	clientX: number;
 	clientY: number;
+	deltaX: number;
+	deltaY: number;
 }
 
 type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
