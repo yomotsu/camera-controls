@@ -500,6 +500,8 @@ export class CameraControls extends EventDispatcher {
 					pointerId: event.pointerId,
 					clientX: event.clientX,
 					clientY: event.clientY,
+					deltaX: 0,
+					deltaY: 0,
 				};
 				this._activePointers.push( pointer );
 
@@ -564,6 +566,8 @@ export class CameraControls extends EventDispatcher {
 					pointerId: 0,
 					clientX: event.clientX,
 					clientY: event.clientY,
+					deltaX: 0,
+					deltaY: 0,
 				};
 				this._activePointers.push( pointer );
 
@@ -610,6 +614,8 @@ export class CameraControls extends EventDispatcher {
 						pointerId: touch.identifier,
 						clientX: touch.clientX,
 						clientY: touch.clientY,
+						deltaX: 0,
+						deltaY: 0,
 					};
 					this._activePointers.push( pointer );
 
@@ -656,6 +662,8 @@ export class CameraControls extends EventDispatcher {
 
 				pointer.clientX = event.clientX;
 				pointer.clientY = event.clientY;
+				pointer.deltaX = event.movementX;
+				pointer.deltaY = event.movementY;
 
 				dragging();
 
@@ -669,6 +677,8 @@ export class CameraControls extends EventDispatcher {
 
 				pointer.clientX = event.clientX;
 				pointer.clientY = event.clientY;
+				pointer.deltaX = event.movementX;
+				pointer.deltaY = event.movementY;
 
 				dragging();
 
@@ -687,6 +697,7 @@ export class CameraControls extends EventDispatcher {
 
 					pointer.clientX = touch.clientX;
 					pointer.clientY = touch.clientY;
+					// touch event does not have movementX and movementY.
 
 				} );
 
@@ -902,8 +913,11 @@ export class CameraControls extends EventDispatcher {
 
 				extractClientCoordFromEvent( this._activePointers, _v2 );
 
-				const deltaX = lastDragPosition.x - _v2.x;
-				const deltaY = lastDragPosition.y - _v2.y;
+				// When pointer lock is enabled clientX, clientY, screenX, and screenY remain 0.
+				// If pointer lock is enabled, use the Delta directory, and assume active-pointer is not multiple.
+				const isPointerLockActive = this._domElement && document.pointerLockElement === this._domElement;
+				const deltaX = isPointerLockActive ? - this._activePointers[ 0 ].deltaX : lastDragPosition.x - _v2.x;
+				const deltaY = isPointerLockActive ? - this._activePointers[ 0 ].deltaY : lastDragPosition.y - _v2.y;
 
 				lastDragPosition.copy( _v2 );
 
