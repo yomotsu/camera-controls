@@ -1,6 +1,5 @@
 import * as _THREE from 'three';
 export interface THREESubset {
-    MOUSE: typeof _THREE.MOUSE;
     Vector2: typeof _THREE.Vector2;
     Vector3: typeof _THREE.Vector3;
     Vector4: typeof _THREE.Vector4;
@@ -17,28 +16,35 @@ export interface THREESubset {
     };
     [key: string]: any;
 }
+export declare const MOUSE_BUTTON: {
+    LEFT: number;
+    RIGHT: number;
+    MIDDLE: number;
+};
 export declare const ACTION: Readonly<{
     readonly NONE: 0;
     readonly ROTATE: 1;
     readonly TRUCK: 2;
-    readonly OFFSET: 3;
-    readonly DOLLY: 4;
-    readonly ZOOM: 5;
-    readonly TOUCH_ROTATE: 6;
-    readonly TOUCH_TRUCK: 7;
-    readonly TOUCH_OFFSET: 8;
-    readonly TOUCH_DOLLY: 9;
-    readonly TOUCH_ZOOM: 10;
-    readonly TOUCH_DOLLY_TRUCK: 11;
-    readonly TOUCH_DOLLY_OFFSET: 12;
-    readonly TOUCH_ZOOM_TRUCK: 13;
-    readonly TOUCH_ZOOM_OFFSET: 14;
+    readonly OFFSET: 4;
+    readonly DOLLY: 8;
+    readonly ZOOM: 16;
+    readonly TOUCH_ROTATE: 32;
+    readonly TOUCH_TRUCK: 64;
+    readonly TOUCH_OFFSET: 128;
+    readonly TOUCH_DOLLY: 256;
+    readonly TOUCH_ZOOM: 512;
+    readonly TOUCH_DOLLY_TRUCK: 1024;
+    readonly TOUCH_DOLLY_OFFSET: 2048;
+    readonly TOUCH_ZOOM_TRUCK: 4096;
+    readonly TOUCH_ZOOM_OFFSET: 8192;
 }>;
-export declare type ACTION = Readonly<typeof ACTION[keyof typeof ACTION]>;
+export declare type ACTION = number;
 export interface PointerInput {
     pointerId: number;
     clientX: number;
     clientY: number;
+    deltaX: number;
+    deltaY: number;
 }
 declare type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
 declare type mouseWheelAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
@@ -49,7 +55,6 @@ export interface MouseButtons {
     middle: mouseButtonAction;
     right: mouseButtonAction;
     wheel: mouseWheelAction;
-    shiftLeft: mouseButtonAction;
 }
 export interface Touches {
     one: singleTouchAction;
