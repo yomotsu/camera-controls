@@ -2,7 +2,6 @@ import type * as _THREE from 'three';
 
 // Is this suppose to be `Pick<typeof THREE, 'MOUSE' | 'Vector2'...>`?
 export interface THREESubset {
-	MOUSE     : typeof _THREE.MOUSE;
 	Vector2   : typeof _THREE.Vector2;
 	Vector3   : typeof _THREE.Vector3;
 	Vector4   : typeof _THREE.Vector4;
@@ -20,31 +19,40 @@ export interface THREESubset {
 	[ key: string ]: any;
 }
 
+// see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
+export const MOUSE_BUTTON = {
+	LEFT: 1,
+	RIGHT: 2,
+	MIDDLE: 3,
+};
+
 export const ACTION = Object.freeze( {
 	NONE: 0,
 	ROTATE: 1,
 	TRUCK: 2,
-	OFFSET: 3,
-	DOLLY: 4,
-	ZOOM: 5,
-	TOUCH_ROTATE: 6,
-	TOUCH_TRUCK: 7,
-	TOUCH_OFFSET: 8,
-	TOUCH_DOLLY: 9,
-	TOUCH_ZOOM: 10,
-	TOUCH_DOLLY_TRUCK: 11,
-	TOUCH_DOLLY_OFFSET: 12,
-	TOUCH_ZOOM_TRUCK: 13,
-	TOUCH_ZOOM_OFFSET: 14,
+	OFFSET: 4,
+	DOLLY: 8,
+	ZOOM: 16,
+	TOUCH_ROTATE: 32,
+	TOUCH_TRUCK: 64,
+	TOUCH_OFFSET: 128,
+	TOUCH_DOLLY: 256,
+	TOUCH_ZOOM: 512,
+	TOUCH_DOLLY_TRUCK: 1024,
+	TOUCH_DOLLY_OFFSET: 2048,
+	TOUCH_ZOOM_TRUCK: 4096,
+	TOUCH_ZOOM_OFFSET: 8192,
 } as const );
-// Readonly<typeof ACTION>
-// export type ACTION = typeof ACTION[ keyof typeof ACTION ];
-export type ACTION = Readonly<typeof ACTION[ keyof typeof ACTION ]>;
+
+// Bit OR of Action
+export type ACTION = number;
 
 export interface PointerInput {
 	pointerId: number;
 	clientX: number;
 	clientY: number;
+	deltaX: number;
+	deltaY: number;
 }
 
 type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
@@ -67,8 +75,6 @@ export interface MouseButtons {
 	middle   : mouseButtonAction;
 	right    : mouseButtonAction;
 	wheel    : mouseWheelAction;
-	shiftLeft: mouseButtonAction;
-	// We can also add altLeft and etc if someone wants...
 }
 
 export interface Touches {
