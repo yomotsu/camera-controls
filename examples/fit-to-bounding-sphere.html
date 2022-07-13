@@ -15,8 +15,8 @@
 	<button onclick="cameraControls.reset( true )">reset</button><br>
 </div>
 
-<script src="https://unpkg.com/three@0.138.2/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.135.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://unpkg.com/three@0.142.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.142.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -29,15 +29,25 @@ const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( width, height );
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.physicallyCorrectLights = true;
 renderer.outputEncoding = THREE.sRGBEncoding;
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
 
-scene.add(
-	new THREE.HemisphereLight( 0x443333, 0x332222 ),
-	new THREE.AmbientLight( 0x999999 ),
-);
+new THREE.TextureLoader().load( './env.jpg', ( equirectangularMap ) => {
+
+	const pmremGenerator = new THREE.PMREMGenerator( renderer );
+	pmremGenerator.compileEquirectangularShader();
+	const envMapRenderTarget = pmremGenerator.fromEquirectangular( equirectangularMap );
+	envMapRenderTarget.texture.encoding = THREE.sRGBEncoding;
+	equirectangularMap.dispose();
+
+	scene.environment = envMapRenderTarget.texture;
+
+} );
 
 const gridHelper = new THREE.GridHelper( 50, 50 );
 scene.add( gridHelper );
