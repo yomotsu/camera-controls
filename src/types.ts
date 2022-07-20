@@ -23,7 +23,7 @@ export interface THREESubset {
 export const MOUSE_BUTTON = {
 	LEFT: 1,
 	RIGHT: 2,
-	MIDDLE: 3,
+	MIDDLE: 4,
 };
 
 export const ACTION = Object.freeze( {
