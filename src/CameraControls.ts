@@ -1582,6 +1582,7 @@ export class CameraControls extends EventDispatcher {
 	 * @category Methods
 	 */
 	fitToBox( box3OrObject: _THREE.Box3 | _THREE.Object3D, enableTransition: boolean, {
+		fill = false,
 		paddingLeft = 0,
 		paddingRight = 0,
 		paddingBottom = 0,
@@ -1662,7 +1663,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( isPerspectiveCamera( this._camera ) ) {
 
-			const distance = this.getDistanceToFitBox( bbSize.x, bbSize.y, bbSize.z );
+			const distance = this.getDistanceToFitBox( bbSize.x, bbSize.y, bbSize.z, fill );
 			promises.push( this.moveTo( center.x, center.y, center.z, enableTransition ) );
 			promises.push( this.dollyTo( distance, enableTransition ) );
 			promises.push( this.setFocalOffset( 0, 0, 0, enableTransition ) );
@@ -1672,7 +1673,7 @@ export class CameraControls extends EventDispatcher {
 			const camera = this._camera;
 			const width = camera.right - camera.left;
 			const height = camera.top - camera.bottom;
-			const zoom = Math.min( width / bbSize.x, height / bbSize.y );
+			const zoom = fill ? Math.max( width / bbSize.x, height / bbSize.y ) : Math.min( width / bbSize.x, height / bbSize.y );
 			promises.push( this.moveTo( center.x, center.y, center.z, enableTransition ) );
 			promises.push( this.zoomTo( zoom, enableTransition ) );
 			promises.push( this.setFocalOffset( 0, 0, 0, enableTransition ) );
@@ -1995,7 +1996,7 @@ export class CameraControls extends EventDispatcher {
 	 * @returns distance
 	 * @category Methods
 	 */
-	getDistanceToFitBox( width: number, height: number, depth: number ): number {
+	getDistanceToFitBox( width: number, height: number, depth: number, fillMode: boolean = false ): number {
 
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitBox' ) ) return this._spherical.radius;
 
@@ -2003,7 +2004,7 @@ export class CameraControls extends EventDispatcher {
 		const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 		const aspect = this._camera.aspect;
 
-		const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
+		const heightToFit = ( fillMode ? boundingRectAspect > aspect : boundingRectAspect < aspect ) ? height : width / aspect;
 		return heightToFit * 0.5 / Math.tan( fov * 0.5 ) + depth * 0.5;
 
 	}

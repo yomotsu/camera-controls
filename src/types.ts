@@ -84,6 +84,7 @@ export interface Touches {
 }
 
 export interface FitToOptions {
+	fill: boolean;
 	paddingLeft  : number;
 	paddingRight : number;
 	paddingBottom: number;
