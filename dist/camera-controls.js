@@ -14,7 +14,7 @@
 	const MOUSE_BUTTON = {
 	    LEFT: 1,
 	    RIGHT: 2,
-	    MIDDLE: 3,
+	    MIDDLE: 4,
 	};
 	const ACTION = Object.freeze({
 	    NONE: 0,
@@ -1308,18 +1308,18 @@
 	    }
 	    /**
 	     * Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
-	     *
+	     * set `cover: true` to fill enter screen.
 	     * e.g.
 	     * ```
 	     * cameraControls.fitToBox( myMesh );
 	     * ```
 	     * @param box3OrObject Axis aligned bounding box to fit the view.
 	     * @param enableTransition Whether to move smoothly or immediately.
-	     * @param options | `<object>` { paddingTop: number, paddingLeft: number, paddingBottom: number, paddingRight: number }
+	     * @param options | `<object>` { cover: boolean, paddingTop: number, paddingLeft: number, paddingBottom: number, paddingRight: number }
 	     * @returns Transition end promise
 	     * @category Methods
 	     */
-	    fitToBox(box3OrObject, enableTransition, { paddingLeft = 0, paddingRight = 0, paddingBottom = 0, paddingTop = 0 } = {}) {
+	    fitToBox(box3OrObject, enableTransition, { cover = false, paddingLeft = 0, paddingRight = 0, paddingBottom = 0, paddingTop = 0 } = {}) {
 	        const promises = [];
 	        const aabb = box3OrObject.isBox3
 	            ? _box3A.copy(box3OrObject)
@@ -1373,7 +1373,7 @@
 	        const bbSize = bb.getSize(_v3A);
 	        const center = bb.getCenter(_v3B).applyQuaternion(rotation);
 	        if (isPerspectiveCamera(this._camera)) {
-	            const distance = this.getDistanceToFitBox(bbSize.x, bbSize.y, bbSize.z);
+	            const distance = this.getDistanceToFitBox(bbSize.x, bbSize.y, bbSize.z, cover);
 	            promises.push(this.moveTo(center.x, center.y, center.z, enableTransition));
 	            promises.push(this.dollyTo(distance, enableTransition));
 	            promises.push(this.setFocalOffset(0, 0, 0, enableTransition));
@@ -1382,7 +1382,7 @@
 	            const camera = this._camera;
 	            const width = camera.right - camera.left;
 	            const height = camera.top - camera.bottom;
-	            const zoom = Math.min(width / bbSize.x, height / bbSize.y);
+	            const zoom = cover ? Math.max(width / bbSize.x, height / bbSize.y) : Math.min(width / bbSize.x, height / bbSize.y);
 	            promises.push(this.moveTo(center.x, center.y, center.z, enableTransition));
 	            promises.push(this.zoomTo(zoom, enableTransition));
 	            promises.push(this.setFocalOffset(0, 0, 0, enableTransition));
@@ -1604,13 +1604,13 @@
 	     * @returns distance
 	     * @category Methods
 	     */
-	    getDistanceToFitBox(width, height, depth) {
+	    getDistanceToFitBox(width, height, depth, cover = false) {
 	        if (notSupportedInOrthographicCamera(this._camera, 'getDistanceToFitBox'))
 	            return this._spherical.radius;
 	        const boundingRectAspect = width / height;
 	        const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
 	        const aspect = this._camera.aspect;
-	        const heightToFit = boundingRectAspect < aspect ? height : width / aspect;
+	        const heightToFit = (cover ? boundingRectAspect > aspect : boundingRectAspect < aspect) ? height : width / aspect;
 	        return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
 	    }
 	    /**
