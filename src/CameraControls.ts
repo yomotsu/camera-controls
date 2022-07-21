@@ -1570,14 +1570,14 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
-	 *
+	 * set `cover: true` to fill enter screen.
 	 * e.g.
 	 * ```
 	 * cameraControls.fitToBox( myMesh );
 	 * ```
 	 * @param box3OrObject Axis aligned bounding box to fit the view.
 	 * @param enableTransition Whether to move smoothly or immediately.
-	 * @param options | `<object>` { paddingTop: number, paddingLeft: number, paddingBottom: number, paddingRight: number }
+	 * @param options | `<object>` { cover: boolean, paddingTop: number, paddingLeft: number, paddingBottom: number, paddingRight: number }
 	 * @returns Transition end promise
 	 * @category Methods
 	 */
