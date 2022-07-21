@@ -427,12 +427,14 @@ Move `target` position to given point.
 #### `fitToBox( box3OrMesh, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
 
 Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
+set `cover: true` to fill enter screen.
 
 | Name                    | Type                         | Description |
 | ----------------------- | ---------------------------- | ----------- |
 | `box3OrMesh`            | `THREE.Box3` \| `THREE.Mesh` | Axis aligned bounding box to fit the view. |
 | `enableTransition`      | `boolean`                    | Whether to move smoothly or immediately |
 | `options`               | `object`                     | Options |
+| `options.cover`         | `number`                     | Whether fill enter screen or not. Default is `false` |
 | `options.paddingTop`    | `number`                     | Padding top. Default is `0` |
 | `options.paddingRight`  | `number`                     | Padding right. Default is `0` |
 | `options.paddingBottom` | `number`                     | Padding bottom. Default is `0` |
