@@ -513,7 +513,7 @@
 	                this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
 	                this._domElement.ownerDocument.addEventListener('pointermove', onPointerMove, { passive: false });
 	                this._domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
-	                startDragging();
+	                startDragging(event);
 	            };
 	            const onMouseDown = (event) => {
 	                if (!this._enabled)
@@ -532,7 +532,7 @@
 	                this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
 	                this._domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
 	                this._domElement.ownerDocument.addEventListener('mouseup', onMouseUp);
-	                startDragging();
+	                startDragging(event);
 	            };
 	            const onTouchStart = (event) => {
 	                if (!this._enabled)
@@ -548,23 +548,12 @@
 	                    };
 	                    this._activePointers.push(pointer);
 	                });
-	                switch (this._activePointers.length) {
-	                    case 1:
-	                        this._state = this.touches.one;
-	                        break;
-	                    case 2:
-	                        this._state = this.touches.two;
-	                        break;
-	                    case 3:
-	                        this._state = this.touches.three;
-	                        break;
-	                }
 	                // eslint-disable-next-line no-undef
 	                this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
 	                this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
 	                this._domElement.ownerDocument.addEventListener('touchmove', onTouchMove, { passive: false });
 	                this._domElement.ownerDocument.addEventListener('touchend', onTouchEnd);
-	                startDragging();
+	                startDragging(event);
 	            };
 	            const onPointerMove = (event) => {
 	                if (event.cancelable)
@@ -739,7 +728,7 @@
 	                    return;
 	                event.preventDefault();
 	            };
-	            const startDragging = () => {
+	            const startDragging = (event) => {
 	                if (!this._enabled)
 	                    return;
 	                extractClientCoordFromEvent(this._activePointers, _v2);
@@ -757,6 +746,32 @@
 	                    const x = (this._activePointers[0].clientX + this._activePointers[1].clientX) * 0.5;
 	                    const y = (this._activePointers[0].clientY + this._activePointers[1].clientY) * 0.5;
 	                    lastDragPosition.set(x, y);
+	                }
+	                if ('touches' in event ||
+	                    'pointerType' in event && event.pointerType === 'touch') {
+	                    switch (this._activePointers.length) {
+	                        case 1:
+	                            this._state = this.touches.one;
+	                            break;
+	                        case 2:
+	                            this._state = this.touches.two;
+	                            break;
+	                        case 3:
+	                            this._state = this.touches.three;
+	                            break;
+	                    }
+	                }
+	                else {
+	                    this._state = 0;
+	                    if ((event.buttons & MOUSE_BUTTON.LEFT) === MOUSE_BUTTON.LEFT) {
+	                        this._state = this._state | this.mouseButtons.left;
+	                    }
+	                    if ((event.buttons & MOUSE_BUTTON.MIDDLE) === MOUSE_BUTTON.MIDDLE) {
+	                        this._state = this._state | this.mouseButtons.middle;
+	                    }
+	                    if ((event.buttons & MOUSE_BUTTON.RIGHT) === MOUSE_BUTTON.RIGHT) {
+	                        this._state = this._state | this.mouseButtons.right;
+	                    }
 	                }
 	                this.dispatchEvent({ type: 'controlstart' });
 	            };
