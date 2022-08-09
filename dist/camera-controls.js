@@ -1348,11 +1348,12 @@
 	        const phi = roundToStep(this._sphericalEnd.phi, PI_HALF);
 	        promises.push(this.rotateTo(theta, phi, enableTransition));
 	        const normal = _v3A.setFromSpherical(this._sphericalEnd).normalize();
-	        const rotation = _quaternionA.setFromUnitVectors(normal, _AXIS_Z).multiply(this._yAxisUpSpaceInverse);
+	        const rotation = _quaternionA.setFromUnitVectors(normal, _AXIS_Z);
 	        const viewFromPolar = approxEquals(Math.abs(normal.y), 1);
 	        if (viewFromPolar) {
 	            rotation.multiply(_quaternionB.setFromAxisAngle(_AXIS_Y, theta));
 	        }
+	        rotation.multiply(this._yAxisUpSpaceInverse);
 	        // make oriented bounding box
 	        const bb = _box3B.makeEmpty();
 	        // left bottom back corner
@@ -1384,7 +1385,11 @@
 	        bb.min.y -= paddingBottom;
 	        bb.max.x += paddingRight;
 	        bb.max.y += paddingTop;
-	        rotation.setFromUnitVectors(_AXIS_Z, normal).multiply(this._yAxisUpSpace);
+	        rotation.setFromUnitVectors(_AXIS_Z, normal);
+	        if (viewFromPolar) {
+	            rotation.premultiply(_quaternionB.invert());
+	        }
+	        rotation.premultiply(this._yAxisUpSpace);
 	        const bbSize = bb.getSize(_v3A);
 	        const center = bb.getCenter(_v3B).applyQuaternion(rotation);
 	        if (isPerspectiveCamera(this._camera)) {
