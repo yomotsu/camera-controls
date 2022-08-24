@@ -2236,6 +2236,9 @@ export class CameraControls extends EventDispatcher {
 				this._targetEnd.lerp( cursor, lerpRatio );
 				this._target.copy( this._targetEnd );
 
+				// target position may be moved beyond boundary.
+				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+
 			} else if ( isOrthographicCamera( this._camera ) ) {
 
 				const camera = this._camera;
