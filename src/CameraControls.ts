@@ -2258,6 +2258,9 @@ export class CameraControls extends EventDispatcher {
 				this._targetEnd.lerp( cursor, 1 - camera.zoom / this._dollyControlAmount );
 				this._target.copy( this._targetEnd );
 
+				// target position may be moved beyond boundary.
+				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+
 			}
 
 			this._dollyControlAmount = 0;
