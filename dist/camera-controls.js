@@ -1770,6 +1770,8 @@
 	                    .add(planeY.multiplyScalar(this._dollyControlCoord.y * worldToScreen));
 	                this._targetEnd.lerp(cursor, lerpRatio);
 	                this._target.copy(this._targetEnd);
+	                // target position may be moved beyond boundary.
+	                this._boundary.clampPoint(this._targetEnd, this._targetEnd);
 	            }
 	            else if (isOrthographicCamera(this._camera)) {
 	                const camera = this._camera;
@@ -1780,6 +1782,8 @@
 	                const cursor = _v3C.copy(worldPosition).add(quaternion.multiplyScalar(distance));
 	                this._targetEnd.lerp(cursor, 1 - camera.zoom / this._dollyControlAmount);
 	                this._target.copy(this._targetEnd);
+	                // target position may be moved beyond boundary.
+	                this._boundary.clampPoint(this._targetEnd, this._targetEnd);
 	            }
 	            this._dollyControlAmount = 0;
 	        }
