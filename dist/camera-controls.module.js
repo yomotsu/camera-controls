@@ -24,8 +24,10 @@ const ACTION = Object.freeze({
     TOUCH_ZOOM: 512,
     TOUCH_DOLLY_TRUCK: 1024,
     TOUCH_DOLLY_OFFSET: 2048,
-    TOUCH_ZOOM_TRUCK: 4096,
-    TOUCH_ZOOM_OFFSET: 8192,
+    TOUCH_DOLLY_ROTATE: 4096,
+    TOUCH_ZOOM_TRUCK: 8192,
+    TOUCH_ZOOM_OFFSET: 16384,
+    TOUCH_ZOOM_ROTATE: 32768,
 });
 function isPerspectiveCamera(camera) {
     return camera.isPerspectiveCamera;
@@ -780,7 +782,9 @@ class CameraControls extends EventDispatcher {
                 const deltaY = isPointerLockActive ? -this._activePointers[0].deltaY : lastDragPosition.y - _v2.y;
                 lastDragPosition.copy(_v2);
                 if ((this._state & ACTION.ROTATE) === ACTION.ROTATE ||
-                    (this._state & ACTION.TOUCH_ROTATE) === ACTION.TOUCH_ROTATE) {
+                    (this._state & ACTION.TOUCH_ROTATE) === ACTION.TOUCH_ROTATE ||
+                    (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
+                    (this._state & ACTION.TOUCH_ZOOM_ROTATE) === ACTION.TOUCH_ZOOM_ROTATE) {
                     this._rotateInternal(deltaX, deltaY);
                 }
                 if ((this._state & ACTION.DOLLY) === ACTION.DOLLY ||
@@ -796,7 +800,9 @@ class CameraControls extends EventDispatcher {
                     (this._state & ACTION.TOUCH_DOLLY_TRUCK) === ACTION.TOUCH_DOLLY_TRUCK ||
                     (this._state & ACTION.TOUCH_ZOOM_TRUCK) === ACTION.TOUCH_ZOOM_TRUCK ||
                     (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ||
-                    (this._state & ACTION.TOUCH_ZOOM_OFFSET) === ACTION.TOUCH_ZOOM_OFFSET) {
+                    (this._state & ACTION.TOUCH_ZOOM_OFFSET) === ACTION.TOUCH_ZOOM_OFFSET ||
+                    (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
+                    (this._state & ACTION.TOUCH_ZOOM_ROTATE) === ACTION.TOUCH_ZOOM_ROTATE) {
                     const dx = _v2.x - this._activePointers[1].clientX;
                     const dy = _v2.y - this._activePointers[1].clientY;
                     const distance = Math.sqrt(dx * dx + dy * dy);

@@ -35,8 +35,10 @@ export declare const ACTION: Readonly<{
     readonly TOUCH_ZOOM: 512;
     readonly TOUCH_DOLLY_TRUCK: 1024;
     readonly TOUCH_DOLLY_OFFSET: 2048;
-    readonly TOUCH_ZOOM_TRUCK: 4096;
-    readonly TOUCH_ZOOM_OFFSET: 8192;
+    readonly TOUCH_DOLLY_ROTATE: 4096;
+    readonly TOUCH_ZOOM_TRUCK: 8192;
+    readonly TOUCH_ZOOM_OFFSET: 16384;
+    readonly TOUCH_ZOOM_ROTATE: 32768;
 }>;
 export declare type ACTION = number;
 export interface PointerInput {
