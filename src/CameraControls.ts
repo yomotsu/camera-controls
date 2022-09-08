@@ -952,7 +952,9 @@ export class CameraControls extends EventDispatcher {
 
 				if (
 					( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
-					( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE
+					( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
+					( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
+					( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
 				) {
 
 					this._rotateInternal( deltaX, deltaY );
@@ -978,7 +980,9 @@ export class CameraControls extends EventDispatcher {
 					( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
 					( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
 					( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
-					( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET
+					( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET ||
+					( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
+					( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
 				) {
 
 					const dx = _v2.x - this._activePointers[ 1 ].clientX;
