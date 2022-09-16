@@ -61,8 +61,10 @@ type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACT
 type mouseWheelAction  = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
 type singleTouchAction = typeof ACTION.TOUCH_ROTATE | typeof ACTION.TOUCH_TRUCK | typeof ACTION.TOUCH_OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
 type multiTouchAction =
+	typeof ACTION.TOUCH_DOLLY_ROTATE |
 	typeof ACTION.TOUCH_DOLLY_TRUCK |
 	typeof ACTION.TOUCH_DOLLY_OFFSET |
+	typeof ACTION.TOUCH_ZOOM_ROTATE |
 	typeof ACTION.TOUCH_ZOOM_TRUCK |
 	typeof ACTION.TOUCH_ZOOM_OFFSET |
 	typeof ACTION.TOUCH_DOLLY |
