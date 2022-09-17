@@ -817,6 +817,7 @@
 	                    const dollyX = this.dollyToCursor ? (lastDragPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
 	                    const dollyY = this.dollyToCursor ? (lastDragPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
 	                    this._state === ACTION.TOUCH_DOLLY ||
+	                        this._state === ACTION.TOUCH_DOLLY_ROTATE ||
 	                        this._state === ACTION.TOUCH_DOLLY_TRUCK ||
 	                        this._state === ACTION.TOUCH_DOLLY_OFFSET ?
 	                        this._dollyInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
