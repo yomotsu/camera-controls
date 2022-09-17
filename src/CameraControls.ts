@@ -1623,7 +1623,7 @@ export class CameraControls extends EventDispatcher {
 		paddingTop = 0
 	}: Partial<FitToOptions> = {} ): Promise<void[]> {
 
-		const promises = [];
+		const promises: Promise<void>[] = [];
 		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
 			? _box3A.copy( box3OrObject as _THREE.Box3 )
 			: _box3A.setFromObject( box3OrObject as _THREE.Object3D );
@@ -1737,7 +1737,7 @@ export class CameraControls extends EventDispatcher {
 	 */
 	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): Promise<void[]> {
 
-		const promises = [];
+		const promises: Promise<void>[] = [];
 		const isSphere = sphereOrMesh instanceof THREE.Sphere;
 		const boundingSphere = isSphere ?
 			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
