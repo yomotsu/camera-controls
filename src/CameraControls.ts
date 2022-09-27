@@ -21,6 +21,7 @@ import {
 	roundToStep,
 	infinityToMaxNumber,
 	maxNumberToInfinity,
+	getRotateAngle
 } from './utils/math-utils';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
@@ -483,6 +484,8 @@ export class CameraControls extends EventDispatcher {
 			const dragStartPosition = new THREE.Vector2() as _THREE.Vector2;
 			const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
 			const dollyStart = new THREE.Vector2() as _THREE.Vector2;
+            const currentVec = new THREE.Vector2() as _THREE.Vector2;
+            const prevVec = new THREE.Vector2() as _THREE.Vector2;
 
 			const onPointerDown = ( event: PointerEvent ) => {
 
@@ -882,6 +885,13 @@ export class CameraControls extends EventDispatcher {
 
 					lastDragPosition.set( x, y );
 
+					// 2 finger vector
+                    const xv = this._activePointers[0].clientX - this._activePointers[1].clientX;
+                    const yv = this._activePointers[0].clientY - this._activePointers[1].clientY;
+
+					currentVec.set( xv, yv );
+                    prevVec.copy(currentVec);
+
 				}
 
 				if (
@@ -952,14 +962,25 @@ export class CameraControls extends EventDispatcher {
 
 				if (
 					( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
-					( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
-					( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
-					( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+					( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE
 				) {
 
 					this._rotateInternal( deltaX, deltaY );
 
 				}
+
+				if ((this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
+                    (this._state & ACTION.TOUCH_ZOOM_ROTATE) === ACTION.TOUCH_ZOOM_ROTATE
+				) {
+
+                    const xv = this._activePointers[0].clientX - this._activePointers[1].clientX;
+                    const yv = this._activePointers[0].clientY - this._activePointers[1].clientY;
+					currentVec.set( xv, yv );
+                    const angle = getRotateAngle( currentVec, prevVec );
+                    this._rotateAngle( angle, deltaY );
+                    prevVec.copy( currentVec );
+
+                }
 
 				if (
 					( this._state & ACTION.DOLLY ) === ACTION.DOLLY ||
@@ -2607,6 +2628,14 @@ export class CameraControls extends EventDispatcher {
 
 		const theta = PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.height; // divide by *height* to refer the resolution
 		const phi   = PI_2 * this.polarRotateSpeed   * deltaY / this._elementRect.height;
+		this.rotate( theta, phi, true );
+
+	};
+
+	protected _rotateAngle = (angle: number, deltaY: number): void => {
+		
+		const theta = angle * THREE.MathUtils.DEG2RAD;
+		const phi = PI_2 * this.polarRotateSpeed * deltaY / this._elementRect.height;
 		this.rotate( theta, phi, true );
 
 	};
