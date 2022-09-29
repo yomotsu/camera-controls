@@ -1950,6 +1950,7 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Set orbit point without moving the camera.
+	 * SHOULD NOT RUN DURING ANIMATIONS. `setOrbitPoint()` will immediately fix the positions.
 	 * @param targetX
 	 * @param targetY
 	 * @param targetZ
@@ -1957,6 +1958,9 @@ export class CameraControls extends EventDispatcher {
 	 */
 	setOrbitPoint( targetX: number, targetY: number, targetZ : number ) {
 
+		this.setFocalOffset( 0, 0, 0 );
+		this.update( 0 );
+		this._camera.updateMatrixWorld();
 		_xColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 0 );
 		_yColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 1 );
 		_zColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 2 );
@@ -2128,6 +2132,8 @@ export class CameraControls extends EventDispatcher {
 	reset( enableTransition: boolean = false ): Promise<void[]> {
 
 		const promises = [
+			// reset focal offset before setLookAt()
+			this.setFocalOffset( 0, 0, 0, enableTransition ),
 			this.setLookAt(
 				this._position0.x, this._position0.y, this._position0.z,
 				this._target0.x, this._target0.y, this._target0.z,
@@ -2152,9 +2158,10 @@ export class CameraControls extends EventDispatcher {
 	 */
 	saveState(): void {
 
-		this._target0.copy( this._target );
-		this._position0.copy( this._camera.position );
+		this.getTarget( this._target0 );
+		this.getPosition( this._position0 );
 		this._zoom0 = this._zoom;
+		this._focalOffset0.copy( this._focalOffset );
 
 	}
 
