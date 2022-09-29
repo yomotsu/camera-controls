@@ -2132,8 +2132,6 @@ export class CameraControls extends EventDispatcher {
 	reset( enableTransition: boolean = false ): Promise<void[]> {
 
 		const promises = [
-			// reset focal offset before setLookAt()
-			this.setFocalOffset( 0, 0, 0, enableTransition ),
 			this.setLookAt(
 				this._position0.x, this._position0.y, this._position0.z,
 				this._target0.x, this._target0.y, this._target0.z,
