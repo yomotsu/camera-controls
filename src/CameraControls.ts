@@ -1958,8 +1958,6 @@ export class CameraControls extends EventDispatcher {
 	 */
 	setOrbitPoint( targetX: number, targetY: number, targetZ : number ) {
 
-		this.setFocalOffset( 0, 0, 0 );
-		this.update( 0 );
 		this._camera.updateMatrixWorld();
 		_xColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 0 );
 		_yColumn.setFromMatrixColumn( this._camera.matrixWorldInverse, 1 );
