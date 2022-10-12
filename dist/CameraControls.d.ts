@@ -579,6 +579,7 @@ export declare class CameraControls extends EventDispatcher {
     setFocalOffset(x: number, y: number, z: number, enableTransition?: boolean): Promise<void>;
     /**
      * Set orbit point without moving the camera.
+     * SHOULD NOT RUN DURING ANIMATIONS. `setOrbitPoint()` will immediately fix the positions.
      * @param targetX
      * @param targetY
      * @param targetZ
