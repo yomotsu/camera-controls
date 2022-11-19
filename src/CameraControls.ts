@@ -2250,6 +2250,7 @@ export class CameraControls extends EventDispatcher {
 			} else if ( isOrthographicCamera( this._camera ) ) {
 
 				const camera = this._camera;
+
 				const worldPosition = _v3A.set(
 					this._dollyControlCoord.x,
 					this._dollyControlCoord.y,
@@ -2262,15 +2263,11 @@ export class CameraControls extends EventDispatcher {
 				const distance = approxZero( divisor ) ? - worldPosition.dot( camera.up ) : - worldPosition.dot( camera.up ) / divisor;
 				const cursor = _v3C.copy( worldPosition ).add( quaternion.multiplyScalar( distance ) );
 
-				const prevZoom = this._zoom - this._dollyControlAmount;
-				const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
-
-				const oldCameraDepth = camera.getWorldDirection( _v3A ).multiply( this._targetEnd );
-				this._targetEnd.lerp( cursor, lerpRatio );
-				const newCameraDepth = camera.getWorldDirection( _v3B ).multiply( this._targetEnd );
-				// Pull back the camera depth that has moved. the camera is stationary.
-				this._targetEnd.add( newCameraDepth.add( oldCameraDepth ) );
+				this._targetEnd.lerp( cursor, 1 - camera.zoom / this._dollyControlAmount );
 				this._target.copy( this._targetEnd );
+
+				// target position may be moved beyond boundary.
+				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
 			}
 
@@ -2655,14 +2652,14 @@ export class CameraControls extends EventDispatcher {
 	protected _zoomInternal = ( delta: number, x: number, y: number ): void => {
 
 		const zoomScale = Math.pow( 0.95, delta * this.dollySpeed );
-		const prevZoom = this._zoomEnd;
 
 		// for both PerspectiveCamera and OrthographicCamera
 		this.zoomTo( this._zoom * zoomScale );
 
 		if ( this.dollyToCursor ) {
 
-			this._dollyControlAmount += this._zoomEnd - prevZoom;
+			this._dollyControlAmount = this._zoomEnd;
+
 			this._dollyControlCoord.set( x, y );
 
 		}
