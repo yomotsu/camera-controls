@@ -2247,15 +2247,6 @@ export class CameraControls extends EventDispatcher {
 
 				const camera = this._camera;
 
-				// calc the "distance" of Plane given a point and normal vector
-				// https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
-				const cameraDirection = camera.getWorldDirection( _v3A.clone() );
-				const prevPlaneConstant = (
-					this._targetEnd.x * cameraDirection.x +
-					this._targetEnd.y * cameraDirection.y +
-					this._targetEnd.z * cameraDirection.z
-				);
-
 				const worldPosition = _v3A.set(
 					this._dollyControlCoord.x,
 					this._dollyControlCoord.y,
@@ -2266,15 +2257,16 @@ export class CameraControls extends EventDispatcher {
 				const prevZoom = this._zoom - this._dollyControlAmount;
 				const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
 
+				// find the "distance" (aka plane constant in three.js) of Plane
+				// from a given position (this._targetEnd) and normal vector (cameraDirection)
+				// https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
+				const cameraDirection = camera.getWorldDirection( _v3A );
+				const prevPlaneConstant = this._targetEnd.dot( cameraDirection );
+
 				this._targetEnd.lerp( cursor, lerpRatio );
+				const newPlaneConstant = this._targetEnd.dot( cameraDirection );
 
-				const newPlaneConstant = (
-					this._targetEnd.x * cameraDirection.x +
-					this._targetEnd.y * cameraDirection.y +
-					this._targetEnd.z * cameraDirection.z
-				);
-
-				// Pull back the camera depth that has moved. the camera is stationary as zoom
+				// Pull back the camera depth that has moved, to be the camera stationary as zoom
 				const pullBack = cameraDirection.multiplyScalar( newPlaneConstant - prevPlaneConstant );
 				this._targetEnd.sub( pullBack );
 
