@@ -2231,10 +2231,10 @@ export class CameraControls extends EventDispatcher {
 			if ( isPerspectiveCamera( this._camera ) ) {
 
 				const camera = this._camera;
-				const direction = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
-				const planeX = _v3B.copy( direction ).cross( camera.up ).normalize();
+				const cameraDirection = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+				const planeX = _v3B.copy( cameraDirection ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
-				const planeY = _v3C.crossVectors( planeX, direction );
+				const planeY = _v3C.crossVectors( planeX, cameraDirection );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
@@ -2246,21 +2246,20 @@ export class CameraControls extends EventDispatcher {
 			} else if ( isOrthographicCamera( this._camera ) ) {
 
 				const camera = this._camera;
-
-				const worldPosition = _v3A.set(
+				const worldCursorPosition = _v3A.set(
 					this._dollyControlCoord.x,
 					this._dollyControlCoord.y,
 					( camera.near + camera.far ) / ( camera.near - camera.far )
 				).unproject( camera );
 				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
-				const cursor = _v3C.copy( worldPosition ).add( quaternion.multiplyScalar( - worldPosition.dot( camera.up ) ) );
+				const cursor = _v3C.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
 				const prevZoom = this._zoom - this._dollyControlAmount;
 				const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
 
 				// find the "distance" (aka plane constant in three.js) of Plane
 				// from a given position (this._targetEnd) and normal vector (cameraDirection)
 				// https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
-				const cameraDirection = camera.getWorldDirection( _v3A );
+				const cameraDirection = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
 				const prevPlaneConstant = this._targetEnd.dot( cameraDirection );
 
 				this._targetEnd.lerp( cursor, lerpRatio );
@@ -2295,7 +2294,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( affectOffset ) {
 
-			this._camera.updateMatrix();
+			this._camera.updateMatrixWorld();
 			_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
 			_yColumn.setFromMatrixColumn( this._camera.matrix, 1 );
 			_zColumn.setFromMatrixColumn( this._camera.matrix, 2 );
