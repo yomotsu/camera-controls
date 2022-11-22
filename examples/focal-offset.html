@@ -31,15 +31,15 @@
 	<button onclick="cameraControls.saveState()">saveState</button>
 </div>
 
-<script src="https://unpkg.com/three@0.143.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
 
-const width  = window.innerWidth;
+const width = window.innerWidth;
 const height = window.innerHeight;
 const clock = new THREE.Clock();
-const scene  = new THREE.Scene();
+const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();

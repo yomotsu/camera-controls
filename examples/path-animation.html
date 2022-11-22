@@ -16,16 +16,16 @@
 	<button onclick="cameraControls.reset( true )">reset</button>
 </div>
 
-<script src="https://unpkg.com/three@0.143.0/build/three.min.js"></script>
-<script src="https://unpkg.com/gsap@3.10.4/dist/gsap.min.js"></script>
+<script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
+<script src="https://unpkg.com/gsap@3.11.3/dist/gsap.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
 
-const width  = window.innerWidth;
+const width = window.innerWidth;
 const height = window.innerHeight;
 const clock = new THREE.Clock();
-const scene  = new THREE.Scene();
+const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();
@@ -67,16 +67,16 @@ const moveToStartPoint = () => {
 const _tmp = new THREE.Vector3();
 const animationProgress = { value: 0 };
 const pathAnimation = gsap.fromTo(
-  animationProgress,
-  {
-    value: 0,
-  },
-  {
-    value: 1,
-    duration: 3,
+	animationProgress,
+	{
+		value: 0,
+	},
+	{
+		value: 1,
+		duration: 3,
 		paused: true,
-    onUpdateParams: [ animationProgress ],
-    onUpdate( { value } ) {
+		onUpdateParams: [ animationProgress ],
+		onUpdate( { value } ) {
 
 			curve.getPoint ( value, _tmp );
 			const cameraX = _tmp.x;
@@ -96,7 +96,7 @@ const pathAnimation = gsap.fromTo(
 				false
 			);
 
-    },
+		},
 		onStart() {
 
 			cameraControls.enabled = false;
@@ -106,8 +106,8 @@ const pathAnimation = gsap.fromTo(
 
 			cameraControls.enabled = true;
 
-		}
-  }
+		},
+	}
 );
 
 renderer.render( scene, camera );

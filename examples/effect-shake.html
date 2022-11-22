@@ -14,15 +14,15 @@
 	<button type="button" onclick="cameraShale2.shake()">shake 3</button>
 </div>
 
-<script src="https://unpkg.com/three@0.143.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
 
-const width  = window.innerWidth;
+const width = window.innerWidth;
 const height = window.innerHeight;
 const clock = new THREE.Clock();
-const scene  = new THREE.Scene();
+const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();
@@ -207,8 +207,6 @@ function sineOut( t ) {
 window.cameraShale0 = new CameraShake( cameraControls, 500, 10, 0.5 );
 window.cameraShale1 = new CameraShake( cameraControls, 1000, 10, 1 );
 window.cameraShale2 = new CameraShake( cameraControls, 5000, 2, 0.5 );
-
-
 </script>
 
 </body>

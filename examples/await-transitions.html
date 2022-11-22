@@ -12,174 +12,169 @@
 	<button type="button" onclick="reset()">Reset</button>
 	<button type="button" onclick="transitionSequenceA()">Transition Sequence A</button>
 	<button type="button" onclick="transitionSequenceB()">Transition Sequence B</button>
-
 	<p>Transition promises will resolve when the camera slows to less than <code>controls.restThreshold</code> units in a single frame. You can set this value here</p> 	<label><input oninput="cameraControls.restThreshold = this.value" value="0.01" type="number" min="0.001" max="1" step="0.001"> Rest Threshold</label>
-
 </div>
 
-<script src="https://unpkg.com/three@0.143.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
-	const clock = new THREE.Clock();
-	let cameraControls, camera, scene, renderer, mesh;
+const clock = new THREE.Clock();
+let cameraControls, camera, scene, renderer, mesh;
 
-	const uiElems = document.querySelectorAll('button');
-	const enableUI = ( enabled ) => uiElems.forEach( elem => elem.disabled = !enabled );
+const uiElems = document.querySelectorAll('button');
+const enableUI = ( enabled ) => uiElems.forEach( elem => elem.disabled = !enabled );
 
-	function init() {
+function init() {
 
-		CameraControls.install( { THREE: THREE } );
+	CameraControls.install( { THREE: THREE } );
 
-		const width  = window.innerWidth;
-		const height = window.innerHeight;
+	const width = window.innerWidth;
+	const height = window.innerHeight;
 
-		scene  = new THREE.Scene();
-		camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
-		camera.position.set( 0, 0, 5 );
-		renderer = new THREE.WebGLRenderer();
-		renderer.setSize( width, height );
-		document.body.appendChild( renderer.domElement );
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+	camera.position.set( 0, 0, 5 );
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
 
-		cameraControls = new CameraControls( camera, renderer.domElement );
+	cameraControls = new CameraControls( camera, renderer.domElement );
 
-		mesh = new THREE.Mesh(
-			new THREE.BoxBufferGeometry( 1, 1, 1 ),
-			new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
-		);
-		scene.add( mesh );
+	mesh = new THREE.Mesh(
+		new THREE.BoxBufferGeometry( 1, 1, 1 ),
+		new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+	);
+	scene.add( mesh );
 
-		const gridHelper = new THREE.GridHelper( 50, 50 );
-		gridHelper.position.y = - 1;
-		scene.add( gridHelper );
+	const gridHelper = new THREE.GridHelper( 50, 50 );
+	gridHelper.position.y = - 1;
+	scene.add( gridHelper );
+
+	renderer.render( scene, camera );
+
+}
+
+function animate() {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( animate );
+
+	if ( updated ) {
 
 		renderer.render( scene, camera );
 
 	}
+}
 
-	function animate() {
+init();
+animate();
 
-		const delta = clock.getDelta();
-		const elapsed = clock.getElapsedTime();
-		const updated = cameraControls.update( delta );
+cameraControls.addEventListener( 'transitionstart', () => {
 
-		// if ( elapsed > 30 ) { return; }
+	console.log( 'transitionstart' );
+	enableUI( false );
 
-		requestAnimationFrame( animate );
+} );
 
-		if ( updated ) {
+cameraControls.addEventListener( 'rest', () => {
 
-			renderer.render( scene, camera );
+	console.log( 'rest' );
 
-		}
-	}
+} );
 
-	init();
-	animate();
+cameraControls.addEventListener( 'controlend', () => {
 
-	cameraControls.addEventListener( 'transitionstart', () => {
+	console.log( 'controlend' );
+	enableUI( true );
 
-		console.log( 'transitionstart' );
-		enableUI( false );
+} );
 
-	} );
+function randomRotate() {
 
-	cameraControls.addEventListener( 'rest', () => {
+	return cameraControls.rotateTo( THREE.MathUtils.randFloat( 0, 2 * Math.PI ), THREE.MathUtils.randFloat( 0, Math.PI ), true );
 
-		console.log( 'rest' );
+}
 
-	} );
+function randomMove() {
 
-	cameraControls.addEventListener( 'controlend', () => {
+	return cameraControls.moveTo( THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ), true );
 
-		console.log( 'controlend' );
-		enableUI( true );
+}
 
-	} );
+function randomDolly() {
 
-	function randomRotate() {
+	return cameraControls.dollyTo( THREE.MathUtils.randFloat( 0.5, 5 ), true );
 
-		return cameraControls.rotateTo( THREE.MathUtils.randFloat( 0, 2 * Math.PI ), THREE.MathUtils.randFloat( 0, Math.PI ), true );
+}
 
-	}
+function lookAt() {
 
-	function randomMove() {
+	return cameraControls.setLookAt(
+		THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ),
+			0, 0, 0,
+			true,
+		);
 
-		return cameraControls.moveTo( THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ), true );
+}
 
-	}
+async function transitionSequenceA() {
 
-	function randomDolly() {
+	console.log("Starting sequence");
 
-		return cameraControls.dollyTo( THREE.MathUtils.randFloat( 0.5, 5 ), true );
+	console.log("Performing rotation");
+	await randomRotate();
 
-	}
+	console.log("Performing move");
+	await randomMove();
 
-	function lookAt() {
+	console.log("Performing lookAt");
+	await lookAt();
 
-		return cameraControls.setLookAt(
-			THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ),
-				0, 0, 0,
-				true,
-			);
+	console.log("Performing fitToBox");
+	await cameraControls.fitToBox( mesh, true, { paddingTop: 1, paddingLeft: 1, paddingBottom: 1, paddingRight: 1 } );
 
-	}
+	console.log("Sequence complete");
+	enableUI( true );
 
-	async function transitionSequenceA() {
+}
 
-		console.log("Starting sequence");
+async function transitionSequenceB() {
 
-		console.log("Performing rotation");
-		await randomRotate();
+	console.log("Starting sequence");
 
-		console.log("Performing move");
-		await randomMove();
+	console.log("Performing rotation and move");
+	await Promise.all([randomRotate(), randomMove()]);
 
-		console.log("Performing lookAt");
-		await lookAt();
+	console.log("Performing lookAt");
+	await lookAt();
 
-		console.log("Performing fitToBox");
-		await cameraControls.fitToBox( mesh, true, { paddingTop: 1, paddingLeft: 1, paddingBottom: 1, paddingRight: 1 } );
+	console.log("Performing rotation");
+	await randomRotate();
 
-		console.log("Sequence complete");
-		enableUI( true );
+	console.log("Performing rotation and dolly");
+	Promise.all([randomRotate(), randomDolly()])
 
-	}
+	console.log("Performing fit");
+	await cameraControls.fitToSphere( mesh, true );
 
-	async function transitionSequenceB() {
+	console.log("Sequence complete");
+	enableUI( true );
 
-		console.log("Starting sequence");
+}
 
-		console.log("Performing rotation and move");
-		await Promise.all([randomRotate(), randomMove()]);
+async function reset() {
 
-		console.log("Performing lookAt");
-		await lookAt();
+	console.log( "Resetting..." );
+	await cameraControls.reset( true );
+	console.log( "Reset complete" );
+	enableUI( true );
 
-		console.log("Performing rotation");
-		await randomRotate();
-
-		console.log("Performing rotation and dolly");
-		Promise.all([randomRotate(), randomDolly()])
-
-		console.log("Performing fit");
-		await cameraControls.fitToSphere( mesh, true );
-
-		console.log("Sequence complete");
-		enableUI( true );
-
-	}
-
-	async function reset() {
-
-		console.log( "Resetting..." );
-		await cameraControls.reset( true );
-		console.log( "Reset complete" );
-		enableUI( true );
-
-	}
-
-
-
+}
 
 </script>
 

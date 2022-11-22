@@ -17,15 +17,15 @@
 	</ul>
 </div>
 
-<script src="https://unpkg.com/three@0.143.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
 
-const width  = window.innerWidth;
+const width = window.innerWidth;
 const height = window.innerHeight;
 const clock = new THREE.Clock();
-const scene  = new THREE.Scene();
+const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();
@@ -37,22 +37,22 @@ const cameraControls = new CameraControls( camera, renderer.domElement );
 // switch the behavior by the modifier key press
 const keyState = {
 	shiftRight  : false,
-  shiftLeft   : false,
+	shiftLeft   : false,
 	controlRight: false,
 	controlLeft : false,
 };
 
 const updateConfig = () => {
 
-		if ( keyState.shiftRight || keyState.shiftLeft ) {
+	if ( keyState.shiftRight || keyState.shiftLeft ) {
 
-	cameraControls.mouseButtons.left = CameraControls.ACTION.TRUCK;
+		cameraControls.mouseButtons.left = CameraControls.ACTION.TRUCK;
 
 	} else if ( keyState.controlRight || keyState.controlLeft ) {
 
-    cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
+		cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
 
-  } else {
+	} else {
 
 		cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
 
@@ -63,20 +63,20 @@ const updateConfig = () => {
 document.addEventListener( 'keydown', ( event ) => {
 
 	if ( event.code === 'ShiftRight'   ) keyState.shiftRight   = true;
-  if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = true;
+	if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = true;
 	if ( event.code === 'ControlRight' ) keyState.controlRight = true;
 	if ( event.code === 'ControlLeft'  ) keyState.controlLeft  = true;
-  updateConfig();
+	updateConfig();
 
 } );
 
 document.addEventListener( 'keyup', ( event ) => {
 
 	if ( event.code === 'ShiftRight'   ) keyState.shiftRight   = false;
-  if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = false;
+	if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = false;
 	if ( event.code === 'ControlRight' ) keyState.controlRight = false;
 	if ( event.code === 'ControlLeft'  ) keyState.controlLeft  = false;
-  updateConfig();
+	updateConfig();
 
 } );
 

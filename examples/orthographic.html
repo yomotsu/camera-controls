@@ -36,15 +36,15 @@
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
 </div>
 
-<script src="https://unpkg.com/three@0.143.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
 
-const width  = window.innerWidth;
+const width = window.innerWidth;
 const height = window.innerHeight;
 const clock = new THREE.Clock();
-const scene  = new THREE.Scene();
+const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera( width / - 200, width / 200, height / 200, height / - 200, 1, 1000 );
 camera.position.set( 0, 0, 100 );
 const renderer = new THREE.WebGLRenderer();
