@@ -348,6 +348,7 @@ export class CameraControls extends EventDispatcher {
 
 	protected _focalOffset: _THREE.Vector3;
 	protected _focalOffsetEnd: _THREE.Vector3;
+	protected _affectOffset = false;
 
 	// rotation and dolly distance
 	protected _spherical: _THREE.Spherical;
@@ -1940,6 +1941,11 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
+		this._affectOffset =
+			! approxZero( this._focalOffset.x ) ||
+			! approxZero( this._focalOffset.y ) ||
+			! approxZero( this._focalOffset.z );
+
 		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold ) &&
 			approxEquals( this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold ) &&
@@ -2231,7 +2237,7 @@ export class CameraControls extends EventDispatcher {
 			if ( isPerspectiveCamera( this._camera ) ) {
 
 				const camera = this._camera;
-				const cameraDirection = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+				const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
 				const planeX = _v3B.copy( cameraDirection ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, cameraDirection );
@@ -2250,7 +2256,7 @@ export class CameraControls extends EventDispatcher {
 					this._dollyControlCoord.x,
 					this._dollyControlCoord.y,
 					( camera.near + camera.far ) / ( camera.near - camera.far )
-				).unproject( camera );
+				).unproject( camera );//.sub( _v3B.set( this._focalOffset.x, this._focalOffset.y, 0 ) );
 				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
 				const cursor = _v3C.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
 				const prevZoom = this._zoom - this._dollyControlAmount;
@@ -2259,7 +2265,7 @@ export class CameraControls extends EventDispatcher {
 				// find the "distance" (aka plane constant in three.js) of Plane
 				// from a given position (this._targetEnd) and normal vector (cameraDirection)
 				// https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
-				const cameraDirection = _v3A.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+				const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
 				const prevPlaneConstant = this._targetEnd.dot( cameraDirection );
 
 				this._targetEnd.lerp( cursor, lerpRatio );
@@ -2278,6 +2284,23 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
+		// zoom
+		const deltaZoom = this._zoomEnd - this._zoom;
+		this._zoom += deltaZoom * lerpRatio;
+
+		if ( this._camera.zoom !== this._zoom ) {
+
+			if ( approxZero( deltaZoom ) ) this._zoom = this._zoomEnd;
+
+			this._camera.zoom = this._zoom;
+			this._camera.updateProjectionMatrix();
+			this._updateNearPlaneCorners();
+
+			this._needsUpdate = true;
+
+		}
+
+		// collision detection
 		const maxDistance = this._collisionTest();
 		this._spherical.radius = Math.min( this._spherical.radius, maxDistance );
 
@@ -2287,12 +2310,7 @@ export class CameraControls extends EventDispatcher {
 		this._camera.lookAt( this._target );
 
 		// set offset after the orbit movement
-		const affectOffset =
-			! approxZero( this._focalOffset.x ) ||
-			! approxZero( this._focalOffset.y ) ||
-			! approxZero( this._focalOffset.z );
-
-		if ( affectOffset ) {
+		if ( this._affectOffset ) {
 
 			this._camera.updateMatrixWorld();
 			_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
@@ -2314,22 +2332,6 @@ export class CameraControls extends EventDispatcher {
 				_v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ),
 				1.0,
 			);
-
-		}
-
-		// zoom
-		const deltaZoom = this._zoomEnd - this._zoom;
-		this._zoom += deltaZoom * lerpRatio;
-
-		if ( this._camera.zoom !== this._zoom ) {
-
-			if ( approxZero( deltaZoom ) ) this._zoom = this._zoomEnd;
-
-			this._camera.zoom = this._zoom;
-			this._camera.updateProjectionMatrix();
-			this._updateNearPlaneCorners();
-
-			this._needsUpdate = true;
 
 		}
 
