@@ -1,4 +1,5 @@
 import pkg from './package.json' assert { type: 'json' };
+import rollupReplace from '@rollup/plugin-replace';
 import rollupTypescript from '@rollup/plugin-typescript';
 import typescript from 'typescript';
 
@@ -27,6 +28,7 @@ export default {
 		}
 	],
 	plugins: [
+		rollupReplace( { preventAssignment: true, __VERSION: pkg.version } ),
 		rollupTypescript( { typescript } ),
 	],
 };

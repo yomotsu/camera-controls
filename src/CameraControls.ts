@@ -27,10 +27,12 @@ import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthogra
 import { quatInvertCompat } from './utils/quatInvertCompat';
 import { EventDispatcher, Listener } from './EventDispatcher';
 
+const VERSION = '__VERSION'; // will be replaced with `version` in package.json during the build process.
+const TOUCH_DOLLY_FACTOR = 1 / 8;
+
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test( navigator.platform );
 const isPointerEventsNotSupported = ! ( isBrowser && 'PointerEvent' in window ); // Safari 12 does not support PointerEvents API
-const TOUCH_DOLLY_FACTOR = 1 / 8;
 
 let THREE: THREESubset;
 let _ORIGIN: _THREE.Vector3;
@@ -420,6 +422,7 @@ export class CameraControls extends EventDispatcher {
 		this._domElement.style.touchAction = 'none';
 		this._domElement.style.userSelect = 'none';
 		this._domElement.style.webkitUserSelect = 'none';
+		if ( 'setAttribute' in this._domElement ) this._domElement.setAttribute( 'data-camera-controls-version', VERSION );
 
 		// the location
 		this._target = new THREE.Vector3();
@@ -2466,6 +2469,7 @@ export class CameraControls extends EventDispatcher {
 	dispose(): void {
 
 		this._removeAllEventListeners();
+		if ( 'setAttribute' in this._domElement ) this._domElement.removeAttribute( 'data-camera-controls-version' );
 
 	}
 

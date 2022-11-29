@@ -9,6 +9,7 @@
   "types": "dist/index.d.ts",
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
+    "@rollup/plugin-replace": "^5.0.1",
     "@rollup/plugin-typescript": "^9.0.2",
     "@types/three": "^0.146.0",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
