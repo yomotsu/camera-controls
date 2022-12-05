@@ -3,7 +3,6 @@
     "baseUrl": "src",
     "outDir": "./dist",
     "declaration": true,
-    "declarationDir": "./dist",
     "target": "es2017",
     "lib": ["es2017", "dom"],
     "strict": true,
