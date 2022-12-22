@@ -972,7 +972,7 @@ export class CameraControls extends EventDispatcher {
 
 					const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 					const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
-					this._state === ACTION.DOLLY ?
+					( this._state & ACTION.DOLLY ) === ACTION.DOLLY ?
 						this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
 						this._zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 
