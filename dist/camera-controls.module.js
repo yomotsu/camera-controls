@@ -163,10 +163,11 @@ class EventDispatcher {
     }
 }
 
+const VERSION = '1.37.4'; // will be replaced with `version` in package.json during the build process.
+const TOUCH_DOLLY_FACTOR = 1 / 8;
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test(navigator.platform);
 const isPointerEventsNotSupported = !(isBrowser && 'PointerEvent' in window); // Safari 12 does not support PointerEvents API
-const TOUCH_DOLLY_FACTOR = 1 / 8;
 let THREE;
 let _ORIGIN;
 let _AXIS_Y;
@@ -190,6 +191,81 @@ let _quaternionB;
 let _rotationMatrix;
 let _raycaster;
 class CameraControls extends EventDispatcher {
+    /**
+     * Injects THREE as the dependency. You can then proceed to use CameraControls.
+     *
+     * e.g
+     * ```javascript
+     * CameraControls.install( { THREE: THREE } );
+     * ```
+     *
+     * Note: If you do not wish to use enter three.js to reduce file size(tree-shaking for example), make a subset to install.
+     *
+     * ```js
+     * import {
+     * 	Vector2,
+     * 	Vector3,
+     * 	Vector4,
+     * 	Quaternion,
+     * 	Matrix4,
+     * 	Spherical,
+     * 	Box3,
+     * 	Sphere,
+     * 	Raycaster,
+     * 	MathUtils,
+     * } from 'three';
+     *
+     * const subsetOfTHREE = {
+     * 	Vector2   : Vector2,
+     * 	Vector3   : Vector3,
+     * 	Vector4   : Vector4,
+     * 	Quaternion: Quaternion,
+     * 	Matrix4   : Matrix4,
+     * 	Spherical : Spherical,
+     * 	Box3      : Box3,
+     * 	Sphere    : Sphere,
+     * 	Raycaster : Raycaster,
+     * 	MathUtils : {
+     * 		DEG2RAD: MathUtils.DEG2RAD,
+     * 		clamp: MathUtils.clamp,
+     * 	},
+     * };
+
+     * CameraControls.install( { THREE: subsetOfTHREE } );
+     * ```
+     * @category Statics
+     */
+    static install(libs) {
+        THREE = libs.THREE;
+        _ORIGIN = Object.freeze(new THREE.Vector3(0, 0, 0));
+        _AXIS_Y = Object.freeze(new THREE.Vector3(0, 1, 0));
+        _AXIS_Z = Object.freeze(new THREE.Vector3(0, 0, 1));
+        _v2 = new THREE.Vector2();
+        _v3A = new THREE.Vector3();
+        _v3B = new THREE.Vector3();
+        _v3C = new THREE.Vector3();
+        _xColumn = new THREE.Vector3();
+        _yColumn = new THREE.Vector3();
+        _zColumn = new THREE.Vector3();
+        _deltaTarget = new THREE.Vector3();
+        _deltaOffset = new THREE.Vector3();
+        _sphericalA = new THREE.Spherical();
+        _sphericalB = new THREE.Spherical();
+        _box3A = new THREE.Box3();
+        _box3B = new THREE.Box3();
+        _sphere = new THREE.Sphere();
+        _quaternionA = new THREE.Quaternion();
+        _quaternionB = new THREE.Quaternion();
+        _rotationMatrix = new THREE.Matrix4();
+        _raycaster = new THREE.Raycaster();
+    }
+    /**
+     * list all ACTIONs
+     * @category Statics
+     */
+    static get ACTION() {
+        return ACTION;
+    }
     /**
      * Creates a `CameraControls` instance.
      *
@@ -359,6 +435,7 @@ class CameraControls extends EventDispatcher {
         this._enabled = true;
         this._state = ACTION.NONE;
         this._viewport = null;
+        this._affectOffset = false;
         this._dollyControlAmount = 0;
         this._hasRested = true;
         this._boundaryEnclosesCamera = false;
@@ -444,6 +521,8 @@ class CameraControls extends EventDispatcher {
         this._domElement.style.touchAction = 'none';
         this._domElement.style.userSelect = 'none';
         this._domElement.style.webkitUserSelect = 'none';
+        if ('setAttribute' in this._domElement)
+            this._domElement.setAttribute('data-camera-controls-version', VERSION);
         // the location
         this._target = new THREE.Vector3();
         this._targetEnd = this._target.clone();
@@ -792,7 +871,7 @@ class CameraControls extends EventDispatcher {
                     (this._state & ACTION.ZOOM) === ACTION.ZOOM) {
                     const dollyX = this.dollyToCursor ? (dragStartPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
                     const dollyY = this.dollyToCursor ? (dragStartPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
-                    this._state === ACTION.DOLLY ?
+                    (this._state & ACTION.DOLLY) === ACTION.DOLLY ?
                         this._dollyInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
                         this._zoomInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
                 }
@@ -811,10 +890,10 @@ class CameraControls extends EventDispatcher {
                     dollyStart.set(0, distance);
                     const dollyX = this.dollyToCursor ? (lastDragPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
                     const dollyY = this.dollyToCursor ? (lastDragPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
-                    this._state === ACTION.TOUCH_DOLLY ||
-                        this._state === ACTION.TOUCH_DOLLY_ROTATE ||
-                        this._state === ACTION.TOUCH_DOLLY_TRUCK ||
-                        this._state === ACTION.TOUCH_DOLLY_OFFSET ?
+                    (this._state & ACTION.TOUCH_DOLLY) === ACTION.TOUCH_DOLLY ||
+                        (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
+                        (this._state & ACTION.TOUCH_DOLLY_TRUCK) === ACTION.TOUCH_DOLLY_TRUCK ||
+                        (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ?
                         this._dollyInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
                         this._zoomInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
                 }
@@ -880,81 +959,6 @@ class CameraControls extends EventDispatcher {
             };
         }
         this.update(0);
-    }
-    /**
-     * Injects THREE as the dependency. You can then proceed to use CameraControls.
-     *
-     * e.g
-     * ```javascript
-     * CameraControls.install( { THREE: THREE } );
-     * ```
-     *
-     * Note: If you do not wish to use enter three.js to reduce file size(tree-shaking for example), make a subset to install.
-     *
-     * ```js
-     * import {
-     * 	Vector2,
-     * 	Vector3,
-     * 	Vector4,
-     * 	Quaternion,
-     * 	Matrix4,
-     * 	Spherical,
-     * 	Box3,
-     * 	Sphere,
-     * 	Raycaster,
-     * 	MathUtils,
-     * } from 'three';
-     *
-     * const subsetOfTHREE = {
-     * 	Vector2   : Vector2,
-     * 	Vector3   : Vector3,
-     * 	Vector4   : Vector4,
-     * 	Quaternion: Quaternion,
-     * 	Matrix4   : Matrix4,
-     * 	Spherical : Spherical,
-     * 	Box3      : Box3,
-     * 	Sphere    : Sphere,
-     * 	Raycaster : Raycaster,
-     * 	MathUtils : {
-     * 		DEG2RAD: MathUtils.DEG2RAD,
-     * 		clamp: MathUtils.clamp,
-     * 	},
-     * };
-
-     * CameraControls.install( { THREE: subsetOfTHREE } );
-     * ```
-     * @category Statics
-     */
-    static install(libs) {
-        THREE = libs.THREE;
-        _ORIGIN = Object.freeze(new THREE.Vector3(0, 0, 0));
-        _AXIS_Y = Object.freeze(new THREE.Vector3(0, 1, 0));
-        _AXIS_Z = Object.freeze(new THREE.Vector3(0, 0, 1));
-        _v2 = new THREE.Vector2();
-        _v3A = new THREE.Vector3();
-        _v3B = new THREE.Vector3();
-        _v3C = new THREE.Vector3();
-        _xColumn = new THREE.Vector3();
-        _yColumn = new THREE.Vector3();
-        _zColumn = new THREE.Vector3();
-        _deltaTarget = new THREE.Vector3();
-        _deltaOffset = new THREE.Vector3();
-        _sphericalA = new THREE.Spherical();
-        _sphericalB = new THREE.Spherical();
-        _box3A = new THREE.Box3();
-        _box3B = new THREE.Box3();
-        _sphere = new THREE.Sphere();
-        _quaternionA = new THREE.Quaternion();
-        _quaternionB = new THREE.Quaternion();
-        _rotationMatrix = new THREE.Matrix4();
-        _raycaster = new THREE.Raycaster();
-    }
-    /**
-     * list all ACTIONs
-     * @category Statics
-     */
-    static get ACTION() {
-        return ACTION;
     }
     /**
      * The camera to be controlled
@@ -1551,6 +1555,10 @@ class CameraControls extends EventDispatcher {
         if (!enableTransition) {
             this._focalOffset.copy(this._focalOffsetEnd);
         }
+        this._affectOffset =
+            !approxZero(this._focalOffset.x) ||
+                !approxZero(this._focalOffset.y) ||
+                !approxZero(this._focalOffset.z);
         const resolveImmediately = !enableTransition ||
             approxEquals(this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold) &&
                 approxEquals(this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold) &&
@@ -1762,11 +1770,11 @@ class CameraControls extends EventDispatcher {
         if (this._dollyControlAmount !== 0) {
             if (isPerspectiveCamera(this._camera)) {
                 const camera = this._camera;
-                const direction = _v3A.setFromSpherical(this._sphericalEnd).applyQuaternion(this._yAxisUpSpaceInverse).normalize().negate();
-                const planeX = _v3B.copy(direction).cross(camera.up).normalize();
+                const cameraDirection = _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).normalize().negate();
+                const planeX = _v3B.copy(cameraDirection).cross(camera.up).normalize();
                 if (planeX.lengthSq() === 0)
                     planeX.x = 1.0;
-                const planeY = _v3C.crossVectors(planeX, direction);
+                const planeY = _v3C.crossVectors(planeX, cameraDirection);
                 const worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5);
                 const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
                 const lerpRatio = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
@@ -1777,22 +1785,19 @@ class CameraControls extends EventDispatcher {
             }
             else if (isOrthographicCamera(this._camera)) {
                 const camera = this._camera;
-                // calc the "distance" of Plane given a point and normal vector
-                // https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
-                const cameraDirection = camera.getWorldDirection(_v3A.clone());
-                const prevPlaneConstant = (this._targetEnd.x * cameraDirection.x +
-                    this._targetEnd.y * cameraDirection.y +
-                    this._targetEnd.z * cameraDirection.z);
-                const worldPosition = _v3A.set(this._dollyControlCoord.x, this._dollyControlCoord.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera);
+                const worldCursorPosition = _v3A.set(this._dollyControlCoord.x, this._dollyControlCoord.y, (camera.near + camera.far) / (camera.near - camera.far)).unproject(camera); //.sub( _v3B.set( this._focalOffset.x, this._focalOffset.y, 0 ) );
                 const quaternion = _v3B.set(0, 0, -1).applyQuaternion(camera.quaternion);
-                const cursor = _v3C.copy(worldPosition).add(quaternion.multiplyScalar(-worldPosition.dot(camera.up)));
+                const cursor = _v3C.copy(worldCursorPosition).add(quaternion.multiplyScalar(-worldCursorPosition.dot(camera.up)));
                 const prevZoom = this._zoom - this._dollyControlAmount;
                 const lerpRatio = -(prevZoom - this._zoomEnd) / this._zoom;
+                // find the "distance" (aka plane constant in three.js) of Plane
+                // from a given position (this._targetEnd) and normal vector (cameraDirection)
+                // https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
+                const cameraDirection = _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).normalize().negate();
+                const prevPlaneConstant = this._targetEnd.dot(cameraDirection);
                 this._targetEnd.lerp(cursor, lerpRatio);
-                const newPlaneConstant = (this._targetEnd.x * cameraDirection.x +
-                    this._targetEnd.y * cameraDirection.y +
-                    this._targetEnd.z * cameraDirection.z);
-                // Pull back the camera depth that has moved. the camera is stationary as zoom
+                const newPlaneConstant = this._targetEnd.dot(cameraDirection);
+                // Pull back the camera depth that has moved, to be the camera stationary as zoom
                 const pullBack = cameraDirection.multiplyScalar(newPlaneConstant - prevPlaneConstant);
                 this._targetEnd.sub(pullBack);
             }
@@ -1800,30 +1805,6 @@ class CameraControls extends EventDispatcher {
             // target position may be moved beyond boundary.
             this._boundary.clampPoint(this._targetEnd, this._targetEnd);
             this._dollyControlAmount = 0;
-        }
-        const maxDistance = this._collisionTest();
-        this._spherical.radius = Math.min(this._spherical.radius, maxDistance);
-        // decompose spherical to the camera position
-        this._spherical.makeSafe();
-        this._camera.position.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).add(this._target);
-        this._camera.lookAt(this._target);
-        // set offset after the orbit movement
-        const affectOffset = !approxZero(this._focalOffset.x) ||
-            !approxZero(this._focalOffset.y) ||
-            !approxZero(this._focalOffset.z);
-        if (affectOffset) {
-            this._camera.updateMatrix();
-            _xColumn.setFromMatrixColumn(this._camera.matrix, 0);
-            _yColumn.setFromMatrixColumn(this._camera.matrix, 1);
-            _zColumn.setFromMatrixColumn(this._camera.matrix, 2);
-            _xColumn.multiplyScalar(this._focalOffset.x);
-            _yColumn.multiplyScalar(-this._focalOffset.y);
-            _zColumn.multiplyScalar(this._focalOffset.z); // notice: z-offset will not affect in Orthographic.
-            _v3A.copy(_xColumn).add(_yColumn).add(_zColumn);
-            this._camera.position.add(_v3A);
-        }
-        if (this._boundaryEnclosesCamera) {
-            this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse), 1.0);
         }
         // zoom
         const deltaZoom = this._zoomEnd - this._zoom;
@@ -1835,6 +1816,28 @@ class CameraControls extends EventDispatcher {
             this._camera.updateProjectionMatrix();
             this._updateNearPlaneCorners();
             this._needsUpdate = true;
+        }
+        // collision detection
+        const maxDistance = this._collisionTest();
+        this._spherical.radius = Math.min(this._spherical.radius, maxDistance);
+        // decompose spherical to the camera position
+        this._spherical.makeSafe();
+        this._camera.position.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).add(this._target);
+        this._camera.lookAt(this._target);
+        // set offset after the orbit movement
+        if (this._affectOffset) {
+            this._camera.updateMatrixWorld();
+            _xColumn.setFromMatrixColumn(this._camera.matrix, 0);
+            _yColumn.setFromMatrixColumn(this._camera.matrix, 1);
+            _zColumn.setFromMatrixColumn(this._camera.matrix, 2);
+            _xColumn.multiplyScalar(this._focalOffset.x);
+            _yColumn.multiplyScalar(-this._focalOffset.y);
+            _zColumn.multiplyScalar(this._focalOffset.z); // notice: z-offset will not affect in Orthographic.
+            _v3A.copy(_xColumn).add(_yColumn).add(_zColumn);
+            this._camera.position.add(_v3A);
+        }
+        if (this._boundaryEnclosesCamera) {
+            this._encloseToBoundary(this._camera.position.copy(this._target), _v3A.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse), 1.0);
         }
         const updated = this._needsUpdate;
         if (updated && !this._updatedLastTime) {
@@ -1938,6 +1941,8 @@ class CameraControls extends EventDispatcher {
      */
     dispose() {
         this._removeAllEventListeners();
+        if ('setAttribute' in this._domElement)
+            this._domElement.removeAttribute('data-camera-controls-version');
     }
     _findPointerById(pointerId) {
         // to support IE11 use some instead of Array#find (will be removed when IE11 is deprecated)

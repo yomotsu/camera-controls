@@ -245,6 +245,7 @@ export declare class CameraControls extends EventDispatcher {
     protected _targetEnd: _THREE.Vector3;
     protected _focalOffset: _THREE.Vector3;
     protected _focalOffsetEnd: _THREE.Vector3;
+    protected _affectOffset: boolean;
     protected _spherical: _THREE.Spherical;
     protected _sphericalEnd: _THREE.Spherical;
     protected _zoom: number;
