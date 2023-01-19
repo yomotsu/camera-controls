@@ -169,7 +169,7 @@
 	    }
 	}
 
-	const VERSION = '1.37.4'; // will be replaced with `version` in package.json during the build process.
+	const VERSION = '1.37.5'; // will be replaced with `version` in package.json during the build process.
 	const TOUCH_DOLLY_FACTOR = 1 / 8;
 	const isBrowser = typeof window !== 'undefined';
 	const isMac = isBrowser && /Mac/.test(navigator.platform);
@@ -1545,7 +1545,10 @@
 	     */
 	    setTarget(targetX, targetY, targetZ, enableTransition = false) {
 	        const pos = this.getPosition(_v3A);
-	        return this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
+	        const promise = this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
+	        // see https://github.com/yomotsu/camera-controls/issues/335
+	        this._sphericalEnd.phi = THREE.MathUtils.clamp(this.polarAngle, this.minPolarAngle, this.maxPolarAngle);
+	        return promise;
 	    }
 	    /**
 	     * Set focal offset using the screen parallel coordinates. z doesn't affect in Orthographic as with Dolly.
