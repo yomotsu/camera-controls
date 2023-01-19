@@ -1917,12 +1917,17 @@ export class CameraControls extends EventDispatcher {
 	setTarget( targetX: number, targetY: number, targetZ: number, enableTransition: boolean = false ): Promise<void> {
 
 		const pos = this.getPosition( _v3A );
-		return this.setLookAt(
+
+		const promise = this.setLookAt(
 			pos.x, pos.y, pos.z,
 			targetX, targetY, targetZ,
 			enableTransition,
 		);
 
+		// see https://github.com/yomotsu/camera-controls/issues/335
+		this._sphericalEnd.phi = THREE.MathUtils.clamp( this.polarAngle, this.minPolarAngle, this.maxPolarAngle );
+
+		return promise;
 	}
 
 	/**
