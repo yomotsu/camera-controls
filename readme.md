@@ -22,6 +22,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [viewport within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
+- [event attach / detach](https://yomotsu.github.io/camera-controls/examples/event-attach.html)
 - [user input config](https://yomotsu.github.io/camera-controls/examples/config.html)
 - [mouse drag with modifier keys](https://yomotsu.github.io/camera-controls/examples/mouse-drag-with-modifier-keys.html)
 - [combined gestures](https://yomotsu.github.io/camera-controls/examples/combined-gestures.html)
@@ -121,7 +122,7 @@ CameraControls.install( { THREE: subsetOfTHREE } );
 `CameraControls( camera, domElement )`
 
 - `camera` is a `THREE.PerspectiveCamera` or `THREE.OrthographicCamera` to be controlled.
-- `domElement` is a `HTMLElement` for draggable area.
+- `domElement` is a `HTMLElement` for draggable area. (optional. if domElement is omitted here, can be connect later with `.connect()`)
 
 ## Terms
 
@@ -620,6 +621,24 @@ When you change camera-up vector, run `.updateCameraUp()` to sync.
 
 ---
 
+### connect
+
+Attach all internal event handlers to enable drag control.
+
+---
+
+### disconnect
+
+Detach all internal event handlers to disable drag control.
+
+---
+
+#### `dispose()`
+
+Dispose the cameraControls instance itself, remove all eventListeners.
+
+---
+
 #### `addEventListener( type: string, listener: function )`
 
 Adds the specified event listener.
@@ -647,12 +666,6 @@ Get all state in JSON string
 #### `fromJSON( json, enableTransition )`
 
 Reproduce the control state with JSON. `enableTransition` is where anim or not in a boolean.
-
----
-
-#### `dispose()`
-
-Dispose the cameraControls instance itself, remove all eventListeners.
 
 ---
 

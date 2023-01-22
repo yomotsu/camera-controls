@@ -1053,7 +1053,6 @@ export class CameraControls extends EventDispatcher {
 			this._domElement.style.touchAction = 'none';
 			this._domElement.style.userSelect = 'none';
 			this._domElement.style.webkitUserSelect = 'none';
-			if ( 'setAttribute' in this._domElement ) this._domElement.setAttribute( 'data-camera-controls-version', VERSION );
 
 			this._domElement.addEventListener( 'pointerdown', onPointerDown );
 			isPointerEventsNotSupported && this._domElement.addEventListener( 'mousedown', onMouseDown );
@@ -1087,8 +1086,6 @@ export class CameraControls extends EventDispatcher {
 			this._domElement.ownerDocument.removeEventListener( 'mouseup', onMouseUp );
 			this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
 
-			if ( 'setAttribute' in this._domElement ) this._domElement.removeAttribute( 'data-camera-controls-version' );
-
 		};
 
 		this.cancel = (): void => {
@@ -1101,12 +1098,7 @@ export class CameraControls extends EventDispatcher {
 
 		};
 
-		if ( domElement ) {
-
-			this._addAllEventListeners( domElement );
-
-		}
-
+		if ( domElement ) this.connect( domElement );
 		this.update( 0 );
 
 	}
@@ -2482,12 +2474,30 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Connect the cameraControls instance itself, add all eventListeners.
+	 * Attach all internal event handlers to enable drag control.
 	 * @category Methods
 	 */
 	connect( domElement: HTMLElement ): void {
 
+		if ( this._domElement ) {
+
+			console.warn( 'camera-controls is already connected.' );
+			return;
+
+		}
+
+		domElement.setAttribute( 'data-camera-controls-version', VERSION );
 		this._addAllEventListeners( domElement );
+
+	}
+
+	/**
+	 * Detach all internal event handlers to disable drag control.
+	 */
+	disconnect() {
+
+		this._removeAllEventListeners();
+		this._domElement = undefined;
 
 	}
 
@@ -2497,7 +2507,8 @@ export class CameraControls extends EventDispatcher {
 	 */
 	dispose(): void {
 
-		this._removeAllEventListeners();
+		this.disconnect();
+		if ( this._domElement && 'setAttribute' in this._domElement ) this._domElement.removeAttribute( 'data-camera-controls-version' );
 
 	}
 

@@ -9,9 +9,9 @@
 <body>
 <div class="info">
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
-	<button onclick="cameraControls.connect( renderer.domElement )">connect</button>
-	<button onclick="cameraControls.dispose()">dispose</button>
-  <button onclick="cameraControls.rotate(  45 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 45deg</button>
+	<button onclick="cameraControls.connect( renderer.domElement )">connect (attach all events handlers)</button>
+	<button onclick="cameraControls.disconnect()">disconnect (remove all event listeners)</button>
+	<button onclick="cameraControls.rotate(  45 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 45deg</button>
 </div>
 
 <script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
@@ -26,7 +26,6 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();
-globalThis.renderer = renderer;
 renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
