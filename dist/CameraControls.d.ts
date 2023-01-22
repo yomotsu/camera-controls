@@ -239,7 +239,7 @@ export declare class CameraControls extends EventDispatcher {
     protected _yAxisUpSpace: _THREE.Quaternion;
     protected _yAxisUpSpaceInverse: _THREE.Quaternion;
     protected _state: ACTION;
-    protected _domElement: HTMLElement;
+    protected _domElement?: HTMLElement;
     protected _viewport: _THREE.Vector4 | null;
     protected _target: _THREE.Vector3;
     protected _targetEnd: _THREE.Vector3;
@@ -286,7 +286,7 @@ export declare class CameraControls extends EventDispatcher {
      * @param domElement A `HTMLElement` for the draggable area, usually `renderer.domElement`.
      * @category Constructor
      */
-    constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement: HTMLElement);
+    constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement?: HTMLElement);
     /*
     * The camera to be controlled
     * @category Properties
@@ -680,6 +680,15 @@ export declare class CameraControls extends EventDispatcher {
      */
     fromJSON(json: string, enableTransition?: boolean): void;
     /**
+     * Attach all internal event handlers to enable drag control.
+     * @category Methods
+     */
+    connect(domElement: HTMLElement): void;
+    /**
+     * Detach all internal event handlers to disable drag control.
+     */
+    disconnect(): void;
+    /**
      * Dispose the cameraControls instance itself, remove all eventListeners.
      * @category Methods
      */
@@ -695,7 +704,8 @@ export declare class CameraControls extends EventDispatcher {
     /**
      * Get its client rect and package into given `DOMRect` .
      */
-    protected _getClientRect(target: DOMRect): DOMRect;
+    protected _getClientRect(target: DOMRect): DOMRect | undefined;
     protected _createOnRestPromise(resolveImmediately: boolean): Promise<void>;
+    protected _addAllEventListeners(_domElement: HTMLElement): void;
     protected _removeAllEventListeners(): void;
 }

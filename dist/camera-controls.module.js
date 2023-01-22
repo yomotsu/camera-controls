@@ -163,7 +163,7 @@ class EventDispatcher {
     }
 }
 
-const VERSION = '1.37.5'; // will be replaced with `version` in package.json during the build process.
+const VERSION = '1.37.6'; // will be replaced with `version` in package.json during the build process.
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test(navigator.platform);
@@ -517,12 +517,6 @@ class CameraControls extends EventDispatcher {
         this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(this._camera.up, _AXIS_Y);
         this._yAxisUpSpaceInverse = quatInvertCompat(this._yAxisUpSpace.clone());
         this._state = ACTION.NONE;
-        this._domElement = domElement;
-        this._domElement.style.touchAction = 'none';
-        this._domElement.style.userSelect = 'none';
-        this._domElement.style.webkitUserSelect = 'none';
-        if ('setAttribute' in this._domElement)
-            this._domElement.setAttribute('data-camera-controls-version', VERSION);
         // the location
         this._target = new THREE.Vector3();
         this._targetEnd = this._target.clone();
@@ -566,117 +560,95 @@ class CameraControls extends EventDispatcher {
                     ACTION.NONE,
             three: ACTION.TOUCH_TRUCK,
         };
-        if (this._domElement) {
-            const dragStartPosition = new THREE.Vector2();
-            const lastDragPosition = new THREE.Vector2();
-            const dollyStart = new THREE.Vector2();
-            const onPointerDown = (event) => {
-                if (!this._enabled)
-                    return;
-                // Don't call `event.preventDefault()` on the pointerdown event
-                // to keep receiving pointermove evens outside dragging iframe
-                // https://taye.me/blog/tips/2015/11/16/mouse-drag-outside-iframe/
+        const dragStartPosition = new THREE.Vector2();
+        const lastDragPosition = new THREE.Vector2();
+        const dollyStart = new THREE.Vector2();
+        const onPointerDown = (event) => {
+            if (!this._enabled || !this._domElement)
+                return;
+            // Don't call `event.preventDefault()` on the pointerdown event
+            // to keep receiving pointermove evens outside dragging iframe
+            // https://taye.me/blog/tips/2015/11/16/mouse-drag-outside-iframe/
+            const pointer = {
+                pointerId: event.pointerId,
+                clientX: event.clientX,
+                clientY: event.clientY,
+                deltaX: 0,
+                deltaY: 0,
+            };
+            this._activePointers.push(pointer);
+            // eslint-disable-next-line no-undef
+            this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+            this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+            this._domElement.ownerDocument.addEventListener('pointermove', onPointerMove, { passive: false });
+            this._domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+            startDragging(event);
+        };
+        const onMouseDown = (event) => {
+            if (!this._enabled || !this._domElement)
+                return;
+            const pointer = {
+                pointerId: 0,
+                clientX: event.clientX,
+                clientY: event.clientY,
+                deltaX: 0,
+                deltaY: 0,
+            };
+            this._activePointers.push(pointer);
+            // see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
+            // eslint-disable-next-line no-undef
+            this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+            this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
+            this._domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
+            this._domElement.ownerDocument.addEventListener('mouseup', onMouseUp);
+            startDragging(event);
+        };
+        const onTouchStart = (event) => {
+            if (!this._enabled || !this._domElement)
+                return;
+            event.preventDefault();
+            Array.prototype.forEach.call(event.changedTouches, (touch) => {
                 const pointer = {
-                    pointerId: event.pointerId,
-                    clientX: event.clientX,
-                    clientY: event.clientY,
+                    pointerId: touch.identifier,
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
                     deltaX: 0,
                     deltaY: 0,
                 };
                 this._activePointers.push(pointer);
-                // eslint-disable-next-line no-undef
-                this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
-                this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                this._domElement.ownerDocument.addEventListener('pointermove', onPointerMove, { passive: false });
-                this._domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
-                startDragging(event);
-            };
-            const onMouseDown = (event) => {
-                if (!this._enabled)
-                    return;
-                const pointer = {
-                    pointerId: 0,
-                    clientX: event.clientX,
-                    clientY: event.clientY,
-                    deltaX: 0,
-                    deltaY: 0,
-                };
-                this._activePointers.push(pointer);
-                // see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
-                // eslint-disable-next-line no-undef
-                this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
-                this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
-                this._domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
-                this._domElement.ownerDocument.addEventListener('mouseup', onMouseUp);
-                startDragging(event);
-            };
-            const onTouchStart = (event) => {
-                if (!this._enabled)
-                    return;
+            });
+            // eslint-disable-next-line no-undef
+            this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
+            this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
+            this._domElement.ownerDocument.addEventListener('touchmove', onTouchMove, { passive: false });
+            this._domElement.ownerDocument.addEventListener('touchend', onTouchEnd);
+            startDragging(event);
+        };
+        const onPointerMove = (event) => {
+            if (event.cancelable)
                 event.preventDefault();
-                Array.prototype.forEach.call(event.changedTouches, (touch) => {
-                    const pointer = {
-                        pointerId: touch.identifier,
-                        clientX: touch.clientX,
-                        clientY: touch.clientY,
-                        deltaX: 0,
-                        deltaY: 0,
-                    };
-                    this._activePointers.push(pointer);
-                });
-                // eslint-disable-next-line no-undef
-                this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
-                this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
-                this._domElement.ownerDocument.addEventListener('touchmove', onTouchMove, { passive: false });
-                this._domElement.ownerDocument.addEventListener('touchend', onTouchEnd);
-                startDragging(event);
-            };
-            const onPointerMove = (event) => {
-                if (event.cancelable)
-                    event.preventDefault();
-                const pointerId = event.pointerId;
-                const pointer = this._findPointerById(pointerId);
-                if (!pointer)
-                    return;
-                pointer.clientX = event.clientX;
-                pointer.clientY = event.clientY;
-                pointer.deltaX = event.movementX;
-                pointer.deltaY = event.movementY;
-                if (event.pointerType === 'touch') {
-                    switch (this._activePointers.length) {
-                        case 1:
-                            this._state = this.touches.one;
-                            break;
-                        case 2:
-                            this._state = this.touches.two;
-                            break;
-                        case 3:
-                            this._state = this.touches.three;
-                            break;
-                    }
+            const pointerId = event.pointerId;
+            const pointer = this._findPointerById(pointerId);
+            if (!pointer)
+                return;
+            pointer.clientX = event.clientX;
+            pointer.clientY = event.clientY;
+            pointer.deltaX = event.movementX;
+            pointer.deltaY = event.movementY;
+            if (event.pointerType === 'touch') {
+                switch (this._activePointers.length) {
+                    case 1:
+                        this._state = this.touches.one;
+                        break;
+                    case 2:
+                        this._state = this.touches.two;
+                        break;
+                    case 3:
+                        this._state = this.touches.three;
+                        break;
                 }
-                else {
-                    this._state = 0;
-                    if ((event.buttons & MOUSE_BUTTON.LEFT) === MOUSE_BUTTON.LEFT) {
-                        this._state = this._state | this.mouseButtons.left;
-                    }
-                    if ((event.buttons & MOUSE_BUTTON.MIDDLE) === MOUSE_BUTTON.MIDDLE) {
-                        this._state = this._state | this.mouseButtons.middle;
-                    }
-                    if ((event.buttons & MOUSE_BUTTON.RIGHT) === MOUSE_BUTTON.RIGHT) {
-                        this._state = this._state | this.mouseButtons.right;
-                    }
-                }
-                dragging();
-            };
-            const onMouseMove = (event) => {
-                const pointer = this._findPointerById(0);
-                if (!pointer)
-                    return;
-                pointer.clientX = event.clientX;
-                pointer.clientY = event.clientY;
-                pointer.deltaX = event.movementX;
-                pointer.deltaY = event.movementY;
+            }
+            else {
                 this._state = 0;
                 if ((event.buttons & MOUSE_BUTTON.LEFT) === MOUSE_BUTTON.LEFT) {
                     this._state = this._state | this.mouseButtons.left;
@@ -687,59 +659,48 @@ class CameraControls extends EventDispatcher {
                 if ((event.buttons & MOUSE_BUTTON.RIGHT) === MOUSE_BUTTON.RIGHT) {
                     this._state = this._state | this.mouseButtons.right;
                 }
-                dragging();
-            };
-            const onTouchMove = (event) => {
-                if (event.cancelable)
-                    event.preventDefault();
-                Array.prototype.forEach.call(event.changedTouches, (touch) => {
-                    const pointerId = touch.identifier;
-                    const pointer = this._findPointerById(pointerId);
-                    if (!pointer)
-                        return;
-                    pointer.clientX = touch.clientX;
-                    pointer.clientY = touch.clientY;
-                    // touch event does not have movementX and movementY.
-                });
-                dragging();
-            };
-            const onPointerUp = (event) => {
-                const pointerId = event.pointerId;
+            }
+            dragging();
+        };
+        const onMouseMove = (event) => {
+            const pointer = this._findPointerById(0);
+            if (!pointer)
+                return;
+            pointer.clientX = event.clientX;
+            pointer.clientY = event.clientY;
+            pointer.deltaX = event.movementX;
+            pointer.deltaY = event.movementY;
+            this._state = 0;
+            if ((event.buttons & MOUSE_BUTTON.LEFT) === MOUSE_BUTTON.LEFT) {
+                this._state = this._state | this.mouseButtons.left;
+            }
+            if ((event.buttons & MOUSE_BUTTON.MIDDLE) === MOUSE_BUTTON.MIDDLE) {
+                this._state = this._state | this.mouseButtons.middle;
+            }
+            if ((event.buttons & MOUSE_BUTTON.RIGHT) === MOUSE_BUTTON.RIGHT) {
+                this._state = this._state | this.mouseButtons.right;
+            }
+            dragging();
+        };
+        const onTouchMove = (event) => {
+            if (event.cancelable)
+                event.preventDefault();
+            Array.prototype.forEach.call(event.changedTouches, (touch) => {
+                const pointerId = touch.identifier;
                 const pointer = this._findPointerById(pointerId);
-                pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
-                if (event.pointerType === 'touch') {
-                    switch (this._activePointers.length) {
-                        case 0:
-                            this._state = ACTION.NONE;
-                            break;
-                        case 1:
-                            this._state = this.touches.one;
-                            break;
-                        case 2:
-                            this._state = this.touches.two;
-                            break;
-                        case 3:
-                            this._state = this.touches.three;
-                            break;
-                    }
-                }
-                else {
-                    this._state = ACTION.NONE;
-                }
-                endDragging();
-            };
-            const onMouseUp = () => {
-                const pointer = this._findPointerById(0);
-                pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
-                this._state = ACTION.NONE;
-                endDragging();
-            };
-            const onTouchEnd = (event) => {
-                Array.prototype.forEach.call(event.changedTouches, (touch) => {
-                    const pointerId = touch.identifier;
-                    const pointer = this._findPointerById(pointerId);
-                    pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
-                });
+                if (!pointer)
+                    return;
+                pointer.clientX = touch.clientX;
+                pointer.clientY = touch.clientY;
+                // touch event does not have movementX and movementY.
+            });
+            dragging();
+        };
+        const onPointerUp = (event) => {
+            const pointerId = event.pointerId;
+            const pointer = this._findPointerById(pointerId);
+            pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
+            if (event.pointerType === 'touch') {
                 switch (this._activePointers.length) {
                     case 0:
                         this._state = ACTION.NONE;
@@ -754,210 +715,251 @@ class CameraControls extends EventDispatcher {
                         this._state = this.touches.three;
                         break;
                 }
-                endDragging();
-            };
-            let lastScrollTimeStamp = -1;
-            const onMouseWheel = (event) => {
-                if (!this._enabled || this.mouseButtons.wheel === ACTION.NONE)
-                    return;
-                event.preventDefault();
-                if (this.dollyToCursor ||
-                    this.mouseButtons.wheel === ACTION.ROTATE ||
-                    this.mouseButtons.wheel === ACTION.TRUCK) {
-                    const now = performance.now();
-                    // only need to fire this at scroll start.
-                    if (lastScrollTimeStamp - now < 1000)
-                        this._getClientRect(this._elementRect);
-                    lastScrollTimeStamp = now;
+            }
+            else {
+                this._state = ACTION.NONE;
+            }
+            endDragging();
+        };
+        const onMouseUp = () => {
+            const pointer = this._findPointerById(0);
+            pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
+            this._state = ACTION.NONE;
+            endDragging();
+        };
+        const onTouchEnd = (event) => {
+            Array.prototype.forEach.call(event.changedTouches, (touch) => {
+                const pointerId = touch.identifier;
+                const pointer = this._findPointerById(pointerId);
+                pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
+            });
+            switch (this._activePointers.length) {
+                case 0:
+                    this._state = ACTION.NONE;
+                    break;
+                case 1:
+                    this._state = this.touches.one;
+                    break;
+                case 2:
+                    this._state = this.touches.two;
+                    break;
+                case 3:
+                    this._state = this.touches.three;
+                    break;
+            }
+            endDragging();
+        };
+        let lastScrollTimeStamp = -1;
+        const onMouseWheel = (event) => {
+            if (!this._enabled || this.mouseButtons.wheel === ACTION.NONE)
+                return;
+            event.preventDefault();
+            if (this.dollyToCursor ||
+                this.mouseButtons.wheel === ACTION.ROTATE ||
+                this.mouseButtons.wheel === ACTION.TRUCK) {
+                const now = performance.now();
+                // only need to fire this at scroll start.
+                if (lastScrollTimeStamp - now < 1000)
+                    this._getClientRect(this._elementRect);
+                lastScrollTimeStamp = now;
+            }
+            // Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
+            const deltaYFactor = isMac ? -1 : -3;
+            const delta = (event.deltaMode === 1) ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
+            const x = this.dollyToCursor ? (event.clientX - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
+            const y = this.dollyToCursor ? (event.clientY - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
+            switch (this.mouseButtons.wheel) {
+                case ACTION.ROTATE: {
+                    this._rotateInternal(event.deltaX, event.deltaY);
+                    break;
                 }
-                // Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
-                const deltaYFactor = isMac ? -1 : -3;
-                const delta = (event.deltaMode === 1) ? event.deltaY / deltaYFactor : event.deltaY / (deltaYFactor * 10);
-                const x = this.dollyToCursor ? (event.clientX - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
-                const y = this.dollyToCursor ? (event.clientY - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
-                switch (this.mouseButtons.wheel) {
-                    case ACTION.ROTATE: {
-                        this._rotateInternal(event.deltaX, event.deltaY);
-                        break;
-                    }
-                    case ACTION.TRUCK: {
-                        this._truckInternal(event.deltaX, event.deltaY, false);
-                        break;
-                    }
-                    case ACTION.OFFSET: {
-                        this._truckInternal(event.deltaX, event.deltaY, true);
-                        break;
-                    }
-                    case ACTION.DOLLY: {
-                        this._dollyInternal(-delta, x, y);
-                        break;
-                    }
-                    case ACTION.ZOOM: {
-                        this._zoomInternal(-delta, x, y);
-                        break;
-                    }
+                case ACTION.TRUCK: {
+                    this._truckInternal(event.deltaX, event.deltaY, false);
+                    break;
                 }
-                this.dispatchEvent({ type: 'control' });
-            };
-            const onContextMenu = (event) => {
-                if (!this._enabled)
-                    return;
-                event.preventDefault();
-            };
-            const startDragging = (event) => {
-                if (!this._enabled)
-                    return;
-                extractClientCoordFromEvent(this._activePointers, _v2);
-                this._getClientRect(this._elementRect);
-                dragStartPosition.copy(_v2);
-                lastDragPosition.copy(_v2);
-                const isMultiTouch = this._activePointers.length >= 2;
-                if (isMultiTouch) {
-                    // 2 finger pinch
-                    const dx = _v2.x - this._activePointers[1].clientX;
-                    const dy = _v2.y - this._activePointers[1].clientY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    dollyStart.set(0, distance);
-                    // center coords of 2 finger truck
-                    const x = (this._activePointers[0].clientX + this._activePointers[1].clientX) * 0.5;
-                    const y = (this._activePointers[0].clientY + this._activePointers[1].clientY) * 0.5;
-                    lastDragPosition.set(x, y);
+                case ACTION.OFFSET: {
+                    this._truckInternal(event.deltaX, event.deltaY, true);
+                    break;
                 }
-                if ('touches' in event ||
-                    'pointerType' in event && event.pointerType === 'touch') {
-                    switch (this._activePointers.length) {
-                        case 1:
-                            this._state = this.touches.one;
-                            break;
-                        case 2:
-                            this._state = this.touches.two;
-                            break;
-                        case 3:
-                            this._state = this.touches.three;
-                            break;
-                    }
+                case ACTION.DOLLY: {
+                    this._dollyInternal(-delta, x, y);
+                    break;
                 }
-                else {
-                    this._state = 0;
-                    if ((event.buttons & MOUSE_BUTTON.LEFT) === MOUSE_BUTTON.LEFT) {
-                        this._state = this._state | this.mouseButtons.left;
-                    }
-                    if ((event.buttons & MOUSE_BUTTON.MIDDLE) === MOUSE_BUTTON.MIDDLE) {
-                        this._state = this._state | this.mouseButtons.middle;
-                    }
-                    if ((event.buttons & MOUSE_BUTTON.RIGHT) === MOUSE_BUTTON.RIGHT) {
-                        this._state = this._state | this.mouseButtons.right;
-                    }
+                case ACTION.ZOOM: {
+                    this._zoomInternal(-delta, x, y);
+                    break;
                 }
-                this.dispatchEvent({ type: 'controlstart' });
-            };
-            const dragging = () => {
-                if (!this._enabled)
-                    return;
-                extractClientCoordFromEvent(this._activePointers, _v2);
-                // When pointer lock is enabled clientX, clientY, screenX, and screenY remain 0.
-                // If pointer lock is enabled, use the Delta directory, and assume active-pointer is not multiple.
-                const isPointerLockActive = this._domElement && document.pointerLockElement === this._domElement;
-                const deltaX = isPointerLockActive ? -this._activePointers[0].deltaX : lastDragPosition.x - _v2.x;
-                const deltaY = isPointerLockActive ? -this._activePointers[0].deltaY : lastDragPosition.y - _v2.y;
-                lastDragPosition.copy(_v2);
-                if ((this._state & ACTION.ROTATE) === ACTION.ROTATE ||
-                    (this._state & ACTION.TOUCH_ROTATE) === ACTION.TOUCH_ROTATE ||
+            }
+            this.dispatchEvent({ type: 'control' });
+        };
+        const onContextMenu = (event) => {
+            if (!this._enabled)
+                return;
+            event.preventDefault();
+        };
+        const startDragging = (event) => {
+            if (!this._enabled)
+                return;
+            extractClientCoordFromEvent(this._activePointers, _v2);
+            this._getClientRect(this._elementRect);
+            dragStartPosition.copy(_v2);
+            lastDragPosition.copy(_v2);
+            const isMultiTouch = this._activePointers.length >= 2;
+            if (isMultiTouch) {
+                // 2 finger pinch
+                const dx = _v2.x - this._activePointers[1].clientX;
+                const dy = _v2.y - this._activePointers[1].clientY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                dollyStart.set(0, distance);
+                // center coords of 2 finger truck
+                const x = (this._activePointers[0].clientX + this._activePointers[1].clientX) * 0.5;
+                const y = (this._activePointers[0].clientY + this._activePointers[1].clientY) * 0.5;
+                lastDragPosition.set(x, y);
+            }
+            if ('touches' in event ||
+                'pointerType' in event && event.pointerType === 'touch') {
+                switch (this._activePointers.length) {
+                    case 1:
+                        this._state = this.touches.one;
+                        break;
+                    case 2:
+                        this._state = this.touches.two;
+                        break;
+                    case 3:
+                        this._state = this.touches.three;
+                        break;
+                }
+            }
+            else {
+                this._state = 0;
+                if ((event.buttons & MOUSE_BUTTON.LEFT) === MOUSE_BUTTON.LEFT) {
+                    this._state = this._state | this.mouseButtons.left;
+                }
+                if ((event.buttons & MOUSE_BUTTON.MIDDLE) === MOUSE_BUTTON.MIDDLE) {
+                    this._state = this._state | this.mouseButtons.middle;
+                }
+                if ((event.buttons & MOUSE_BUTTON.RIGHT) === MOUSE_BUTTON.RIGHT) {
+                    this._state = this._state | this.mouseButtons.right;
+                }
+            }
+            this.dispatchEvent({ type: 'controlstart' });
+        };
+        const dragging = () => {
+            if (!this._enabled)
+                return;
+            extractClientCoordFromEvent(this._activePointers, _v2);
+            // When pointer lock is enabled clientX, clientY, screenX, and screenY remain 0.
+            // If pointer lock is enabled, use the Delta directory, and assume active-pointer is not multiple.
+            const isPointerLockActive = this._domElement && document.pointerLockElement === this._domElement;
+            const deltaX = isPointerLockActive ? -this._activePointers[0].deltaX : lastDragPosition.x - _v2.x;
+            const deltaY = isPointerLockActive ? -this._activePointers[0].deltaY : lastDragPosition.y - _v2.y;
+            lastDragPosition.copy(_v2);
+            if ((this._state & ACTION.ROTATE) === ACTION.ROTATE ||
+                (this._state & ACTION.TOUCH_ROTATE) === ACTION.TOUCH_ROTATE ||
+                (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
+                (this._state & ACTION.TOUCH_ZOOM_ROTATE) === ACTION.TOUCH_ZOOM_ROTATE) {
+                this._rotateInternal(deltaX, deltaY);
+            }
+            if ((this._state & ACTION.DOLLY) === ACTION.DOLLY ||
+                (this._state & ACTION.ZOOM) === ACTION.ZOOM) {
+                const dollyX = this.dollyToCursor ? (dragStartPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
+                const dollyY = this.dollyToCursor ? (dragStartPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
+                (this._state & ACTION.DOLLY) === ACTION.DOLLY ?
+                    this._dollyInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
+                    this._zoomInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
+            }
+            if ((this._state & ACTION.TOUCH_DOLLY) === ACTION.TOUCH_DOLLY ||
+                (this._state & ACTION.TOUCH_ZOOM) === ACTION.TOUCH_ZOOM ||
+                (this._state & ACTION.TOUCH_DOLLY_TRUCK) === ACTION.TOUCH_DOLLY_TRUCK ||
+                (this._state & ACTION.TOUCH_ZOOM_TRUCK) === ACTION.TOUCH_ZOOM_TRUCK ||
+                (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ||
+                (this._state & ACTION.TOUCH_ZOOM_OFFSET) === ACTION.TOUCH_ZOOM_OFFSET ||
+                (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
+                (this._state & ACTION.TOUCH_ZOOM_ROTATE) === ACTION.TOUCH_ZOOM_ROTATE) {
+                const dx = _v2.x - this._activePointers[1].clientX;
+                const dy = _v2.y - this._activePointers[1].clientY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const dollyDelta = dollyStart.y - distance;
+                dollyStart.set(0, distance);
+                const dollyX = this.dollyToCursor ? (lastDragPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
+                const dollyY = this.dollyToCursor ? (lastDragPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
+                (this._state & ACTION.TOUCH_DOLLY) === ACTION.TOUCH_DOLLY ||
                     (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
-                    (this._state & ACTION.TOUCH_ZOOM_ROTATE) === ACTION.TOUCH_ZOOM_ROTATE) {
-                    this._rotateInternal(deltaX, deltaY);
-                }
-                if ((this._state & ACTION.DOLLY) === ACTION.DOLLY ||
-                    (this._state & ACTION.ZOOM) === ACTION.ZOOM) {
-                    const dollyX = this.dollyToCursor ? (dragStartPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
-                    const dollyY = this.dollyToCursor ? (dragStartPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
-                    (this._state & ACTION.DOLLY) === ACTION.DOLLY ?
-                        this._dollyInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
-                        this._zoomInternal(deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
-                }
-                if ((this._state & ACTION.TOUCH_DOLLY) === ACTION.TOUCH_DOLLY ||
-                    (this._state & ACTION.TOUCH_ZOOM) === ACTION.TOUCH_ZOOM ||
                     (this._state & ACTION.TOUCH_DOLLY_TRUCK) === ACTION.TOUCH_DOLLY_TRUCK ||
-                    (this._state & ACTION.TOUCH_ZOOM_TRUCK) === ACTION.TOUCH_ZOOM_TRUCK ||
-                    (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ||
-                    (this._state & ACTION.TOUCH_ZOOM_OFFSET) === ACTION.TOUCH_ZOOM_OFFSET ||
-                    (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
-                    (this._state & ACTION.TOUCH_ZOOM_ROTATE) === ACTION.TOUCH_ZOOM_ROTATE) {
-                    const dx = _v2.x - this._activePointers[1].clientX;
-                    const dy = _v2.y - this._activePointers[1].clientY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    const dollyDelta = dollyStart.y - distance;
-                    dollyStart.set(0, distance);
-                    const dollyX = this.dollyToCursor ? (lastDragPosition.x - this._elementRect.x) / this._elementRect.width * 2 - 1 : 0;
-                    const dollyY = this.dollyToCursor ? (lastDragPosition.y - this._elementRect.y) / this._elementRect.height * -2 + 1 : 0;
-                    (this._state & ACTION.TOUCH_DOLLY) === ACTION.TOUCH_DOLLY ||
-                        (this._state & ACTION.TOUCH_DOLLY_ROTATE) === ACTION.TOUCH_DOLLY_ROTATE ||
-                        (this._state & ACTION.TOUCH_DOLLY_TRUCK) === ACTION.TOUCH_DOLLY_TRUCK ||
-                        (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ?
-                        this._dollyInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
-                        this._zoomInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
-                }
-                if ((this._state & ACTION.TRUCK) === ACTION.TRUCK ||
-                    (this._state & ACTION.TOUCH_TRUCK) === ACTION.TOUCH_TRUCK ||
-                    (this._state & ACTION.TOUCH_DOLLY_TRUCK) === ACTION.TOUCH_DOLLY_TRUCK ||
-                    (this._state & ACTION.TOUCH_ZOOM_TRUCK) === ACTION.TOUCH_ZOOM_TRUCK) {
-                    this._truckInternal(deltaX, deltaY, false);
-                }
-                if ((this._state & ACTION.OFFSET) === ACTION.OFFSET ||
-                    (this._state & ACTION.TOUCH_OFFSET) === ACTION.TOUCH_OFFSET ||
-                    (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ||
-                    (this._state & ACTION.TOUCH_ZOOM_OFFSET) === ACTION.TOUCH_ZOOM_OFFSET) {
-                    this._truckInternal(deltaX, deltaY, true);
-                }
-                this.dispatchEvent({ type: 'control' });
-            };
-            const endDragging = () => {
-                extractClientCoordFromEvent(this._activePointers, _v2);
-                lastDragPosition.copy(_v2);
-                if (this._activePointers.length === 0) {
-                    // eslint-disable-next-line no-undef
-                    this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
-                    this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                    // eslint-disable-next-line no-undef
-                    this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
-                    this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
-                    this.dispatchEvent({ type: 'controlend' });
-                }
-            };
+                    (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ?
+                    this._dollyInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY) :
+                    this._zoomInternal(dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY);
+            }
+            if ((this._state & ACTION.TRUCK) === ACTION.TRUCK ||
+                (this._state & ACTION.TOUCH_TRUCK) === ACTION.TOUCH_TRUCK ||
+                (this._state & ACTION.TOUCH_DOLLY_TRUCK) === ACTION.TOUCH_DOLLY_TRUCK ||
+                (this._state & ACTION.TOUCH_ZOOM_TRUCK) === ACTION.TOUCH_ZOOM_TRUCK) {
+                this._truckInternal(deltaX, deltaY, false);
+            }
+            if ((this._state & ACTION.OFFSET) === ACTION.OFFSET ||
+                (this._state & ACTION.TOUCH_OFFSET) === ACTION.TOUCH_OFFSET ||
+                (this._state & ACTION.TOUCH_DOLLY_OFFSET) === ACTION.TOUCH_DOLLY_OFFSET ||
+                (this._state & ACTION.TOUCH_ZOOM_OFFSET) === ACTION.TOUCH_ZOOM_OFFSET) {
+                this._truckInternal(deltaX, deltaY, true);
+            }
+            this.dispatchEvent({ type: 'control' });
+        };
+        const endDragging = () => {
+            extractClientCoordFromEvent(this._activePointers, _v2);
+            lastDragPosition.copy(_v2);
+            if (this._activePointers.length === 0 && this._domElement) {
+                // eslint-disable-next-line no-undef
+                this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+                this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+                // eslint-disable-next-line no-undef
+                this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
+                this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
+                this.dispatchEvent({ type: 'controlend' });
+            }
+        };
+        this._addAllEventListeners = (domElement) => {
+            this._domElement = domElement;
+            this._domElement.style.touchAction = 'none';
+            this._domElement.style.userSelect = 'none';
+            this._domElement.style.webkitUserSelect = 'none';
             this._domElement.addEventListener('pointerdown', onPointerDown);
             isPointerEventsNotSupported && this._domElement.addEventListener('mousedown', onMouseDown);
             isPointerEventsNotSupported && this._domElement.addEventListener('touchstart', onTouchStart);
             this._domElement.addEventListener('pointercancel', onPointerUp);
             this._domElement.addEventListener('wheel', onMouseWheel, { passive: false });
             this._domElement.addEventListener('contextmenu', onContextMenu);
-            this._removeAllEventListeners = () => {
-                this._domElement.removeEventListener('pointerdown', onPointerDown);
-                this._domElement.removeEventListener('mousedown', onMouseDown);
-                this._domElement.removeEventListener('touchstart', onTouchStart);
-                this._domElement.removeEventListener('pointercancel', onPointerUp);
-                // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#matching_event_listeners_for_removal
-                // > it's probably wise to use the same values used for the call to `addEventListener()` when calling `removeEventListener()`
-                // see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
-                // eslint-disable-next-line no-undef
-                this._domElement.removeEventListener('wheel', onMouseWheel, { passive: false });
-                this._domElement.removeEventListener('contextmenu', onContextMenu);
-                // eslint-disable-next-line no-undef
-                this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
-                this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
-                // eslint-disable-next-line no-undef
-                this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
-                this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
-                this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
-            };
-            this.cancel = () => {
-                if (this._state === ACTION.NONE)
-                    return;
-                this._state = ACTION.NONE;
-                this._activePointers.length = 0;
-                endDragging();
-            };
-        }
+        };
+        this._removeAllEventListeners = () => {
+            if (!this._domElement)
+                return;
+            this._domElement.removeEventListener('pointerdown', onPointerDown);
+            this._domElement.removeEventListener('mousedown', onMouseDown);
+            this._domElement.removeEventListener('touchstart', onTouchStart);
+            this._domElement.removeEventListener('pointercancel', onPointerUp);
+            // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#matching_event_listeners_for_removal
+            // > it's probably wise to use the same values used for the call to `addEventListener()` when calling `removeEventListener()`
+            // see https://github.com/microsoft/TypeScript/issues/32912#issuecomment-522142969
+            // eslint-disable-next-line no-undef
+            this._domElement.removeEventListener('wheel', onMouseWheel, { passive: false });
+            this._domElement.removeEventListener('contextmenu', onContextMenu);
+            // eslint-disable-next-line no-undef
+            this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+            this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+            // eslint-disable-next-line no-undef
+            this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
+            this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+            this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
+            this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
+        };
+        this.cancel = () => {
+            if (this._state === ACTION.NONE)
+                return;
+            this._state = ACTION.NONE;
+            this._activePointers.length = 0;
+            endDragging();
+        };
+        if (domElement)
+            this.connect(domElement);
         this.update(0);
     }
     /**
@@ -983,6 +985,8 @@ class CameraControls extends EventDispatcher {
         return this._enabled;
     }
     set enabled(enabled) {
+        if (!this._domElement)
+            return;
         this._enabled = enabled;
         if (enabled) {
             this._domElement.style.touchAction = 'none';
@@ -1939,12 +1943,31 @@ class CameraControls extends EventDispatcher {
         this._needsUpdate = true;
     }
     /**
+     * Attach all internal event handlers to enable drag control.
+     * @category Methods
+     */
+    connect(domElement) {
+        if (this._domElement) {
+            console.warn('camera-controls is already connected.');
+            return;
+        }
+        domElement.setAttribute('data-camera-controls-version', VERSION);
+        this._addAllEventListeners(domElement);
+    }
+    /**
+     * Detach all internal event handlers to disable drag control.
+     */
+    disconnect() {
+        this._removeAllEventListeners();
+        this._domElement = undefined;
+    }
+    /**
      * Dispose the cameraControls instance itself, remove all eventListeners.
      * @category Methods
      */
     dispose() {
-        this._removeAllEventListeners();
-        if ('setAttribute' in this._domElement)
+        this.disconnect();
+        if (this._domElement && 'setAttribute' in this._domElement)
             this._domElement.removeAttribute('data-camera-controls-version');
     }
     _findPointerById(pointerId) {
@@ -2038,6 +2061,8 @@ class CameraControls extends EventDispatcher {
      * Get its client rect and package into given `DOMRect` .
      */
     _getClientRect(target) {
+        if (!this._domElement)
+            return;
         const rect = this._domElement.getBoundingClientRect();
         target.x = rect.left;
         target.y = rect.top;
@@ -2066,6 +2091,8 @@ class CameraControls extends EventDispatcher {
             this.addEventListener('rest', onResolve);
         });
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _addAllEventListeners(_domElement) { }
     _removeAllEventListeners() { }
 }
 function createBoundingSphere(object3d, out) {
