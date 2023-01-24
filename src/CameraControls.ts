@@ -1,6 +1,7 @@
 import type * as _THREE from 'three';
 import {
 	THREESubset,
+	RefCurrentVelocity,
 	MOUSE_BUTTON,
 	ACTION,
 	PointerInput,
@@ -21,6 +22,7 @@ import {
 	roundToStep,
 	infinityToMaxNumber,
 	maxNumberToInfinity,
+	smoothDamp,
 } from './utils/math-utils';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
@@ -224,19 +226,17 @@ export class CameraControls extends EventDispatcher {
 	maxZoom = Infinity;
 
 	/**
-	 * The damping inertia.  
-	 * The value must be between `Math.EPSILON` to `1` inclusive.  
-	 * Setting `1` to disable smooth transitions.
+	 * Approximately the time in second it will take to reach the target. A smaller value will reach the target faster.
 	 * @category Properties
 	 */
-	dampingFactor = 0.05;
+	smoothTime = 0.25;
+
 	/**
-	 * The damping inertia while dragging.  
-	 * The value must be between `Math.EPSILON` to `1` inclusive.  
-	 * Setting `1` to disable smooth transitions.
+	 * the smoothTime while dragging
 	 * @category Properties
 	 */
-	draggingDampingFactor = 0.25;
+	draggingSmoothTime = 0.1;
+
 	/**
 	 * Speed of azimuth (horizontal) rotation.
 	 * @category Properties
@@ -381,6 +381,18 @@ export class CameraControls extends EventDispatcher {
 	protected _elementRect = new DOMRect();
 
 	protected _activePointers: PointerInput[] = [];
+
+	// velocities for smoothDamp
+	protected _thetaVelocity: RefCurrentVelocity = { value: 0 };
+	protected _phiVelocity: RefCurrentVelocity = { value: 0 };
+	protected _radiusVelocity: RefCurrentVelocity = { value: 0 };
+	protected _targetXVelocity: RefCurrentVelocity = { value: 0 };
+	protected _targetYVelocity: RefCurrentVelocity = { value: 0 };
+	protected _targetZVelocity: RefCurrentVelocity = { value: 0 };
+	protected _focalOffsetXVelocity: RefCurrentVelocity = { value: 0 };
+	protected _focalOffsetYVelocity: RefCurrentVelocity = { value: 0 };
+	protected _focalOffsetZVelocity: RefCurrentVelocity = { value: 0 };
+	protected _zoomVelocity: RefCurrentVelocity = { value: 0 };
 
 	/**
 	 * Creates a `CameraControls` instance.
@@ -2202,47 +2214,129 @@ export class CameraControls extends EventDispatcher {
 	 */
 	update( delta: number ): boolean {
 
-		const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-		// The original THREE.OrbitControls assume 60 FPS fixed and does NOT rely on delta time.
-		// (that must be a problem of the original one though)
-		// To to emulate the speed of the original one under 60 FPS, multiply `60` to delta,
-		// but ours are more flexible to any FPS unlike the original.
-		const lerpRatio = Math.min( dampingFactor * delta * 60, 1 );
+		const smoothTime = this._state === ACTION.NONE ? this.smoothTime : this.draggingSmoothTime;
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
 		const deltaTarget = _deltaTarget.subVectors( this._targetEnd, this._target );
 		const deltaOffset = _deltaOffset.subVectors( this._focalOffsetEnd, this._focalOffset );
+		const deltaZoom = this._zoomEnd - this._zoom;
 
-		if (
-			! approxZero( deltaTheta    ) ||
-			! approxZero( deltaPhi      ) ||
-			! approxZero( deltaRadius   ) ||
-			! approxZero( deltaTarget.x ) ||
-			! approxZero( deltaTarget.y ) ||
-			! approxZero( deltaTarget.z ) ||
-			! approxZero( deltaOffset.x ) ||
-			! approxZero( deltaOffset.y ) ||
-			! approxZero( deltaOffset.z )
-		) {
+		// Theta
+		if ( approxEquals( this._spherical.theta, this._sphericalEnd.theta ) ) {
 
-			this._spherical.set(
-				this._spherical.radius + deltaRadius * lerpRatio,
-				this._spherical.phi    + deltaPhi    * lerpRatio,
-				this._spherical.theta  + deltaTheta  * lerpRatio,
-			);
-
-			this._target.add( deltaTarget.multiplyScalar( lerpRatio ) );
-			this._focalOffset.add( deltaOffset.multiplyScalar( lerpRatio ) );
-
-			this._needsUpdate = true;
+			this._thetaVelocity.value = 0;
+			this._spherical.theta = this._sphericalEnd.theta;
 
 		} else {
 
-			this._spherical.copy( this._sphericalEnd );
-			this._target.copy( this._targetEnd );
-			this._focalOffset.copy( this._focalOffsetEnd );
+			this._spherical.theta = smoothDamp( this._spherical.theta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// Phi
+		if ( approxEquals( this._spherical.phi, this._sphericalEnd.phi ) ) {
+
+			this._phiVelocity.value = 0;
+			this._spherical.phi = this._sphericalEnd.phi;
+
+		} else {
+
+			this._spherical.phi = smoothDamp( this._spherical.phi, this._sphericalEnd.phi, this._phiVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// radius
+		if ( approxEquals( this._spherical.radius, this._sphericalEnd.radius ) ) {
+
+			this._radiusVelocity.value = 0;
+			this._spherical.radius = this._sphericalEnd.radius;
+
+		} else {
+
+			this._spherical.radius = smoothDamp( this._spherical.radius, this._sphericalEnd.radius, this._radiusVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// targetX
+		if ( approxEquals( this._target.x, this._targetEnd.x ) ) {
+
+			this._targetXVelocity.value = 0;
+			this._target.x = this._targetEnd.x;
+
+		} else {
+
+			this._target.x = smoothDamp( this._target.x, this._targetEnd.x, this._targetXVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// targetY
+		if ( approxEquals( this._target.y, this._targetEnd.y ) ) {
+
+			this._targetYVelocity.value = 0;
+			this._target.y = this._targetEnd.y;
+
+		} else {
+
+			this._target.y = smoothDamp( this._target.y, this._targetEnd.y, this._targetYVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// targetZ
+		if ( approxEquals( this._target.z, this._targetEnd.z ) ) {
+
+			this._targetZVelocity.value = 0;
+			this._target.z = this._targetEnd.z;
+
+		} else {
+
+			this._target.z = smoothDamp( this._target.z, this._targetEnd.z, this._targetZVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// focalOffsetX
+		if ( approxEquals( this._focalOffset.x, this._focalOffsetEnd.x ) ) {
+
+			this._focalOffsetXVelocity.value = 0;
+			this._focalOffset.x = this._focalOffset.x;
+
+		} else {
+
+			this._focalOffset.x = smoothDamp( this._focalOffset.x, this._focalOffsetEnd.x, this._focalOffsetXVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// focalOffsetY
+		if ( approxEquals( this._focalOffset.y, this._focalOffsetEnd.y ) ) {
+
+			this._focalOffsetYVelocity.value = 0;
+			this._focalOffset.y = this._focalOffset.y;
+
+		} else {
+
+			this._focalOffset.y = smoothDamp( this._focalOffset.y, this._focalOffsetEnd.y, this._focalOffsetYVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
+
+		}
+
+		// focalOffsetZ
+		if ( approxEquals( this._focalOffset.z, this._focalOffsetEnd.z ) ) {
+
+			this._focalOffsetZVelocity.value = 0;
+			this._focalOffset.z = this._focalOffset.z;
+
+		} else {
+
+			this._focalOffset.z = smoothDamp( this._focalOffset.z, this._focalOffsetEnd.z, this._focalOffsetZVelocity, smoothTime, Infinity, delta );
+			this._needsUpdate = true;
 
 		}
 
@@ -2299,18 +2393,19 @@ export class CameraControls extends EventDispatcher {
 		}
 
 		// zoom
-		const deltaZoom = this._zoomEnd - this._zoom;
-		this._zoom += deltaZoom * lerpRatio;
+		if ( approxEquals( this._zoom, this._zoomEnd ) ) {
 
-		if ( this._camera.zoom !== this._zoom ) {
+			this._zoomVelocity.value = 0;
+			this._zoom = this._zoomEnd;
 
-			if ( approxZero( deltaZoom ) ) this._zoom = this._zoomEnd;
+		} else {
+
+			this._zoom = smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, this.smoothTime, Infinity, delta );
+			this._needsUpdate = true;
 
 			this._camera.zoom = this._zoom;
 			this._camera.updateProjectionMatrix();
 			this._updateNearPlaneCorners();
-
-			this._needsUpdate = true;
 
 		}
 
@@ -2409,8 +2504,8 @@ export class CameraControls extends EventDispatcher {
 			maxPolarAngle        : infinityToMaxNumber( this.maxPolarAngle ),
 			minAzimuthAngle      : infinityToMaxNumber( this.minAzimuthAngle ),
 			maxAzimuthAngle      : infinityToMaxNumber( this.maxAzimuthAngle ),
-			dampingFactor        : this.dampingFactor,
-			draggingDampingFactor: this.draggingDampingFactor,
+			smoothTime           : this.smoothTime,
+			draggingSmoothTime   : this.draggingSmoothTime,
 			dollySpeed           : this.dollySpeed,
 			truckSpeed           : this.truckSpeed,
 			dollyToCursor        : this.dollyToCursor,
@@ -2451,8 +2546,8 @@ export class CameraControls extends EventDispatcher {
 		this.maxPolarAngle         = maxNumberToInfinity( obj.maxPolarAngle );
 		this.minAzimuthAngle       = maxNumberToInfinity( obj.minAzimuthAngle );
 		this.maxAzimuthAngle       = maxNumberToInfinity( obj.maxAzimuthAngle );
-		this.dampingFactor         = obj.dampingFactor;
-		this.draggingDampingFactor = obj.draggingDampingFactor;
+		this.smoothTime            = obj.smoothTime;
+		this.draggingSmoothTime    = obj.draggingSmoothTime;
 		this.dollySpeed            = obj.dollySpeed;
 		this.truckSpeed            = obj.truckSpeed;
 		this.dollyToCursor         = obj.dollyToCursor;
@@ -2810,6 +2905,45 @@ export class CameraControls extends EventDispatcher {
 	protected _addAllEventListeners( _domElement: HTMLElement ): void {}
 
 	protected _removeAllEventListeners(): void {}
+
+	/**
+	 * @deprecated use smoothTime instead
+	 * @category Properties
+	 */
+	set dampingFactor( dampingFactor: number ) {
+
+		this.smoothTime = dampingFactor;
+
+	};
+	/**
+	 * @deprecated use smoothTime instead
+	 * @category Properties
+	 */
+	get dampingFactor() {
+
+		return this.smoothTime;
+
+	};
+
+	/**
+	 * @deprecated use draggingSmoothTime instead
+	 * @category Properties
+	 */
+	set draggingDampingFactor( draggingDampingFactor: number ) {
+
+		this.draggingSmoothTime = draggingDampingFactor;
+
+	}
+
+	/**
+	 * @deprecated use draggingSmoothTime instead
+	 * @category Properties
+	 */
+	get draggingDampingFactor() {
+
+		return this.draggingSmoothTime;
+
+	}
 
 }
 

@@ -19,6 +19,10 @@ export interface THREESubset {
 	[ key: string ]: any;
 }
 
+export type RefCurrentVelocity = {
+	value: number;
+}
+
 // see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
 export const MOUSE_BUTTON = {
 	LEFT: 1,
