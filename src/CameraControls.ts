@@ -2217,7 +2217,6 @@ export class CameraControls extends EventDispatcher {
 
 		const isDragging = this._state !== ACTION.NONE;
 		const smoothTime = isDragging ? this.draggingSmoothTime : this.smoothTime;
-		this._isLastDragging = isDragging;
 
 		if ( isDragging !== this._isLastDragging && isDragging ) {
 
@@ -2240,6 +2239,8 @@ export class CameraControls extends EventDispatcher {
 			this._zoomVelocity.value *= changedSpeed;
 
 		}
+
+		this._isLastDragging = isDragging;
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
