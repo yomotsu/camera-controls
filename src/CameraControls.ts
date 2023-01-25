@@ -380,6 +380,7 @@ export class CameraControls extends EventDispatcher {
 	protected _boundary: _THREE.Box3;
 	protected _boundaryEnclosesCamera = false;
 
+	protected _isLastDragging: boolean = false;
 	protected _needsUpdate = true;
 	protected _updatedLastTime = false;
 	protected _elementRect = new DOMRect();
@@ -2214,7 +2215,31 @@ export class CameraControls extends EventDispatcher {
 	 */
 	update( delta: number ): boolean {
 
-		const smoothTime = this._state === ACTION.NONE ? this.smoothTime : this.draggingSmoothTime;
+		const isDragging = this._state !== ACTION.NONE;
+		const smoothTime = isDragging ? this.draggingSmoothTime : this.smoothTime;
+		this._isLastDragging = isDragging;
+
+		if ( isDragging !== this._isLastDragging && isDragging ) {
+
+			const changedSpeed = this.smoothTime / this.draggingSmoothTime;
+			this._thetaVelocity.value *= changedSpeed;
+			this._phiVelocity.value *= changedSpeed;
+			this._radiusVelocity.value *= changedSpeed;
+			this._targetVelocity.multiplyScalar( changedSpeed );
+			this._focalOffsetVelocity.multiplyScalar( changedSpeed );
+			this._zoomVelocity.value *= changedSpeed;
+
+		} else if ( isDragging !== this._isLastDragging && ! isDragging ) {
+
+			const changedSpeed = this.draggingSmoothTime / this.smoothTime;
+			this._thetaVelocity.value *= changedSpeed;
+			this._phiVelocity.value *= changedSpeed;
+			this._radiusVelocity.value *= changedSpeed;
+			this._targetVelocity.multiplyScalar( changedSpeed );
+			this._focalOffsetVelocity.multiplyScalar( changedSpeed );
+			this._zoomVelocity.value *= changedSpeed;
+
+		}
 
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
