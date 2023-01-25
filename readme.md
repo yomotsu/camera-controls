@@ -97,7 +97,6 @@ import {
 	Box3,
 	Sphere,
 	Raycaster,
-	MathUtils,
 } from 'three';
 
 const subsetOfTHREE = {
@@ -110,10 +109,6 @@ const subsetOfTHREE = {
 	Box3      : Box3,
 	Sphere    : Sphere,
 	Raycaster : Raycaster,
-	MathUtils : {
-		DEG2RAD: MathUtils.DEG2RAD,
-		clamp: MathUtils.clamp,
-	},
 };
 
 CameraControls.install( { THREE: subsetOfTHREE } );

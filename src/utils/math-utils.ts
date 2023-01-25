@@ -2,6 +2,7 @@ import type * as _THREE from 'three';
 import type { Ref } from '../types';
 
 const EPSILON = 1e-5;
+export const DEG2RAD = Math.PI / 180;
 
 export function clamp( value: number, min: number, max: number ) {
 

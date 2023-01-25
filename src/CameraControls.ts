@@ -17,6 +17,8 @@ import {
 	PI_HALF,
 } from './constants';
 import {
+	DEG2RAD,
+	clamp,
 	approxZero,
 	approxEquals,
 	roundToStep,
@@ -27,7 +29,6 @@ import {
 } from './utils/math-utils';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
-import { quatInvertCompat } from './utils/quatInvertCompat';
 import { EventDispatcher, Listener } from './EventDispatcher';
 
 const VERSION = '__VERSION'; // will be replaced with `version` in package.json during the build process.
@@ -96,10 +97,6 @@ export class CameraControls extends EventDispatcher {
 	 * 	Box3      : Box3,
 	 * 	Sphere    : Sphere,
 	 * 	Raycaster : Raycaster,
-	 * 	MathUtils : {
-	 * 		DEG2RAD: MathUtils.DEG2RAD,
-	 * 		clamp: MathUtils.clamp,
-	 * 	},
 	 * };
 
 	 * CameraControls.install( { THREE: subsetOfTHREE } );
@@ -430,7 +427,7 @@ export class CameraControls extends EventDispatcher {
 
 		this._camera = camera;
 		this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
-		this._yAxisUpSpaceInverse = quatInvertCompat( this._yAxisUpSpace.clone() );
+		this._yAxisUpSpaceInverse = this._yAxisUpSpace.clone().invert();
 		this._state = ACTION.NONE;
 
 		// the location
@@ -1435,8 +1432,8 @@ export class CameraControls extends EventDispatcher {
 	 */
 	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): Promise<void> {
 
-		const theta = THREE.MathUtils.clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
-		const phi   = THREE.MathUtils.clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
+		const theta = clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
+		const phi   = clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
 
 		this._sphericalEnd.theta = theta;
 		this._sphericalEnd.phi   = phi;
@@ -1479,7 +1476,7 @@ export class CameraControls extends EventDispatcher {
 	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		const lastRadius = this._sphericalEnd.radius;
-		const newRadius = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
+		const newRadius = clamp( distance, this.minDistance, this.maxDistance );
 		const hasCollider = this.colliderMeshes.length >= 1;
 
 		if ( hasCollider ) {
@@ -1533,7 +1530,7 @@ export class CameraControls extends EventDispatcher {
 	 */
 	zoomTo( zoom: number, enableTransition: boolean = false ): Promise<void> {
 
-		this._zoomEnd = THREE.MathUtils.clamp( zoom, this.minZoom, this.maxZoom );
+		this._zoomEnd = clamp( zoom, this.minZoom, this.maxZoom );
 		this._needsUpdate = true;
 
 		if ( ! enableTransition ) {
@@ -1945,7 +1942,7 @@ export class CameraControls extends EventDispatcher {
 		);
 
 		// see https://github.com/yomotsu/camera-controls/issues/335
-		this._sphericalEnd.phi = THREE.MathUtils.clamp( this.polarAngle, this.minPolarAngle, this.maxPolarAngle );
+		this._sphericalEnd.phi = clamp( this.polarAngle, this.minPolarAngle, this.maxPolarAngle );
 
 		return promise;
 
@@ -2083,7 +2080,7 @@ export class CameraControls extends EventDispatcher {
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitBox' ) ) return this._spherical.radius;
 
 		const boundingRectAspect = width / height;
-		const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const fov = this._camera.getEffectiveFOV() * DEG2RAD;
 		const aspect = this._camera.aspect;
 
 		const heightToFit = ( cover ? boundingRectAspect > aspect : boundingRectAspect < aspect ) ? height : width / aspect;
@@ -2102,7 +2099,7 @@ export class CameraControls extends EventDispatcher {
 		if ( notSupportedInOrthographicCamera( this._camera, 'getDistanceToFitSphere' ) ) return this._spherical.radius;
 
 		// https://stackoverflow.com/a/44849975
-		const vFOV = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+		const vFOV = this._camera.getEffectiveFOV() * DEG2RAD;
 		const hFOV = Math.atan( Math.tan( vFOV * 0.5 ) * this._camera.aspect ) * 2;
 		const fov = 1 < this._camera.aspect ? vFOV : hFOV;
 		return radius / ( Math.sin( fov * 0.5 ) );
@@ -2204,7 +2201,7 @@ export class CameraControls extends EventDispatcher {
 	updateCameraUp(): void {
 
 		this._yAxisUpSpace.setFromUnitVectors( this._camera.up, _AXIS_Y );
-		quatInvertCompat( this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ) );
+		this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ).invert;
 
 	}
 
@@ -2300,7 +2297,7 @@ export class CameraControls extends EventDispatcher {
 				const planeX = _v3B.copy( cameraDirection ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, cameraDirection );
-				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5 );
+				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const cursor = _v3A.copy( this._targetEnd )
@@ -2625,7 +2622,7 @@ export class CameraControls extends EventDispatcher {
 
 			const camera = this._camera;
 			const near = camera.near;
-			const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+			const fov = camera.getEffectiveFOV() * DEG2RAD;
 			const heightHalf = Math.tan( fov * 0.5 ) * near; // near plain half height
 			const widthHalf = heightHalf * camera.aspect; // near plain half width
 			this._nearPlaneCorners[ 0 ].set( - widthHalf, - heightHalf, 0 );
@@ -2657,7 +2654,7 @@ export class CameraControls extends EventDispatcher {
 
 			const offset = _v3A.copy( this._camera.position ).sub( this._target );
 			// half of the fov is center to top of screen
-			const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+			const fov = this._camera.getEffectiveFOV() * DEG2RAD;
 			const targetDistance = offset.length() * Math.tan( fov * 0.5 );
 			const truckX    = ( this.truckSpeed * deltaX * targetDistance / this._elementRect.height );
 			const pedestalY = ( this.truckSpeed * deltaY * targetDistance / this._elementRect.height );
