@@ -507,6 +507,7 @@
 	        this._dollyControlAmount = 0;
 	        this._hasRested = true;
 	        this._boundaryEnclosesCamera = false;
+	        this._isLastDragging = false;
 	        this._needsUpdate = true;
 	        this._updatedLastTime = false;
 	        this._elementRect = new DOMRect();
@@ -1819,7 +1820,28 @@
 	     * @category Methods
 	     */
 	    update(delta) {
-	        const smoothTime = this._state === ACTION.NONE ? this.smoothTime : this.draggingSmoothTime;
+	        const isDragging = this._state !== ACTION.NONE;
+	        const hasDragStateChanged = isDragging !== this._isLastDragging;
+	        this._isLastDragging = isDragging;
+	        const smoothTime = isDragging ? this.draggingSmoothTime : this.smoothTime;
+	        if (hasDragStateChanged && isDragging) {
+	            const changedSpeed = this.smoothTime / this.draggingSmoothTime;
+	            this._thetaVelocity.value *= changedSpeed;
+	            this._phiVelocity.value *= changedSpeed;
+	            this._radiusVelocity.value *= changedSpeed;
+	            this._targetVelocity.multiplyScalar(changedSpeed);
+	            this._focalOffsetVelocity.multiplyScalar(changedSpeed);
+	            this._zoomVelocity.value *= changedSpeed;
+	        }
+	        else if (hasDragStateChanged && !isDragging) {
+	            const changedSpeed = this.draggingSmoothTime / this.smoothTime;
+	            this._thetaVelocity.value *= changedSpeed;
+	            this._phiVelocity.value *= changedSpeed;
+	            this._radiusVelocity.value *= changedSpeed;
+	            this._targetVelocity.multiplyScalar(changedSpeed);
+	            this._focalOffsetVelocity.multiplyScalar(changedSpeed);
+	            this._zoomVelocity.value *= changedSpeed;
+	        }
 	        const deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
 	        const deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
 	        const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;

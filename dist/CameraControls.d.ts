@@ -262,6 +262,7 @@ export declare class CameraControls extends EventDispatcher {
     protected _hasRested: boolean;
     protected _boundary: _THREE.Box3;
     protected _boundaryEnclosesCamera: boolean;
+    protected _isLastDragging: boolean;
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
     protected _elementRect: DOMRect;
