@@ -165,8 +165,8 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
-| `.dampingFactor`          | `number`  | `0.05`      | The damping inertia. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
-| `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
+| `.smoothTime`             | `number`  | `0.25`      | Approximate time in seconds to reach the target. A smaller value will reach the target faster. |
+| `.draggingSmoothTime`     | `number`  | `0.125`     | The smoothTime while dragging. |
 | `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
 | `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
@@ -695,7 +695,7 @@ async function complexTransition() {
 
 This will rotate the camera, then dolly, and finally fit to the bounding sphere of the `mesh`.
 
-The speed and timing of transitions can be tuned using `.restThreshold` and `.dampingFactor`.
+The speed and timing of transitions can be tuned using `.restThreshold` and `.smoothTime`.
 
 If `enableTransition` is `false`, the promise will resolve immediately:
 
