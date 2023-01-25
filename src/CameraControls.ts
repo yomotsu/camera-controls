@@ -236,7 +236,7 @@ export class CameraControls extends EventDispatcher {
 	 * the smoothTime while dragging
 	 * @category Properties
 	 */
-	draggingSmoothTime = 0.1;
+	draggingSmoothTime = 0.125;
 
 	/**
 	 * Max transition speed in unit-per-seconds
@@ -395,9 +395,6 @@ export class CameraControls extends EventDispatcher {
 	protected _radiusVelocity: Ref = { value: 0 };
 	protected _targetVelocity: _THREE.Vector3 = new THREE.Vector3();
 	protected _focalOffsetVelocity: _THREE.Vector3 = new THREE.Vector3();
-	protected _focalOffsetXVelocity: Ref = { value: 0 };
-	protected _focalOffsetYVelocity: Ref = { value: 0 };
-	protected _focalOffsetZVelocity: Ref = { value: 0 };
 	protected _zoomVelocity: Ref = { value: 0 };
 
 	/**
