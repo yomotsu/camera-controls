@@ -1,5 +1,5 @@
 import * as _THREE from 'three';
-import { THREESubset, ACTION, PointerInput, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
+import { THREESubset, Ref, ACTION, PointerInput, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
     /**
@@ -36,10 +36,6 @@ export declare class CameraControls extends EventDispatcher {
      * 	Box3      : Box3,
      * 	Sphere    : Sphere,
      * 	Raycaster : Raycaster,
-     * 	MathUtils : {
-     * 		DEG2RAD: MathUtils.DEG2RAD,
-     * 		clamp: MathUtils.clamp,
-     * 	},
      * };
 
      * CameraControls.install( { THREE: subsetOfTHREE } );
@@ -131,19 +127,20 @@ export declare class CameraControls extends EventDispatcher {
      */
     maxZoom: number;
     /**
-     * The damping inertia.
-     * The value must be between `Math.EPSILON` to `1` inclusive.
-     * Setting `1` to disable smooth transitions.
+     * Approximate time in seconds to reach the target. A smaller value will reach the target faster.
      * @category Properties
      */
-    dampingFactor: number;
+    smoothTime: number;
     /**
-     * The damping inertia while dragging.
-     * The value must be between `Math.EPSILON` to `1` inclusive.
-     * Setting `1` to disable smooth transitions.
+     * the smoothTime while dragging
      * @category Properties
      */
-    draggingDampingFactor: number;
+    draggingSmoothTime: number;
+    /**
+     * Max transition speed in unit-per-seconds
+     * @category Properties
+     */
+    maxSpeed: number;
     /**
      * Speed of azimuth (horizontal) rotation.
      * @category Properties
@@ -269,6 +266,12 @@ export declare class CameraControls extends EventDispatcher {
     protected _updatedLastTime: boolean;
     protected _elementRect: DOMRect;
     protected _activePointers: PointerInput[];
+    protected _thetaVelocity: Ref;
+    protected _phiVelocity: Ref;
+    protected _radiusVelocity: Ref;
+    protected _targetVelocity: _THREE.Vector3;
+    protected _focalOffsetVelocity: _THREE.Vector3;
+    protected _zoomVelocity: Ref;
     /**
      * Creates a `CameraControls` instance.
      *
@@ -708,4 +711,26 @@ export declare class CameraControls extends EventDispatcher {
     protected _createOnRestPromise(resolveImmediately: boolean): Promise<void>;
     protected _addAllEventListeners(_domElement: HTMLElement): void;
     protected _removeAllEventListeners(): void;
+    /*
+    * backward compatible
+    * @deprecated use smoothTime (in seconds) instead
+    * @category Properties
+    
+    
+    * backward compatible
+    * @deprecated use smoothTime (in seconds) instead
+    * @category Properties
+    */
+    dampingFactor: number;
+    /*
+    * backward compatible
+    * @deprecated use draggingSmoothTime (in seconds) instead
+    * @category Properties
+    
+    
+    * backward compatible
+    * @deprecated use draggingSmoothTime (in seconds) instead
+    * @category Properties
+    */
+    draggingDampingFactor: number;
 }

@@ -9,13 +9,11 @@ export interface THREESubset {
     Box3: typeof _THREE.Box3;
     Sphere: typeof _THREE.Sphere;
     Raycaster: typeof _THREE.Raycaster;
-    MathUtils: {
-        DEG2RAD: typeof _THREE.MathUtils.DEG2RAD;
-        clamp: typeof _THREE.MathUtils.clamp;
-        [key: string]: any;
-    };
     [key: string]: any;
 }
+export type Ref = {
+    value: number;
+};
 export declare const MOUSE_BUTTON: {
     LEFT: number;
     RIGHT: number;

@@ -40,6 +40,10 @@ const PI_2 = Math.PI * 2;
 const PI_HALF = Math.PI / 2;
 
 const EPSILON = 1e-5;
+const DEG2RAD = Math.PI / 180;
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
 function approxZero(number, error = EPSILON) {
     return Math.abs(number) < error;
 }
@@ -61,6 +65,83 @@ function maxNumberToInfinity(value) {
         return value;
     return value * Infinity;
 }
+// https://docs.unity3d.com/ScriptReference/Mathf.SmoothDamp.html
+// https://github.com/Unity-Technologies/UnityCsReference/blob/a2bdfe9b3c4cd4476f44bf52f848063bfaf7b6b9/Runtime/Export/Math/Mathf.cs#L308
+function smoothDamp(current, target, currentVelocityRef, smoothTime, maxSpeed = Infinity, deltaTime) {
+    // Based on Game Programming Gems 4 Chapter 1.10
+    smoothTime = Math.max(0.0001, smoothTime);
+    const omega = 2 / smoothTime;
+    const x = omega * deltaTime;
+    const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    let change = current - target;
+    const originalTo = target;
+    // Clamp maximum speed
+    const maxChange = maxSpeed * smoothTime;
+    change = clamp(change, -maxChange, maxChange);
+    target = current - change;
+    const temp = (currentVelocityRef.value + omega * change) * deltaTime;
+    currentVelocityRef.value = (currentVelocityRef.value - omega * temp) * exp;
+    let output = target + (change + temp) * exp;
+    // Prevent overshooting
+    if (originalTo - current > 0.0 === output > originalTo) {
+        output = originalTo;
+        currentVelocityRef.value = (output - originalTo) / deltaTime;
+    }
+    return output;
+}
+// https://docs.unity3d.com/ScriptReference/Vector3.SmoothDamp.html
+// https://github.com/Unity-Technologies/UnityCsReference/blob/a2bdfe9b3c4cd4476f44bf52f848063bfaf7b6b9/Runtime/Export/Math/Vector3.cs#L97
+function smoothDampVec3(current, target, currentVelocityRef, smoothTime, maxSpeed = Infinity, deltaTime, out) {
+    // Based on Game Programming Gems 4 Chapter 1.10
+    smoothTime = Math.max(0.0001, smoothTime);
+    const omega = 2 / smoothTime;
+    const x = omega * deltaTime;
+    const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    let changeX = current.x - target.x;
+    let changeY = current.y - target.y;
+    let changeZ = current.z - target.z;
+    const originalToX = target.x;
+    const originalToY = target.y;
+    const originalToZ = target.z;
+    // Clamp maximum speed
+    const maxChange = maxSpeed * smoothTime;
+    const maxChangeSq = maxChange * maxChange;
+    const magnitudeSq = changeX * changeX + changeY * changeY + changeZ * changeZ;
+    if (magnitudeSq > maxChangeSq) {
+        const magnitude = Math.sqrt(magnitudeSq);
+        changeX = changeX / magnitude * maxChange;
+        changeY = changeY / magnitude * maxChange;
+        changeZ = changeZ / magnitude * maxChange;
+    }
+    target.x = current.x - changeX;
+    target.y = current.y - changeY;
+    target.z = current.z - changeZ;
+    const tempX = (currentVelocityRef.x + omega * changeX) * deltaTime;
+    const tempY = (currentVelocityRef.y + omega * changeY) * deltaTime;
+    const tempZ = (currentVelocityRef.z + omega * changeZ) * deltaTime;
+    currentVelocityRef.x = (currentVelocityRef.x - omega * tempX) * exp;
+    currentVelocityRef.y = (currentVelocityRef.y - omega * tempY) * exp;
+    currentVelocityRef.z = (currentVelocityRef.z - omega * tempZ) * exp;
+    out.x = target.x + (changeX + tempX) * exp;
+    out.y = target.y + (changeY + tempY) * exp;
+    out.z = target.z + (changeZ + tempZ) * exp;
+    // Prevent overshooting
+    const origMinusCurrentX = originalToX - current.x;
+    const origMinusCurrentY = originalToY - current.y;
+    const origMinusCurrentZ = originalToZ - current.z;
+    const outMinusOrigX = out.x - originalToX;
+    const outMinusOrigY = out.y - originalToY;
+    const outMinusOrigZ = out.z - originalToZ;
+    if (origMinusCurrentX * outMinusOrigX + origMinusCurrentY * outMinusOrigY + origMinusCurrentZ * outMinusOrigZ > 0) {
+        out.x = originalToX;
+        out.y = originalToY;
+        out.z = originalToZ;
+        currentVelocityRef.x = (out.x - originalToX) / deltaTime;
+        currentVelocityRef.y = (out.y - originalToY) / deltaTime;
+        currentVelocityRef.z = (out.z - originalToZ) / deltaTime;
+    }
+    return out;
+}
 
 function extractClientCoordFromEvent(pointers, out) {
     out.set(0, 0);
@@ -78,22 +159,6 @@ function notSupportedInOrthographicCamera(camera, message) {
         return true;
     }
     return false;
-}
-
-/**
- * A compat function for `Quaternion.invert()` / `Quaternion.inverse()`.
- * `Quaternion.invert()` is introduced in r123 and `Quaternion.inverse()` emits a warning.
- * We are going to use this compat for a while.
- * @param target A target quaternion
- */
-function quatInvertCompat(target) {
-    if (target.invert) {
-        target.invert();
-    }
-    else {
-        target.inverse();
-    }
-    return target;
 }
 
 class EventDispatcher {
@@ -163,7 +228,7 @@ class EventDispatcher {
     }
 }
 
-const VERSION = '1.37.6'; // will be replaced with `version` in package.json during the build process.
+const VERSION = '1.38.0'; // will be replaced with `version` in package.json during the build process.
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test(navigator.platform);
@@ -225,10 +290,6 @@ class CameraControls extends EventDispatcher {
      * 	Box3      : Box3,
      * 	Sphere    : Sphere,
      * 	Raycaster : Raycaster,
-     * 	MathUtils : {
-     * 		DEG2RAD: MathUtils.DEG2RAD,
-     * 		clamp: MathUtils.clamp,
-     * 	},
      * };
 
      * CameraControls.install( { THREE: subsetOfTHREE } );
@@ -363,19 +424,20 @@ class CameraControls extends EventDispatcher {
          */
         this.maxZoom = Infinity;
         /**
-         * The damping inertia.
-         * The value must be between `Math.EPSILON` to `1` inclusive.
-         * Setting `1` to disable smooth transitions.
+         * Approximate time in seconds to reach the target. A smaller value will reach the target faster.
          * @category Properties
          */
-        this.dampingFactor = 0.05;
+        this.smoothTime = 0.25;
         /**
-         * The damping inertia while dragging.
-         * The value must be between `Math.EPSILON` to `1` inclusive.
-         * Setting `1` to disable smooth transitions.
+         * the smoothTime while dragging
          * @category Properties
          */
-        this.draggingDampingFactor = 0.25;
+        this.draggingSmoothTime = 0.125;
+        /**
+         * Max transition speed in unit-per-seconds
+         * @category Properties
+         */
+        this.maxSpeed = Infinity;
         /**
          * Speed of azimuth (horizontal) rotation.
          * @category Properties
@@ -443,11 +505,18 @@ class CameraControls extends EventDispatcher {
         this._updatedLastTime = false;
         this._elementRect = new DOMRect();
         this._activePointers = [];
+        // velocities for smoothDamp
+        this._thetaVelocity = { value: 0 };
+        this._phiVelocity = { value: 0 };
+        this._radiusVelocity = { value: 0 };
+        this._targetVelocity = new THREE.Vector3();
+        this._focalOffsetVelocity = new THREE.Vector3();
+        this._zoomVelocity = { value: 0 };
         this._truckInternal = (deltaX, deltaY, dragToOffset) => {
             if (isPerspectiveCamera(this._camera)) {
                 const offset = _v3A.copy(this._camera.position).sub(this._target);
                 // half of the fov is center to top of screen
-                const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+                const fov = this._camera.getEffectiveFOV() * DEG2RAD;
                 const targetDistance = offset.length() * Math.tan(fov * 0.5);
                 const truckX = (this.truckSpeed * deltaX * targetDistance / this._elementRect.height);
                 const pedestalY = (this.truckSpeed * deltaY * targetDistance / this._elementRect.height);
@@ -515,7 +584,7 @@ class CameraControls extends EventDispatcher {
         }
         this._camera = camera;
         this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors(this._camera.up, _AXIS_Y);
-        this._yAxisUpSpaceInverse = quatInvertCompat(this._yAxisUpSpace.clone());
+        this._yAxisUpSpaceInverse = this._yAxisUpSpace.clone().invert();
         this._state = ACTION.NONE;
         // the location
         this._target = new THREE.Vector3();
@@ -1194,8 +1263,8 @@ class CameraControls extends EventDispatcher {
      * @category Methods
      */
     rotateTo(azimuthAngle, polarAngle, enableTransition = false) {
-        const theta = THREE.MathUtils.clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
-        const phi = THREE.MathUtils.clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
+        const theta = clamp(azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle);
+        const phi = clamp(polarAngle, this.minPolarAngle, this.maxPolarAngle);
         this._sphericalEnd.theta = theta;
         this._sphericalEnd.phi = phi;
         this._sphericalEnd.makeSafe();
@@ -1226,7 +1295,7 @@ class CameraControls extends EventDispatcher {
      */
     dollyTo(distance, enableTransition = false) {
         const lastRadius = this._sphericalEnd.radius;
-        const newRadius = THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance);
+        const newRadius = clamp(distance, this.minDistance, this.maxDistance);
         const hasCollider = this.colliderMeshes.length >= 1;
         if (hasCollider) {
             const maxDistanceByCollisionTest = this._collisionTest();
@@ -1264,7 +1333,7 @@ class CameraControls extends EventDispatcher {
      * @category Methods
      */
     zoomTo(zoom, enableTransition = false) {
-        this._zoomEnd = THREE.MathUtils.clamp(zoom, this.minZoom, this.maxZoom);
+        this._zoomEnd = clamp(zoom, this.minZoom, this.maxZoom);
         this._needsUpdate = true;
         if (!enableTransition) {
             this._zoom = this._zoomEnd;
@@ -1545,7 +1614,7 @@ class CameraControls extends EventDispatcher {
         const pos = this.getPosition(_v3A);
         const promise = this.setLookAt(pos.x, pos.y, pos.z, targetX, targetY, targetZ, enableTransition);
         // see https://github.com/yomotsu/camera-controls/issues/335
-        this._sphericalEnd.phi = THREE.MathUtils.clamp(this.polarAngle, this.minPolarAngle, this.maxPolarAngle);
+        this._sphericalEnd.phi = clamp(this.polarAngle, this.minPolarAngle, this.maxPolarAngle);
         return promise;
     }
     /**
@@ -1647,7 +1716,7 @@ class CameraControls extends EventDispatcher {
         if (notSupportedInOrthographicCamera(this._camera, 'getDistanceToFitBox'))
             return this._spherical.radius;
         const boundingRectAspect = width / height;
-        const fov = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+        const fov = this._camera.getEffectiveFOV() * DEG2RAD;
         const aspect = this._camera.aspect;
         const heightToFit = (cover ? boundingRectAspect > aspect : boundingRectAspect < aspect) ? height : width / aspect;
         return heightToFit * 0.5 / Math.tan(fov * 0.5) + depth * 0.5;
@@ -1662,7 +1731,7 @@ class CameraControls extends EventDispatcher {
         if (notSupportedInOrthographicCamera(this._camera, 'getDistanceToFitSphere'))
             return this._spherical.radius;
         // https://stackoverflow.com/a/44849975
-        const vFOV = this._camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+        const vFOV = this._camera.getEffectiveFOV() * DEG2RAD;
         const hFOV = Math.atan(Math.tan(vFOV * 0.5) * this._camera.aspect) * 2;
         const fov = 1 < this._camera.aspect ? vFOV : hFOV;
         return radius / (Math.sin(fov * 0.5));
@@ -1734,7 +1803,7 @@ class CameraControls extends EventDispatcher {
      */
     updateCameraUp() {
         this._yAxisUpSpace.setFromUnitVectors(this._camera.up, _AXIS_Y);
-        quatInvertCompat(this._yAxisUpSpaceInverse.copy(this._yAxisUpSpace));
+        this._yAxisUpSpaceInverse.copy(this._yAxisUpSpace).invert;
     }
     /**
      * Update camera position and directions.
@@ -1744,35 +1813,57 @@ class CameraControls extends EventDispatcher {
      * @category Methods
      */
     update(delta) {
-        const dampingFactor = this._state === ACTION.NONE ? this.dampingFactor : this.draggingDampingFactor;
-        // The original THREE.OrbitControls assume 60 FPS fixed and does NOT rely on delta time.
-        // (that must be a problem of the original one though)
-        // To to emulate the speed of the original one under 60 FPS, multiply `60` to delta,
-        // but ours are more flexible to any FPS unlike the original.
-        const lerpRatio = Math.min(dampingFactor * delta * 60, 1);
+        const smoothTime = this._state === ACTION.NONE ? this.smoothTime : this.draggingSmoothTime;
         const deltaTheta = this._sphericalEnd.theta - this._spherical.theta;
         const deltaPhi = this._sphericalEnd.phi - this._spherical.phi;
         const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
         const deltaTarget = _deltaTarget.subVectors(this._targetEnd, this._target);
         const deltaOffset = _deltaOffset.subVectors(this._focalOffsetEnd, this._focalOffset);
-        if (!approxZero(deltaTheta) ||
-            !approxZero(deltaPhi) ||
-            !approxZero(deltaRadius) ||
-            !approxZero(deltaTarget.x) ||
-            !approxZero(deltaTarget.y) ||
-            !approxZero(deltaTarget.z) ||
-            !approxZero(deltaOffset.x) ||
-            !approxZero(deltaOffset.y) ||
-            !approxZero(deltaOffset.z)) {
-            this._spherical.set(this._spherical.radius + deltaRadius * lerpRatio, this._spherical.phi + deltaPhi * lerpRatio, this._spherical.theta + deltaTheta * lerpRatio);
-            this._target.add(deltaTarget.multiplyScalar(lerpRatio));
-            this._focalOffset.add(deltaOffset.multiplyScalar(lerpRatio));
-            this._needsUpdate = true;
+        const deltaZoom = this._zoomEnd - this._zoom;
+        // update theta
+        if (approxZero(deltaTheta)) {
+            this._thetaVelocity.value = 0;
+            this._spherical.theta = this._sphericalEnd.theta;
         }
         else {
-            this._spherical.copy(this._sphericalEnd);
+            this._spherical.theta = smoothDamp(this._spherical.theta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta);
+            this._needsUpdate = true;
+        }
+        // update phi
+        if (approxZero(deltaPhi)) {
+            this._phiVelocity.value = 0;
+            this._spherical.phi = this._sphericalEnd.phi;
+        }
+        else {
+            this._spherical.phi = smoothDamp(this._spherical.phi, this._sphericalEnd.phi, this._phiVelocity, smoothTime, Infinity, delta);
+            this._needsUpdate = true;
+        }
+        // update distance
+        if (approxZero(deltaRadius)) {
+            this._radiusVelocity.value = 0;
+            this._spherical.radius = this._sphericalEnd.radius;
+        }
+        else {
+            this._spherical.radius = smoothDamp(this._spherical.radius, this._sphericalEnd.radius, this._radiusVelocity, smoothTime, this.maxSpeed, delta);
+            this._needsUpdate = true;
+        }
+        // update target position
+        if (approxZero(deltaTarget.x) && approxZero(deltaTarget.y) && approxZero(deltaTarget.z)) {
+            this._targetVelocity.set(0, 0, 0);
             this._target.copy(this._targetEnd);
+        }
+        else {
+            smoothDampVec3(this._target, this._targetEnd, this._targetVelocity, smoothTime, this.maxSpeed, delta, this._target);
+            this._needsUpdate = true;
+        }
+        // update focalOffset
+        if (approxZero(deltaOffset.x) && approxZero(deltaOffset.y) && approxZero(deltaOffset.z)) {
+            this._focalOffsetVelocity.set(0, 0, 0);
             this._focalOffset.copy(this._focalOffsetEnd);
+        }
+        else {
+            smoothDampVec3(this._focalOffset, this._focalOffsetEnd, this._focalOffsetVelocity, smoothTime, this.maxSpeed, delta, this._focalOffset);
+            this._needsUpdate = true;
         }
         if (this._dollyControlAmount !== 0) {
             if (isPerspectiveCamera(this._camera)) {
@@ -1782,7 +1873,7 @@ class CameraControls extends EventDispatcher {
                 if (planeX.lengthSq() === 0)
                     planeX.x = 1.0;
                 const planeY = _v3C.crossVectors(planeX, cameraDirection);
-                const worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD * 0.5);
+                const worldToScreen = this._sphericalEnd.radius * Math.tan(camera.getEffectiveFOV() * DEG2RAD * 0.5);
                 const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
                 const lerpRatio = (prevRadius - this._sphericalEnd.radius) / this._sphericalEnd.radius;
                 const cursor = _v3A.copy(this._targetEnd)
@@ -1813,16 +1904,17 @@ class CameraControls extends EventDispatcher {
             this._boundary.clampPoint(this._targetEnd, this._targetEnd);
             this._dollyControlAmount = 0;
         }
-        // zoom
-        const deltaZoom = this._zoomEnd - this._zoom;
-        this._zoom += deltaZoom * lerpRatio;
-        if (this._camera.zoom !== this._zoom) {
-            if (approxZero(deltaZoom))
-                this._zoom = this._zoomEnd;
+        // update zoom
+        if (approxZero(deltaZoom)) {
+            this._zoomVelocity.value = 0;
+            this._zoom = this._zoomEnd;
+        }
+        else {
+            this._zoom = smoothDamp(this._zoom, this._zoomEnd, this._zoomVelocity, this.smoothTime, Infinity, delta);
+            this._needsUpdate = true;
             this._camera.zoom = this._zoom;
             this._camera.updateProjectionMatrix();
             this._updateNearPlaneCorners();
-            this._needsUpdate = true;
         }
         // collision detection
         const maxDistance = this._collisionTest();
@@ -1891,8 +1983,8 @@ class CameraControls extends EventDispatcher {
             maxPolarAngle: infinityToMaxNumber(this.maxPolarAngle),
             minAzimuthAngle: infinityToMaxNumber(this.minAzimuthAngle),
             maxAzimuthAngle: infinityToMaxNumber(this.maxAzimuthAngle),
-            dampingFactor: this.dampingFactor,
-            draggingDampingFactor: this.draggingDampingFactor,
+            smoothTime: this.smoothTime,
+            draggingSmoothTime: this.draggingSmoothTime,
             dollySpeed: this.dollySpeed,
             truckSpeed: this.truckSpeed,
             dollyToCursor: this.dollyToCursor,
@@ -1925,8 +2017,8 @@ class CameraControls extends EventDispatcher {
         this.maxPolarAngle = maxNumberToInfinity(obj.maxPolarAngle);
         this.minAzimuthAngle = maxNumberToInfinity(obj.minAzimuthAngle);
         this.maxAzimuthAngle = maxNumberToInfinity(obj.maxAzimuthAngle);
-        this.dampingFactor = obj.dampingFactor;
-        this.draggingDampingFactor = obj.draggingDampingFactor;
+        this.smoothTime = obj.smoothTime;
+        this.draggingSmoothTime = obj.draggingSmoothTime;
         this.dollySpeed = obj.dollySpeed;
         this.truckSpeed = obj.truckSpeed;
         this.dollyToCursor = obj.dollyToCursor;
@@ -2012,7 +2104,7 @@ class CameraControls extends EventDispatcher {
         if (isPerspectiveCamera(this._camera)) {
             const camera = this._camera;
             const near = camera.near;
-            const fov = camera.getEffectiveFOV() * THREE.MathUtils.DEG2RAD;
+            const fov = camera.getEffectiveFOV() * DEG2RAD;
             const heightHalf = Math.tan(fov * 0.5) * near; // near plain half height
             const widthHalf = heightHalf * camera.aspect; // near plain half width
             this._nearPlaneCorners[0].set(-widthHalf, -heightHalf, 0);
@@ -2094,6 +2186,42 @@ class CameraControls extends EventDispatcher {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _addAllEventListeners(_domElement) { }
     _removeAllEventListeners() { }
+    /**
+     * backward compatible
+     * @deprecated use smoothTime (in seconds) instead
+     * @category Properties
+     */
+    get dampingFactor() {
+        console.warn('.dampingFactor has been deprecated. use smoothTime (in seconds) instead.');
+        return this.smoothTime;
+    }
+    /**
+     * backward compatible
+     * @deprecated use smoothTime (in seconds) instead
+     * @category Properties
+     */
+    set dampingFactor(dampingFactor) {
+        console.warn('.dampingFactor has been deprecated. use smoothTime (in seconds) instead.');
+        this.smoothTime = dampingFactor;
+    }
+    /**
+     * backward compatible
+     * @deprecated use draggingSmoothTime (in seconds) instead
+     * @category Properties
+     */
+    get draggingDampingFactor() {
+        console.warn('.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.');
+        return this.draggingSmoothTime;
+    }
+    /**
+     * backward compatible
+     * @deprecated use draggingSmoothTime (in seconds) instead
+     * @category Properties
+     */
+    set draggingDampingFactor(draggingDampingFactor) {
+        console.warn('.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.');
+        this.draggingSmoothTime = draggingDampingFactor;
+    }
 }
 function createBoundingSphere(object3d, out) {
     const boundingSphere = out;
