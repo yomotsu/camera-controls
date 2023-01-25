@@ -19,7 +19,7 @@ export interface THREESubset {
 	[ key: string ]: any;
 }
 
-export type RefCurrentVelocity = {
+export type Ref = {
 	value: number;
 }
 

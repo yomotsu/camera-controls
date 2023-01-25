@@ -1,7 +1,7 @@
 import type * as _THREE from 'three';
 import {
 	THREESubset,
-	RefCurrentVelocity,
+	Ref,
 	MOUSE_BUTTON,
 	ACTION,
 	PointerInput,
@@ -23,6 +23,7 @@ import {
 	infinityToMaxNumber,
 	maxNumberToInfinity,
 	smoothDamp,
+	smoothDampVec3,
 } from './utils/math-utils';
 import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
 import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
@@ -226,7 +227,7 @@ export class CameraControls extends EventDispatcher {
 	maxZoom = Infinity;
 
 	/**
-	 * Approximately the time in second it will take to reach the target. A smaller value will reach the target faster.
+	 * Approximate time in seconds to reach the target. A smaller value will reach the target faster.
 	 * @category Properties
 	 */
 	smoothTime = 0.25;
@@ -236,6 +237,12 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	draggingSmoothTime = 0.1;
+
+	/**
+	 * Max transition speed in unit-per-seconds
+	 * @category Properties
+	 */
+	maxSpeed = Infinity;
 
 	/**
 	 * Speed of azimuth (horizontal) rotation.
@@ -383,16 +390,15 @@ export class CameraControls extends EventDispatcher {
 	protected _activePointers: PointerInput[] = [];
 
 	// velocities for smoothDamp
-	protected _thetaVelocity: RefCurrentVelocity = { value: 0 };
-	protected _phiVelocity: RefCurrentVelocity = { value: 0 };
-	protected _radiusVelocity: RefCurrentVelocity = { value: 0 };
-	protected _targetXVelocity: RefCurrentVelocity = { value: 0 };
-	protected _targetYVelocity: RefCurrentVelocity = { value: 0 };
-	protected _targetZVelocity: RefCurrentVelocity = { value: 0 };
-	protected _focalOffsetXVelocity: RefCurrentVelocity = { value: 0 };
-	protected _focalOffsetYVelocity: RefCurrentVelocity = { value: 0 };
-	protected _focalOffsetZVelocity: RefCurrentVelocity = { value: 0 };
-	protected _zoomVelocity: RefCurrentVelocity = { value: 0 };
+	protected _thetaVelocity: Ref = { value: 0 };
+	protected _phiVelocity: Ref = { value: 0 };
+	protected _radiusVelocity: Ref = { value: 0 };
+	protected _targetVelocity: _THREE.Vector3 = new THREE.Vector3();
+	protected _focalOffsetVelocity: _THREE.Vector3 = new THREE.Vector3();
+	protected _focalOffsetXVelocity: Ref = { value: 0 };
+	protected _focalOffsetYVelocity: Ref = { value: 0 };
+	protected _focalOffsetZVelocity: Ref = { value: 0 };
+	protected _zoomVelocity: Ref = { value: 0 };
 
 	/**
 	 * Creates a `CameraControls` instance.
@@ -2223,8 +2229,8 @@ export class CameraControls extends EventDispatcher {
 		const deltaOffset = _deltaOffset.subVectors( this._focalOffsetEnd, this._focalOffset );
 		const deltaZoom = this._zoomEnd - this._zoom;
 
-		// Theta
-		if ( approxEquals( this._spherical.theta, this._sphericalEnd.theta ) ) {
+		// update theta
+		if ( approxZero( deltaTheta ) ) {
 
 			this._thetaVelocity.value = 0;
 			this._spherical.theta = this._sphericalEnd.theta;
@@ -2236,8 +2242,8 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		// Phi
-		if ( approxEquals( this._spherical.phi, this._sphericalEnd.phi ) ) {
+		// update phi
+		if ( approxZero( deltaPhi ) ) {
 
 			this._phiVelocity.value = 0;
 			this._spherical.phi = this._sphericalEnd.phi;
@@ -2249,93 +2255,41 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		// radius
-		if ( approxEquals( this._spherical.radius, this._sphericalEnd.radius ) ) {
+		// update distance
+		if ( approxZero( deltaRadius ) ) {
 
 			this._radiusVelocity.value = 0;
 			this._spherical.radius = this._sphericalEnd.radius;
 
 		} else {
 
-			this._spherical.radius = smoothDamp( this._spherical.radius, this._sphericalEnd.radius, this._radiusVelocity, smoothTime, Infinity, delta );
+			this._spherical.radius = smoothDamp( this._spherical.radius, this._sphericalEnd.radius, this._radiusVelocity, smoothTime, this.maxSpeed, delta );
 			this._needsUpdate = true;
 
 		}
 
-		// targetX
-		if ( approxEquals( this._target.x, this._targetEnd.x ) ) {
+		// update target position
+		if ( approxZero( deltaTarget.x ) && approxZero( deltaTarget.y ) && approxZero( deltaTarget.z ) ) {
 
-			this._targetXVelocity.value = 0;
-			this._target.x = this._targetEnd.x;
+			this._targetVelocity.set( 0, 0, 0 );
+			this._target.copy( this._targetEnd );
 
 		} else {
 
-			this._target.x = smoothDamp( this._target.x, this._targetEnd.x, this._targetXVelocity, smoothTime, Infinity, delta );
+			smoothDampVec3( this._target, this._targetEnd, this._targetVelocity, smoothTime, this.maxSpeed, delta, this._target );
 			this._needsUpdate = true;
 
 		}
 
-		// targetY
-		if ( approxEquals( this._target.y, this._targetEnd.y ) ) {
+		// update focalOffset
+		if ( approxZero( deltaOffset.x ) && approxZero( deltaOffset.y ) && approxZero( deltaOffset.z ) ) {
 
-			this._targetYVelocity.value = 0;
-			this._target.y = this._targetEnd.y;
-
-		} else {
-
-			this._target.y = smoothDamp( this._target.y, this._targetEnd.y, this._targetYVelocity, smoothTime, Infinity, delta );
-			this._needsUpdate = true;
-
-		}
-
-		// targetZ
-		if ( approxEquals( this._target.z, this._targetEnd.z ) ) {
-
-			this._targetZVelocity.value = 0;
-			this._target.z = this._targetEnd.z;
+			this._focalOffsetVelocity.set( 0, 0, 0 );
+			this._focalOffset.copy( this._focalOffsetEnd );
 
 		} else {
 
-			this._target.z = smoothDamp( this._target.z, this._targetEnd.z, this._targetZVelocity, smoothTime, Infinity, delta );
-			this._needsUpdate = true;
-
-		}
-
-		// focalOffsetX
-		if ( approxEquals( this._focalOffset.x, this._focalOffsetEnd.x ) ) {
-
-			this._focalOffsetXVelocity.value = 0;
-			this._focalOffset.x = this._focalOffset.x;
-
-		} else {
-
-			this._focalOffset.x = smoothDamp( this._focalOffset.x, this._focalOffsetEnd.x, this._focalOffsetXVelocity, smoothTime, Infinity, delta );
-			this._needsUpdate = true;
-
-		}
-
-		// focalOffsetY
-		if ( approxEquals( this._focalOffset.y, this._focalOffsetEnd.y ) ) {
-
-			this._focalOffsetYVelocity.value = 0;
-			this._focalOffset.y = this._focalOffset.y;
-
-		} else {
-
-			this._focalOffset.y = smoothDamp( this._focalOffset.y, this._focalOffsetEnd.y, this._focalOffsetYVelocity, smoothTime, Infinity, delta );
-			this._needsUpdate = true;
-
-		}
-
-		// focalOffsetZ
-		if ( approxEquals( this._focalOffset.z, this._focalOffsetEnd.z ) ) {
-
-			this._focalOffsetZVelocity.value = 0;
-			this._focalOffset.z = this._focalOffset.z;
-
-		} else {
-
-			this._focalOffset.z = smoothDamp( this._focalOffset.z, this._focalOffsetEnd.z, this._focalOffsetZVelocity, smoothTime, Infinity, delta );
+			smoothDampVec3( this._focalOffset, this._focalOffsetEnd, this._focalOffsetVelocity, smoothTime, this.maxSpeed, delta, this._focalOffset );
 			this._needsUpdate = true;
 
 		}
@@ -2392,8 +2346,8 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		// zoom
-		if ( approxEquals( this._zoom, this._zoomEnd ) ) {
+		// update zoom
+		if ( approxZero( deltaZoom ) ) {
 
 			this._zoomVelocity.value = 0;
 			this._zoom = this._zoomEnd;
@@ -2907,41 +2861,50 @@ export class CameraControls extends EventDispatcher {
 	protected _removeAllEventListeners(): void {}
 
 	/**
-	 * @deprecated use smoothTime instead
-	 * @category Properties
-	 */
-	set dampingFactor( dampingFactor: number ) {
-
-		this.smoothTime = dampingFactor;
-
-	};
-	/**
-	 * @deprecated use smoothTime instead
+	 * backward compatible
+	 * @deprecated use smoothTime (in seconds) instead
 	 * @category Properties
 	 */
 	get dampingFactor() {
 
+		console.warn( '.dampingFactor has been deprecated. use smoothTime (in seconds) instead.' );
 		return this.smoothTime;
-
-	};
-
-	/**
-	 * @deprecated use draggingSmoothTime instead
-	 * @category Properties
-	 */
-	set draggingDampingFactor( draggingDampingFactor: number ) {
-
-		this.draggingSmoothTime = draggingDampingFactor;
 
 	}
 
 	/**
-	 * @deprecated use draggingSmoothTime instead
+	 * backward compatible
+	 * @deprecated use smoothTime (in seconds) instead
+	 * @category Properties
+	 */
+	set dampingFactor( dampingFactor: number ) {
+
+		console.warn( '.dampingFactor has been deprecated. use smoothTime (in seconds) instead.' );
+		this.smoothTime = dampingFactor;
+
+	}
+
+	/**
+	 * backward compatible
+	 * @deprecated use draggingSmoothTime (in seconds) instead
 	 * @category Properties
 	 */
 	get draggingDampingFactor() {
 
+		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
 		return this.draggingSmoothTime;
+
+	}
+
+	/**
+	 * backward compatible
+	 * @deprecated use draggingSmoothTime (in seconds) instead
+	 * @category Properties
+	 */
+	set draggingDampingFactor( draggingDampingFactor: number ) {
+
+		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
+		this.draggingSmoothTime = draggingDampingFactor;
 
 	}
 
