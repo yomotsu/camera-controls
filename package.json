@@ -11,9 +11,9 @@
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-typescript": "^11.0.0",
-    "@types/three": "^0.148.0",
-    "@typescript-eslint/eslint-plugin": "^5.48.2",
-    "@typescript-eslint/parser": "^5.48.2",
+    "@types/three": "^0.148.1",
+    "@typescript-eslint/eslint-plugin": "^5.49.0",
+    "@typescript-eslint/parser": "^5.49.0",
     "downlevel-dts": "^0.11.0",
     "eslint": "^8.32.0",
     "eslint-config-mdcs": "^5.0.0",
