@@ -119,10 +119,16 @@
 	        if (listeners[type].indexOf(listener) === -1)
 	            listeners[type].push(listener);
 	    }
-	    // hasEventListener( type: string, listener: Listener ): boolean {
-	    // 	const listeners = this._listeners;
-	    // 	return listeners[ type ] !== undefined && listeners[ type ].indexOf( listener ) !== - 1;
-	    // }
+	    /**
+	     * Presence of the specified event listener.
+	     * @param type event name
+	     * @param listener handler function
+	     * @category Methods
+	     */
+	    hasEventListener(type, listener) {
+	        const listeners = this._listeners;
+	        return listeners[type] !== undefined && listeners[type].indexOf(listener) !== -1;
+	    }
 	    /**
 	     * Removes the specified event listener
 	     * @param type event name
@@ -169,7 +175,7 @@
 	    }
 	}
 
-	const VERSION = '1.37.6'; // will be replaced with `version` in package.json during the build process.
+	const VERSION = '1.38.0'; // will be replaced with `version` in package.json during the build process.
 	const TOUCH_DOLLY_FACTOR = 1 / 8;
 	const isBrowser = typeof window !== 'undefined';
 	const isMac = isBrowser && /Mac/.test(navigator.platform);

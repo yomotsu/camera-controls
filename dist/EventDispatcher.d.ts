@@ -13,6 +13,13 @@ export declare class EventDispatcher {
      */
     addEventListener(type: string, listener: Listener): void;
     /**
+     * Presence of the specified event listener.
+     * @param type event name
+     * @param listener handler function
+     * @category Methods
+     */
+    hasEventListener(type: string, listener: Listener): boolean;
+    /**
      * Removes the specified event listener
      * @param type event name
      * @param listener handler function
