@@ -25,13 +25,19 @@ export class EventDispatcher {
 
 	}
 
-	// hasEventListener( type: string, listener: Listener ): boolean {
+	/**
+	 * Presence of the specified event listener.
+	 * @param type event name
+	 * @param listener handler function
+	 * @category Methods
+	 */
+	hasEventListener( type: string, listener: Listener ): boolean {
 
-	// 	const listeners = this._listeners;
+		const listeners = this._listeners;
 
-	// 	return listeners[ type ] !== undefined && listeners[ type ].indexOf( listener ) !== - 1;
+		return listeners[ type ] !== undefined && listeners[ type ].indexOf( listener ) !== - 1;
 
-	// }
+	}
 
 	/**
 	 * Removes the specified event listener
