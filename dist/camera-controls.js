@@ -184,10 +184,16 @@
 	        if (listeners[type].indexOf(listener) === -1)
 	            listeners[type].push(listener);
 	    }
-	    // hasEventListener( type: string, listener: Listener ): boolean {
-	    // 	const listeners = this._listeners;
-	    // 	return listeners[ type ] !== undefined && listeners[ type ].indexOf( listener ) !== - 1;
-	    // }
+	    /**
+	     * Presence of the specified event listener.
+	     * @param type event name
+	     * @param listener handler function
+	     * @category Methods
+	     */
+	    hasEventListener(type, listener) {
+	        const listeners = this._listeners;
+	        return listeners[type] !== undefined && listeners[type].indexOf(listener) !== -1;
+	    }
 	    /**
 	     * Removes the specified event listener
 	     * @param type event name
