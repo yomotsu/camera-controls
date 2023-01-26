@@ -240,7 +240,7 @@
 	    }
 	}
 
-	const VERSION = '1.38.0'; // will be replaced with `version` in package.json during the build process.
+	const VERSION = '1.38.1'; // will be replaced with `version` in package.json during the build process.
 	const TOUCH_DOLLY_FACTOR = 1 / 8;
 	const isBrowser = typeof window !== 'undefined';
 	const isMac = isBrowser && /Mac/.test(navigator.platform);
