@@ -1414,6 +1414,21 @@
 	        return this._createOnRestPromise(resolveImmediately);
 	    }
 	    /**
+	     * Look in the given point direction.
+	     * @param x point x.
+	     * @param y point y.
+	     * @param z point z.
+	     * @param enableTransition Whether to move smoothly or immediately.
+	     * @returns Transition end promise
+	     * @category Methods
+	     */
+	    lookInDirection(x, y, z, enableTransition = false) {
+	        const point = _v3A.set(x, y, z);
+	        const direction = point.sub(this._targetEnd).normalize();
+	        const position = direction.multiplyScalar(-this._sphericalEnd.radius);
+	        return this.setPosition(position.x, position.y, position.z, enableTransition);
+	    }
+	    /**
 	     * Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
 	     * set `cover: true` to fill enter screen.
 	     * e.g.
@@ -1529,7 +1544,7 @@
 	        return Promise.all(promises);
 	    }
 	    /**
-	     * Make an orbit with given points.
+	     * Look at the `target` from the `position`.
 	     * @param positionX
 	     * @param positionY
 	     * @param positionZ
@@ -1605,7 +1620,8 @@
 	        return this._createOnRestPromise(resolveImmediately);
 	    }
 	    /**
-	     * setLookAt without target, keep gazing at the current target
+	     * Set angle and distance by given position.
+	     * An alias of `setLookAt()`, without target change. Thus keep gazing at the current target
 	     * @param positionX
 	     * @param positionY
 	     * @param positionZ
@@ -1616,7 +1632,8 @@
 	        return this.setLookAt(positionX, positionY, positionZ, this._targetEnd.x, this._targetEnd.y, this._targetEnd.z, enableTransition);
 	    }
 	    /**
-	     * setLookAt without position, Stay still at the position.
+	     * Set the target position where gaze at.
+	     * An alias of `setLookAt()`, without position change. Thus keep the same position.
 	     * @param targetX
 	     * @param targetY
 	     * @param targetZ
@@ -1641,13 +1658,12 @@
 	    setFocalOffset(x, y, z, enableTransition = false) {
 	        this._focalOffsetEnd.set(x, y, z);
 	        this._needsUpdate = true;
-	        if (!enableTransition) {
+	        if (!enableTransition)
 	            this._focalOffset.copy(this._focalOffsetEnd);
-	        }
 	        this._affectOffset =
-	            !approxZero(this._focalOffset.x) ||
-	                !approxZero(this._focalOffset.y) ||
-	                !approxZero(this._focalOffset.z);
+	            !approxZero(x) ||
+	                !approxZero(y) ||
+	                !approxZero(z);
 	        const resolveImmediately = !enableTransition ||
 	            approxEquals(this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold) &&
 	                approxEquals(this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold) &&
@@ -2288,10 +2304,9 @@
 	            // for old three.js, which supports both BufferGeometry and Geometry
 	            // this condition block will be removed in the near future.
 	            const position = geometry.attributes.position;
-	            const vector = new THREE.Vector3();
 	            for (let i = 0, l = position.count; i < l; i++) {
-	                vector.fromBufferAttribute(position, i);
-	                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(vector));
+	                _v3A.fromBufferAttribute(position, i);
+	                maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_v3A));
 	            }
 	        }
 	    });
