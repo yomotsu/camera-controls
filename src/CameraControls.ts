@@ -1964,11 +1964,7 @@ export class CameraControls extends EventDispatcher {
 		this._focalOffsetEnd.set( x, y, z );
 		this._needsUpdate = true;
 
-		if ( ! enableTransition ) {
-
-			this._focalOffset.copy( this._focalOffsetEnd );
-
-		}
+		if ( ! enableTransition ) this._focalOffset.copy( this._focalOffsetEnd );
 
 		this._affectOffset =
 			! approxZero( x ) ||
