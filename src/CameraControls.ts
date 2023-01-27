@@ -1625,6 +1625,24 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
+	 * Look in the given point direction.
+	 * @param x point x.
+	 * @param y point y.
+	 * @param z point z.
+	 * @param enableTransition Whether to move smoothly or immediately.
+	 * @returns Transition end promise
+	 * @category Methods
+	 */
+	lookInDirection( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
+
+		const point = _v3A.set( x, y, z );
+		const direction = point.sub( this._targetEnd ).normalize();
+		const position = direction.multiplyScalar( - this._sphericalEnd.radius );
+		return this.setPosition( position.x, position.y, position.z, enableTransition );
+
+	}
+
+	/**
 	 * Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
 	 * set `cover: true` to fill enter screen.
 	 * e.g.
@@ -2972,12 +2990,11 @@ function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): 
 			// for old three.js, which supports both BufferGeometry and Geometry
 			// this condition block will be removed in the near future.
 			const position = geometry.attributes.position;
-			const vector = new THREE.Vector3();
 
 			for ( let i = 0, l = position.count; i < l; i ++ ) {
 
-				vector.fromBufferAttribute( position, i );
-				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( vector ) );
+				_v3A.fromBufferAttribute( position, i );
+				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
 
 			}
 
