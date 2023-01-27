@@ -1794,7 +1794,7 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Make an orbit with given points.
+	 * Look at the `target` from the `position`.
 	 * @param positionX
 	 * @param positionY
 	 * @param positionZ
@@ -1907,7 +1907,8 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * setLookAt without target, keep gazing at the current target
+	 * Set angle and distance by given position.
+	 * An alias of `setLookAt()`, without target change. Thus keep gazing at the current target
 	 * @param positionX
 	 * @param positionY
 	 * @param positionZ
@@ -1925,7 +1926,8 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * setLookAt without position, Stay still at the position.
+	 * Set the target position where gaze at.
+	 * An alias of `setLookAt()`, without position change. Thus keep the same position.
 	 * @param targetX
 	 * @param targetY
 	 * @param targetZ

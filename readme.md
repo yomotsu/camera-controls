@@ -453,7 +453,7 @@ Fit the viewport to the sphere or the bounding sphere of the object.
 
 #### `setLookAt( positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition )`
 
-Make an orbit with given points.
+Look at the `target` from the `position`.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -492,7 +492,8 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 #### `setPosition( positionX, positionY, positionZ, enableTransition )`
 
-`setLookAt` without target, keep gazing at the current target.
+Set angle and distance by given position.
+An alias of 1setLookAt()1, without target change. Thus keep gazing at the current target
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -505,7 +506,8 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 #### `setTarget( targetX, targetY, targetZ, enableTransition )`
 
-`setLookAt` without position, Stay still at the position.
+Set the target position where gaze at.
+An alias of `setLookAt()`, without position change. Thus keep the same position.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
