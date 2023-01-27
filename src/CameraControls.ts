@@ -1971,9 +1971,9 @@ export class CameraControls extends EventDispatcher {
 		}
 
 		this._affectOffset =
-			! approxZero( this._focalOffset.x ) ||
-			! approxZero( this._focalOffset.y ) ||
-			! approxZero( this._focalOffset.z );
+			! approxZero( x ) ||
+			! approxZero( y ) ||
+			! approxZero( z );
 
 		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold ) &&
