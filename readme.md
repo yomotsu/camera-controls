@@ -715,9 +715,25 @@ await cameraControls.dollyTo( 3, false );
 
 ---
 
-## Breaking changes
+## V2 Migration Guide
 
-@1.16.0 `dolly()` will take opposite value. e.g. dolly-in to `dolly( 1 )` (used be dolly-in to `dolly( -1 )`)
+camera-controls used to use simple damping for its smooth transition. camera-controls v2 now uses [SmoothDamp](https://docs.unity3d.com/ScriptReference/Mathf.SmoothDamp.html).
+one of the benefits of using SmoothDamp is, SmoothDamp transition can be controlled with smoothTime which is approximately the time it will take to reach the end position.
+Also, the Maximum speed of the transition can be set with `max speed`.
+
+Due to the change, the following are needed.
+(if you haven't changed `dampingFactor` and `draggingDampingFactor` in v1.x, nothing is needed)
+
+deprecated
+- `dampingFactor` (use smoothTime instead)
+- `draggingDampingFactor` (use draggingSmoothTime instead)
+
+added
+- `smoothTime`
+- `draggingSmoothTime`
+- `maxSpeed`
+
+...That's it!
 
 ## Contributors
 
