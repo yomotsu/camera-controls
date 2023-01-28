@@ -1633,7 +1633,7 @@ export class CameraControls extends EventDispatcher {
 	 * @returns Transition end promise
 	 * @category Methods
 	 */
-	lookInDirection( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
+	lookInDirectionOf( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
 
 		const point = _v3A.set( x, y, z );
 		const direction = point.sub( this._targetEnd ).normalize();
