@@ -234,7 +234,7 @@ class EventDispatcher {
     }
 }
 
-const VERSION = '1.38.1'; // will be replaced with `version` in package.json during the build process.
+const VERSION = '1.38.2'; // will be replaced with `version` in package.json during the build process.
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test(navigator.platform);
@@ -1416,7 +1416,7 @@ class CameraControls extends EventDispatcher {
      * @returns Transition end promise
      * @category Methods
      */
-    lookInDirection(x, y, z, enableTransition = false) {
+    lookInDirectionOf(x, y, z, enableTransition = false) {
         const point = _v3A.set(x, y, z);
         const direction = point.sub(this._targetEnd).normalize();
         const position = direction.multiplyScalar(-this._sphericalEnd.radius);
@@ -2237,16 +2237,15 @@ class CameraControls extends EventDispatcher {
      */
     get dampingFactor() {
         console.warn('.dampingFactor has been deprecated. use smoothTime (in seconds) instead.');
-        return this.smoothTime;
+        return 0;
     }
     /**
      * backward compatible
      * @deprecated use smoothTime (in seconds) instead
      * @category Properties
      */
-    set dampingFactor(dampingFactor) {
+    set dampingFactor(_) {
         console.warn('.dampingFactor has been deprecated. use smoothTime (in seconds) instead.');
-        this.smoothTime = dampingFactor;
     }
     /**
      * backward compatible
@@ -2255,16 +2254,15 @@ class CameraControls extends EventDispatcher {
      */
     get draggingDampingFactor() {
         console.warn('.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.');
-        return this.draggingSmoothTime;
+        return 0;
     }
     /**
      * backward compatible
      * @deprecated use draggingSmoothTime (in seconds) instead
      * @category Properties
      */
-    set draggingDampingFactor(draggingDampingFactor) {
+    set draggingDampingFactor(_) {
         console.warn('.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.');
-        this.draggingSmoothTime = draggingDampingFactor;
     }
 }
 function createBoundingSphere(object3d, out) {

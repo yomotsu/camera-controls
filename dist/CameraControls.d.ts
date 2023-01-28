@@ -1,4 +1,4 @@
-import type * as _THREE from 'three';
+import * as _THREE from 'three';
 import { THREESubset, Ref, ACTION, PointerInput, MouseButtons, Touches, FitToOptions, CameraControlsEventMap } from './types';
 import { EventDispatcher } from './EventDispatcher';
 export declare class CameraControls extends EventDispatcher {
@@ -45,11 +45,11 @@ export declare class CameraControls extends EventDispatcher {
     static install(libs: {
         THREE: THREESubset;
     }): void;
-    /**
-     * list all ACTIONs
-     * @category Statics
-     */
-    static get ACTION(): typeof ACTION;
+    /*
+    * list all ACTIONs
+    * @category Statics
+    */
+    static readonly ACTION: typeof ACTION;
     /**
      * Minimum vertical angle in radians.
      * The angle has to be between `0` and `.maxPolarAngle` inclusive.
@@ -253,7 +253,12 @@ export declare class CameraControls extends EventDispatcher {
     protected _focalOffset0: _THREE.Vector3;
     protected _dollyControlAmount: number;
     protected _dollyControlCoord: _THREE.Vector2;
-    protected _nearPlaneCorners: [_THREE.Vector3, _THREE.Vector3, _THREE.Vector3, _THREE.Vector3];
+    protected _nearPlaneCorners: [
+        _THREE.Vector3,
+        _THREE.Vector3,
+        _THREE.Vector3,
+        _THREE.Vector3
+    ];
     protected _hasRested: boolean;
     protected _boundary: _THREE.Box3;
     protected _boundaryEnclosesCamera: boolean;
@@ -286,56 +291,50 @@ export declare class CameraControls extends EventDispatcher {
      * @category Constructor
      */
     constructor(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera, domElement?: HTMLElement);
-    /**
-     * The camera to be controlled
-     * @category Properties
-     */
-    get camera(): _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
-    set camera(camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera);
-    /**
-     * Whether or not the controls are enabled.
-     * `false` to disable user dragging/touch-move, but all methods works.
-     * @category Properties
-     */
-    get enabled(): boolean;
-    set enabled(enabled: boolean);
-    /**
-     * Returns `true` if the controls are active updating.
-     * readonly value.
-     * @category Properties
-     */
-    get active(): boolean;
-    /**
-     * Getter for the current `ACTION`.
-     * readonly value.
-     * @category Properties
-     */
-    get currentAction(): ACTION;
-    /**
-     * get/set Current distance.
-     * @category Properties
-     */
-    get distance(): number;
-    set distance(distance: number);
-    /**
-     * get/set the azimuth angle (horizontal) in radians.
-     * Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.
-     * @category Properties
-     */
-    get azimuthAngle(): number;
-    set azimuthAngle(azimuthAngle: number);
-    /**
-     * get/set the polar angle (vertical) in radians.
-     * @category Properties
-     */
-    get polarAngle(): number;
-    set polarAngle(polarAngle: number);
-    /**
-     * Whether camera position should be enclosed in the boundary or not.
-     * @category Properties
-     */
-    get boundaryEnclosesCamera(): boolean;
-    set boundaryEnclosesCamera(boundaryEnclosesCamera: boolean);
+    /*
+    * The camera to be controlled
+    * @category Properties
+    */
+    camera: _THREE.PerspectiveCamera | _THREE.OrthographicCamera;
+    /*
+    * Whether or not the controls are enabled.
+    * `false` to disable user dragging/touch-move, but all methods works.
+    * @category Properties
+    */
+    enabled: boolean;
+    /*
+    * Returns `true` if the controls are active updating.
+    * readonly value.
+    * @category Properties
+    */
+    readonly active: boolean;
+    /*
+    * Getter for the current `ACTION`.
+    * readonly value.
+    * @category Properties
+    */
+    readonly currentAction: ACTION;
+    /*
+    * get/set Current distance.
+    * @category Properties
+    */
+    distance: number;
+    /*
+    * get/set the azimuth angle (horizontal) in radians.
+    * Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.
+    * @category Properties
+    */
+    azimuthAngle: number;
+    /*
+    * get/set the polar angle (vertical) in radians.
+    * @category Properties
+    */
+    polarAngle: number;
+    /*
+    * Whether camera position should be enclosed in the boundary or not.
+    * @category Properties
+    */
+    boundaryEnclosesCamera: boolean;
     /**
      * Adds the specified event listener.
      * Applicable event types (which is `K`) are:
@@ -513,7 +512,7 @@ export declare class CameraControls extends EventDispatcher {
      * @returns Transition end promise
      * @category Methods
      */
-    lookInDirection(x: number, y: number, z: number, enableTransition?: boolean): Promise<void>;
+    lookInDirectionOf(x: number, y: number, z: number, enableTransition?: boolean): Promise<void>;
     /**
      * Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
      * set `cover: true` to fill enter screen.
@@ -725,28 +724,26 @@ export declare class CameraControls extends EventDispatcher {
     protected _createOnRestPromise(resolveImmediately: boolean): Promise<void>;
     protected _addAllEventListeners(_domElement: HTMLElement): void;
     protected _removeAllEventListeners(): void;
-    /**
-     * backward compatible
-     * @deprecated use smoothTime (in seconds) instead
-     * @category Properties
-     */
-    get dampingFactor(): number;
-    /**
-     * backward compatible
-     * @deprecated use smoothTime (in seconds) instead
-     * @category Properties
-     */
-    set dampingFactor(dampingFactor: number);
-    /**
-     * backward compatible
-     * @deprecated use draggingSmoothTime (in seconds) instead
-     * @category Properties
-     */
-    get draggingDampingFactor(): number;
-    /**
-     * backward compatible
-     * @deprecated use draggingSmoothTime (in seconds) instead
-     * @category Properties
-     */
-    set draggingDampingFactor(draggingDampingFactor: number);
+    /*
+    * backward compatible
+    * @deprecated use smoothTime (in seconds) instead
+    * @category Properties
+    
+    
+    * backward compatible
+    * @deprecated use smoothTime (in seconds) instead
+    * @category Properties
+    */
+    dampingFactor: number;
+    /*
+    * backward compatible
+    * @deprecated use draggingSmoothTime (in seconds) instead
+    * @category Properties
+    
+    
+    * backward compatible
+    * @deprecated use draggingSmoothTime (in seconds) instead
+    * @category Properties
+    */
+    draggingDampingFactor: number;
 }
