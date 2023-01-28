@@ -19,6 +19,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
 - [focal offset](https://yomotsu.github.io/camera-controls/examples/focal-offset.html)
 - [click to set orbit point](https://yomotsu.github.io/camera-controls/examples/click-to-set-orbit-point.html)
+- [look in the point direction](https://yomotsu.github.io/camera-controls/examples/look-in-direction.html)
 - [viewport within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
@@ -371,6 +372,17 @@ Truck and pedestal camera using current azimuthal angle.
 | `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 ---
+
+### `lookInDirection( x, y, z, enableTransition )`
+
+Look in the given point direction.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `x`                | `number`  | point x |
+| `y`                | `number`  | point y |
+| `z`                | `number`  | point z |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
 
 #### `setFocalOffset( x, y, z, enableTransition )`
 

@@ -1,5 +1,5 @@
-import * as _THREE from 'three';
-import { Ref } from '../types';
+import type * as _THREE from 'three';
+import type { Ref } from '../types';
 export declare const DEG2RAD: number;
 export declare function clamp(value: number, min: number, max: number): number;
 export declare function approxZero(number: number, error?: number): boolean;

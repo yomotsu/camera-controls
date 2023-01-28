@@ -1,4 +1,4 @@
-import * as _THREE from 'three';
+import type * as _THREE from 'three';
 export interface THREESubset {
     Vector2: typeof _THREE.Vector2;
     Vector3: typeof _THREE.Vector3;
