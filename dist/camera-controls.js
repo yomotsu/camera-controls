@@ -175,7 +175,7 @@
 	    }
 	}
 
-	const VERSION = '1.38.0'; // will be replaced with `version` in package.json during the build process.
+	const VERSION = '1.38.1'; // will be replaced with `version` in package.json during the build process.
 	const TOUCH_DOLLY_FACTOR = 1 / 8;
 	const isBrowser = typeof window !== 'undefined';
 	const isMac = isBrowser && /Mac/.test(navigator.platform);
@@ -1575,9 +1575,9 @@
 	            this._focalOffset.copy(this._focalOffsetEnd);
 	        }
 	        this._affectOffset =
-	            !approxZero(this._focalOffset.x) ||
-	                !approxZero(this._focalOffset.y) ||
-	                !approxZero(this._focalOffset.z);
+	            !approxZero(x) ||
+	                !approxZero(y) ||
+	                !approxZero(z);
 	        const resolveImmediately = !enableTransition ||
 	            approxEquals(this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold) &&
 	                approxEquals(this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold) &&
