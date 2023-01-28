@@ -19,6 +19,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
 - [focal offset](https://yomotsu.github.io/camera-controls/examples/focal-offset.html)
 - [click to set orbit point](https://yomotsu.github.io/camera-controls/examples/click-to-set-orbit-point.html)
+- [look in the point direction](https://yomotsu.github.io/camera-controls/examples/look-in-direction.html)
 - [viewport within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
@@ -97,7 +98,6 @@ import {
 	Box3,
 	Sphere,
 	Raycaster,
-	MathUtils,
 } from 'three';
 
 const subsetOfTHREE = {
@@ -110,10 +110,6 @@ const subsetOfTHREE = {
 	Box3      : Box3,
 	Sphere    : Sphere,
 	Raycaster : Raycaster,
-	MathUtils : {
-		DEG2RAD: MathUtils.DEG2RAD,
-		clamp: MathUtils.clamp,
-	},
 };
 
 CameraControls.install( { THREE: subsetOfTHREE } );
@@ -165,8 +161,8 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
-| `.dampingFactor`          | `number`  | `0.05`      | The damping inertia. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
-| `.draggingDampingFactor`  | `number`  | `0.25`      | The damping inertia while dragging. The value must be between `Math.EPSILON` to `1` inclusive. Setting `1` to disable smooth transitions. |
+| `.smoothTime`             | `number`  | `0.25`      | Approximate time in seconds to reach the target. A smaller value will reach the target faster. |
+| `.draggingSmoothTime`     | `number`  | `0.125`     | The smoothTime while dragging. |
 | `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
 | `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
@@ -377,6 +373,17 @@ Truck and pedestal camera using current azimuthal angle.
 
 ---
 
+### `lookInDirection( x, y, z, enableTransition )`
+
+Look in the given point direction.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `x`                | `number`  | point x |
+| `y`                | `number`  | point y |
+| `z`                | `number`  | point z |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
 #### `setFocalOffset( x, y, z, enableTransition )`
 
 Set focal offset using the screen parallel coordinates.
@@ -458,7 +465,7 @@ Fit the viewport to the sphere or the bounding sphere of the object.
 
 #### `setLookAt( positionX, positionY, positionZ, targetX, targetY, targetZ, enableTransition )`
 
-Make an orbit with given points.
+Look at the `target` from the `position`.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -497,7 +504,8 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 #### `setPosition( positionX, positionY, positionZ, enableTransition )`
 
-`setLookAt` without target, keep gazing at the current target.
+Set angle and distance by given position.
+An alias of 1setLookAt()1, without target change. Thus keep gazing at the current target
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -510,7 +518,8 @@ Similar to `setLookAt`, but it interpolates between two states.
 
 #### `setTarget( targetX, targetY, targetZ, enableTransition )`
 
-`setLookAt` without position, Stay still at the position.
+Set the target position where gaze at.
+An alias of `setLookAt()`, without position change. Thus keep the same position.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
@@ -695,7 +704,7 @@ async function complexTransition() {
 
 This will rotate the camera, then dolly, and finally fit to the bounding sphere of the `mesh`.
 
-The speed and timing of transitions can be tuned using `.restThreshold` and `.dampingFactor`.
+The speed and timing of transitions can be tuned using `.restThreshold` and `.smoothTime`.
 
 If `enableTransition` is `false`, the promise will resolve immediately:
 

@@ -9,12 +9,11 @@
 <body>
 <div class="info">
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
-	<button type="button" onclick="cameraControls.reset( true )">reset</button>
-	<ul>
-		<li>drag w/o keys: rotate</li>
-		<li>drag w/ <kbd>shift key</kbd>: translate</li>
-		<li>drag w/ <kbd>control key</kbd>: dolly</li>
-	</ul>
+	look in the direction:
+	<button onclick="cameraControls.lookInDirectionOf( 1, 0, 3, true )">green</button>
+	<button onclick="cameraControls.lookInDirectionOf( 2, 1, 0, true )">yellow</button>
+	<button onclick="cameraControls.lookInDirectionOf( 3, 2, - 1, true )">blue</button><br>
+	<button onclick="cameraControls.reset( true )">reset</button>
 </div>
 
 <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
@@ -34,52 +33,6 @@ document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
 
-// switch the behavior by the modifier key press
-const keyState = {
-	shiftRight  : false,
-	shiftLeft   : false,
-	controlRight: false,
-	controlLeft : false,
-};
-
-const updateConfig = () => {
-
-	if ( keyState.shiftRight || keyState.shiftLeft ) {
-
-		cameraControls.mouseButtons.left = CameraControls.ACTION.TRUCK;
-
-	} else if ( keyState.controlRight || keyState.controlLeft ) {
-
-		cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
-
-	} else {
-
-		cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
-
-	}
-
-}
-
-document.addEventListener( 'keydown', ( event ) => {
-
-	if ( event.code === 'ShiftRight'   ) keyState.shiftRight   = true;
-	if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = true;
-	if ( event.code === 'ControlRight' ) keyState.controlRight = true;
-	if ( event.code === 'ControlLeft'  ) keyState.controlLeft  = true;
-	updateConfig();
-
-} );
-
-document.addEventListener( 'keyup', ( event ) => {
-
-	if ( event.code === 'ShiftRight'   ) keyState.shiftRight   = false;
-	if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = false;
-	if ( event.code === 'ControlRight' ) keyState.controlRight = false;
-	if ( event.code === 'ControlLeft'  ) keyState.controlLeft  = false;
-	updateConfig();
-
-} );
-
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),
 	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
@@ -90,12 +43,34 @@ const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.position.y = - 1;
 scene.add( gridHelper );
 
+const points = [
+	new THREE.Mesh(
+		new THREE.SphereGeometry( .1, 16, 16 ),
+		new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
+	),
+	new THREE.Mesh(
+		new THREE.SphereGeometry( .1, 16, 16 ),
+		new THREE.MeshBasicMaterial( { color: 0xffff00 } )
+	),
+	new THREE.Mesh(
+		new THREE.SphereGeometry( .1, 16, 16 ),
+		new THREE.MeshBasicMaterial( { color: 0x0000ff } )
+	),
+];
+points[ 0 ].position.set( 1, 0, 3 );
+points[ 1 ].position.set( 2, 1, 0 );
+points[ 2 ].position.set( 3, 2, - 1 );
+scene.add( ...points );
+
 renderer.render( scene, camera );
 
 ( function anim () {
 
 	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
 	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
 
 	requestAnimationFrame( anim );
 
