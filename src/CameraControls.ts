@@ -2905,7 +2905,7 @@ export class CameraControls extends EventDispatcher {
 	get dampingFactor() {
 
 		console.warn( '.dampingFactor has been deprecated. use smoothTime (in seconds) instead.' );
-		return this.smoothTime;
+		return 0;
 
 	}
 
@@ -2914,10 +2914,9 @@ export class CameraControls extends EventDispatcher {
 	 * @deprecated use smoothTime (in seconds) instead
 	 * @category Properties
 	 */
-	set dampingFactor( dampingFactor: number ) {
+	set dampingFactor( _: number ) {
 
 		console.warn( '.dampingFactor has been deprecated. use smoothTime (in seconds) instead.' );
-		this.smoothTime = dampingFactor;
 
 	}
 
@@ -2929,7 +2928,7 @@ export class CameraControls extends EventDispatcher {
 	get draggingDampingFactor() {
 
 		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
-		return this.draggingSmoothTime;
+		return 0;
 
 	}
 
@@ -2938,10 +2937,9 @@ export class CameraControls extends EventDispatcher {
 	 * @deprecated use draggingSmoothTime (in seconds) instead
 	 * @category Properties
 	 */
-	set draggingDampingFactor( draggingDampingFactor: number ) {
+	set draggingDampingFactor( _: number ) {
 
 		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
-		this.draggingSmoothTime = draggingDampingFactor;
 
 	}
 

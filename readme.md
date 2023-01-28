@@ -373,7 +373,7 @@ Truck and pedestal camera using current azimuthal angle.
 
 ---
 
-### `lookInDirection( x, y, z, enableTransition )`
+### `lookInDirectionOf( x, y, z, enableTransition )`
 
 Look in the given point direction.
 
@@ -632,13 +632,13 @@ When you change camera-up vector, run `.updateCameraUp()` to sync.
 
 ---
 
-### connect
+### `connect()`
 
 Attach all internal event handlers to enable drag control.
 
 ---
 
-### disconnect
+### `disconnect()`
 
 Detach all internal event handlers to disable drag control.
 
