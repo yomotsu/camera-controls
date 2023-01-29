@@ -40,6 +40,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [complex transitions with `await`](https://yomotsu.github.io/camera-controls/examples/await-transitions.html)
 - [outside of iframe dragging](https://yomotsu.github.io/camera-controls/examples/iframe.html)
 - [in react-three-fiber](https://codesandbox.io/s/react-three-fiber-camera-controls-4jjor?file=/src/App.tsx)
+- [using drei](https://codesandbox.io/s/sew669) (see [doc](https://github.com/pmndrs/drei#cameracontrols))
 
 ## Usage
 
