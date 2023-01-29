@@ -234,7 +234,7 @@ class EventDispatcher {
     }
 }
 
-const VERSION = '1.38.2'; // will be replaced with `version` in package.json during the build process.
+const VERSION = '2.0.0'; // will be replaced with `version` in package.json during the build process.
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test(navigator.platform);
@@ -1955,10 +1955,12 @@ class CameraControls extends EventDispatcher {
         }
         else {
             this._zoom = smoothDamp(this._zoom, this._zoomEnd, this._zoomVelocity, this.smoothTime, Infinity, delta);
-            this._needsUpdate = true;
+        }
+        if (this._camera.zoom !== this._zoom) {
             this._camera.zoom = this._zoom;
             this._camera.updateProjectionMatrix();
             this._updateNearPlaneCorners();
+            this._needsUpdate = true;
         }
         // collision detection
         const maxDistance = this._collisionTest();
