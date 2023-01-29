@@ -444,7 +444,7 @@ set `cover: true` to fill enter screen.
 | `box3OrMesh`            | `THREE.Box3` \| `THREE.Mesh` | Axis aligned bounding box to fit the view. |
 | `enableTransition`      | `boolean`                    | Whether to move smoothly or immediately |
 | `options`               | `object`                     | Options |
-| `options.cover`         | `number`                     | Whether fill enter screen or not. Default is `false` |
+| `options.cover`         | `boolean`                    | Whether fill enter screen or not. Default is `false` |
 | `options.paddingTop`    | `number`                     | Padding top. Default is `0` |
 | `options.paddingRight`  | `number`                     | Padding right. Default is `0` |
 | `options.paddingBottom` | `number`                     | Padding bottom. Default is `0` |
