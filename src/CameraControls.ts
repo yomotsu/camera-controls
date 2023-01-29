@@ -2384,14 +2384,14 @@ export class CameraControls extends EventDispatcher {
 		}
 
 		// update zoom
-		if ( approxZero( deltaZoom ) ) {
+		if ( this._camera.zoom === this._zoom ) {
 
 			this._zoomVelocity.value = 0;
 			this._zoom = this._zoomEnd;
 
 		} else {
 
-			this._zoom = smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, this.smoothTime, Infinity, delta );
+			this._zoom = approxZero( deltaZoom ) ? this._zoomEnd : smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, this.smoothTime, Infinity, delta );
 			this._needsUpdate = true;
 
 			this._camera.zoom = this._zoom;
