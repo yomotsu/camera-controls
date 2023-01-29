@@ -2392,11 +2392,15 @@ export class CameraControls extends EventDispatcher {
 		} else {
 
 			this._zoom = smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, this.smoothTime, Infinity, delta );
-			this._needsUpdate = true;
+
+		}
+
+		if ( this._camera.zoom !== this._zoom ) {
 
 			this._camera.zoom = this._zoom;
 			this._camera.updateProjectionMatrix();
 			this._updateNearPlaneCorners();
+			this._needsUpdate = true;
 
 		}
 
