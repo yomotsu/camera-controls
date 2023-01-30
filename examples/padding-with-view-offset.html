@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<button onclick="setPadding( 0, 0, 0, 200 );">setPadding left: 200</button>
+	<button onclick="setPadding( 0, 100, 0, 0 );">setPadding right: 100</button>
+	<button onclick="setPadding( 200, 0, 0, 0 );">setPadding top: 200</button>
+	<button onclick="setPadding( 100, 0, 0, 200 );">setPadding top: 100, left: 200</button>
+</div>
+
+<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+<script src="../dist/camera-controls.js"></script>
+<script>
+CameraControls.install( { THREE: THREE } );
+
+const width = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+// setPadding( 0, 0, 0, 200 );
+setPadding( 0, 0, 0, 200 );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+
+function setPadding ( paddingTop, paddingRight, paddingBottom, paddingLeft ) {
+
+	const fullWidth = width - paddingLeft + paddingRight;
+	const fullHeight = height - paddingTop + paddingBottom;
+	const widthOffset = - paddingLeft + paddingRight;
+	const heightOffset = - paddingTop + paddingBottom;
+	const viewWidth = width;
+	const viewHeight = height;
+	camera.setViewOffset( fullWidth, fullHeight, widthOffset, heightOffset, viewWidth, viewHeight );
+	camera.updateProjectionMatrix();
+	renderer.render( scene, camera );
+
+}
+</script>
+
+</body>
+</html>
