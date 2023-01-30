@@ -1984,11 +1984,6 @@ export class CameraControls extends EventDispatcher {
 
 		if ( ! enableTransition ) this._focalOffset.copy( this._focalOffsetEnd );
 
-		this._affectOffset =
-			! approxZero( x ) ||
-			! approxZero( y ) ||
-			! approxZero( z );
-
 		const resolveImmediately = ! enableTransition ||
 			approxEquals( this._focalOffset.x, this._focalOffsetEnd.x, this.restThreshold ) &&
 			approxEquals( this._focalOffset.y, this._focalOffsetEnd.y, this.restThreshold ) &&
@@ -2414,6 +2409,10 @@ export class CameraControls extends EventDispatcher {
 		this._camera.lookAt( this._target );
 
 		// set offset after the orbit movement
+		this._affectOffset =
+			! approxZero( deltaOffset.x ) ||
+			! approxZero( deltaOffset.y ) ||
+			! approxZero( deltaOffset.z );
 		if ( this._affectOffset ) {
 
 			this._camera.updateMatrixWorld();
