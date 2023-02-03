@@ -941,6 +941,53 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			if (
+				( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
+				( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
+				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
+				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+			) {
+
+				this._sphericalEnd.theta = this._spherical.theta;
+				this._sphericalEnd.phi = this._spherical.phi;
+
+			}
+
+			if (
+				( this._state & ACTION.TRUCK ) === ACTION.TRUCK ||
+				( this._state & ACTION.TOUCH_TRUCK ) === ACTION.TOUCH_TRUCK ||
+				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
+				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK
+			) {
+
+				this._targetEnd.copy( this._target );
+
+			}
+
+			if (
+				( this._state & ACTION.DOLLY ) === ACTION.DOLLY ||
+				( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
+				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
+				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
+				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE
+			) {
+
+				this._sphericalEnd.radius = this._spherical.radius;
+
+			}
+
+			if (
+				( this._state & ACTION.ZOOM ) === ACTION.ZOOM ||
+				( this._state & ACTION.TOUCH_ZOOM ) === ACTION.TOUCH_ZOOM ||
+				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
+				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET ||
+				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+			) {
+
+				this._zoomEnd = this._zoom;
+
+			}
+
 			this.dispatchEvent( { type: 'controlstart' } );
 
 		};
