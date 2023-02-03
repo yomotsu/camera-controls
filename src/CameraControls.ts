@@ -1781,7 +1781,7 @@ export class CameraControls extends EventDispatcher {
 		const isSphere = sphereOrMesh instanceof THREE.Sphere;
 		const boundingSphere = isSphere ?
 			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
-			createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
+			CameraControls.createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
 
 		promises.push( this.moveTo(
 			boundingSphere.center.x,
@@ -2946,64 +2946,64 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-}
+	static createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere = new THREE.Sphere() ): _THREE.Sphere {
 
-function createBoundingSphere( object3d: _THREE.Object3D, out: _THREE.Sphere ): _THREE.Sphere {
+		const boundingSphere = out;
+		const center = boundingSphere.center;
 
-	const boundingSphere = out;
-	const center = boundingSphere.center;
+		_box3A.makeEmpty();
+		// find the center
+		object3d.traverseVisible( ( object ) => {
 
-	_box3A.makeEmpty();
-	// find the center
-	object3d.traverseVisible( ( object ) => {
+			if ( ! ( object as _THREE.Mesh ).isMesh ) return;
 
-		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
+			_box3A.expandByObject( object );
 
-		_box3A.expandByObject( object );
+		} );
+		_box3A.getCenter( center );
 
-	} );
-	_box3A.getCenter( center );
+		// find the radius
+		let maxRadiusSq = 0;
+		object3d.traverseVisible( ( object ) => {
 
-	// find the radius
-	let maxRadiusSq = 0;
-	object3d.traverseVisible( ( object ) => {
+			if ( ! ( object as _THREE.Mesh ).isMesh ) return;
 
-		if ( ! ( object as _THREE.Mesh ).isMesh ) return;
+			const mesh = ( object as _THREE.Mesh );
+			const geometry = mesh.geometry.clone();
+			geometry.applyMatrix4( mesh.matrixWorld );
 
-		const mesh = ( object as _THREE.Mesh );
-		const geometry = mesh.geometry.clone();
-		geometry.applyMatrix4( mesh.matrixWorld );
+			if ( geometry.isBufferGeometry ) {
 
-		if ( geometry.isBufferGeometry ) {
+				const bufferGeometry = geometry;
+				const position = bufferGeometry.attributes.position as _THREE.BufferAttribute;
 
-			const bufferGeometry = geometry;
-			const position = bufferGeometry.attributes.position as _THREE.BufferAttribute;
+				for ( let i = 0, l = position.count; i < l; i ++ ) {
 
-			for ( let i = 0, l = position.count; i < l; i ++ ) {
+					_v3A.fromBufferAttribute( position, i );
+					maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
 
-				_v3A.fromBufferAttribute( position, i );
-				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
+				}
+
+			} else {
+
+				// for old three.js, which supports both BufferGeometry and Geometry
+				// this condition block will be removed in the near future.
+				const position = geometry.attributes.position;
+
+				for ( let i = 0, l = position.count; i < l; i ++ ) {
+
+					_v3A.fromBufferAttribute( position, i );
+					maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
+
+				}
 
 			}
 
-		} else {
+		} );
 
-			// for old three.js, which supports both BufferGeometry and Geometry
-			// this condition block will be removed in the near future.
-			const position = geometry.attributes.position;
+		boundingSphere.radius = Math.sqrt( maxRadiusSq );
+		return boundingSphere;
 
-			for ( let i = 0, l = position.count; i < l; i ++ ) {
-
-				_v3A.fromBufferAttribute( position, i );
-				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
-
-			}
-
-		}
-
-	} );
-
-	boundingSphere.radius = Math.sqrt( maxRadiusSq );
-	return boundingSphere;
+	}
 
 }
