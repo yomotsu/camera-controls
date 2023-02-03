@@ -941,6 +941,7 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// stop current movement on drag start
 			if (
 				( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
 				( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
@@ -950,6 +951,8 @@ export class CameraControls extends EventDispatcher {
 
 				this._sphericalEnd.theta = this._spherical.theta;
 				this._sphericalEnd.phi = this._spherical.phi;
+				this._thetaVelocity.value = 0;
+				this._phiVelocity.value = 0;
 
 			}
 
@@ -961,6 +964,7 @@ export class CameraControls extends EventDispatcher {
 			) {
 
 				this._targetEnd.copy( this._target );
+				this._targetVelocity.set( 0, 0, 0 );
 
 			}
 
@@ -973,6 +977,7 @@ export class CameraControls extends EventDispatcher {
 			) {
 
 				this._sphericalEnd.radius = this._spherical.radius;
+				this._radiusVelocity.value = 0;
 
 			}
 
@@ -985,6 +990,19 @@ export class CameraControls extends EventDispatcher {
 			) {
 
 				this._zoomEnd = this._zoom;
+				this._zoomVelocity.value = 0;
+
+			}
+
+			if (
+				( this._state & ACTION.OFFSET ) === ACTION.OFFSET ||
+				( this._state & ACTION.TOUCH_OFFSET ) === ACTION.TOUCH_OFFSET ||
+				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
+				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET
+			) {
+
+				this._focalOffsetEnd.copy( this._focalOffset );
+				this._focalOffsetVelocity.set( 0, 0, 0 );
 
 			}
 
