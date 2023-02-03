@@ -2232,7 +2232,7 @@ export class CameraControls extends EventDispatcher {
 
 		const smoothTime = isDragging ? this.draggingSmoothTime : this.smoothTime;
 
-		if ( hasDragStateChanged && isDragging ) {
+		if ( hasDragStateChanged && isDragging && this.draggingSmoothTime !== 0 ) {
 
 			const changedSpeed = this.smoothTime / this.draggingSmoothTime;
 			this._thetaVelocity.value *= changedSpeed;
@@ -2242,7 +2242,7 @@ export class CameraControls extends EventDispatcher {
 			this._focalOffsetVelocity.multiplyScalar( changedSpeed );
 			this._zoomVelocity.value *= changedSpeed;
 
-		} else if ( hasDragStateChanged && ! isDragging ) {
+		} else if ( hasDragStateChanged && ! isDragging && this.smoothTime !== 0 ) {
 
 			const changedSpeed = this.draggingSmoothTime / this.smoothTime;
 			this._thetaVelocity.value *= changedSpeed;
