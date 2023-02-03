@@ -46,6 +46,7 @@ renderer.outputEncoding = THREE.sRGBEncoding;
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
+globalThis.cameraControls = cameraControls;
 
 new THREE.TextureLoader().load( './env.jpg', ( equirectangularMap ) => {
 
