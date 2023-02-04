@@ -390,9 +390,9 @@ export class CameraControls extends EventDispatcher {
 	// set automatically true on user-dragging start.
 	// set automatically false on programmable methods call.
 	protected _isUserControllingRotate: boolean = false;
+	protected _isUserControllingDolly: boolean = false;
 	protected _isUserControllingTruck: boolean = false;
 	protected _isUserControllingOffset: boolean = false;
-	protected _isUserControllingDolly: boolean = false;
 	protected _isUserControllingZoom: boolean = false;
 
 	// velocities for smoothDamp
@@ -1935,9 +1935,9 @@ export class CameraControls extends EventDispatcher {
 		enableTransition: boolean = false,
 	): Promise<void> {
 
-		this._isUserControllingTruck = false;
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
+		this._isUserControllingTruck = false;
 
 		const target = _v3B.set( targetX, targetY, targetZ );
 		const position = _v3A.set( positionX, positionY, positionZ );
@@ -1993,9 +1993,9 @@ export class CameraControls extends EventDispatcher {
 		enableTransition: boolean = false,
 	): Promise<void> {
 
-		this._isUserControllingTruck = false;
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
+		this._isUserControllingTruck = false;
 
 		const targetA = _v3A.set( targetAX, targetAY, targetAZ );
 		const positionA = _v3B.set( positionAX, positionAY, positionAZ );
