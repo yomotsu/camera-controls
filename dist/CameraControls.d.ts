@@ -262,11 +262,15 @@ export declare class CameraControls extends EventDispatcher {
     protected _hasRested: boolean;
     protected _boundary: _THREE.Box3;
     protected _boundaryEnclosesCamera: boolean;
-    protected _isLastDragging: boolean;
     protected _needsUpdate: boolean;
     protected _updatedLastTime: boolean;
     protected _elementRect: DOMRect;
     protected _activePointers: PointerInput[];
+    protected _isUserControllingRotate: boolean;
+    protected _isUserControllingDolly: boolean;
+    protected _isUserControllingTruck: boolean;
+    protected _isUserControllingOffset: boolean;
+    protected _isUserControllingZoom: boolean;
     protected _thetaVelocity: Ref;
     protected _phiVelocity: Ref;
     protected _radiusVelocity: Ref;
@@ -746,4 +750,5 @@ export declare class CameraControls extends EventDispatcher {
     * @category Properties
     */
     draggingDampingFactor: number;
+    static createBoundingSphere(object3d: _THREE.Object3D, out?: _THREE.Sphere): _THREE.Sphere;
 }
