@@ -2505,9 +2505,9 @@ export class CameraControls extends EventDispatcher {
 
 		// set offset after the orbit movement
 		this._affectOffset =
-			! approxZero( deltaOffset.x ) ||
-			! approxZero( deltaOffset.y ) ||
-			! approxZero( deltaOffset.z );
+			! approxZero( this._focalOffset.x ) ||
+			! approxZero( this._focalOffset.y ) ||
+			! approxZero( this._focalOffset.z );
 		if ( this._affectOffset ) {
 
 			this._camera.updateMatrixWorld();
