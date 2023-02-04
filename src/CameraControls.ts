@@ -2297,17 +2297,7 @@ export class CameraControls extends EventDispatcher {
 
 		const smoothTime = isDragging ? this.draggingSmoothTime : this.smoothTime;
 
-		if ( hasDragStateChanged && isDragging && this.draggingSmoothTime !== 0 ) {
-
-			const changedSpeed = this.smoothTime / this.draggingSmoothTime;
-			this._thetaVelocity.value *= changedSpeed;
-			this._phiVelocity.value *= changedSpeed;
-			this._radiusVelocity.value *= changedSpeed;
-			this._targetVelocity.multiplyScalar( changedSpeed );
-			this._focalOffsetVelocity.multiplyScalar( changedSpeed );
-			this._zoomVelocity.value *= changedSpeed;
-
-		} else if ( hasDragStateChanged && ! isDragging && this.smoothTime !== 0 ) {
+		if ( hasDragStateChanged && ! isDragging && this.smoothTime !== 0 ) {
 
 			const changedSpeed = this.draggingSmoothTime / this.smoothTime;
 			this._thetaVelocity.value *= changedSpeed;
