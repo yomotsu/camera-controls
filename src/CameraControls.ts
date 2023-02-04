@@ -380,12 +380,20 @@ export class CameraControls extends EventDispatcher {
 	protected _boundary: _THREE.Box3;
 	protected _boundaryEnclosesCamera = false;
 
-	protected _isLastDragging: boolean = false;
 	protected _needsUpdate = true;
 	protected _updatedLastTime = false;
 	protected _elementRect = new DOMRect();
 
 	protected _activePointers: PointerInput[] = [];
+
+	// Use draggingSmoothTime over smoothTime while true.
+	// set automatically true on user-dragging start.
+	// set automatically false on programmable methods call.
+	protected _isUserControllingRotate: boolean = false;
+	protected _isUserControllingDolly: boolean = false;
+	protected _isUserControllingTruck: boolean = false;
+	protected _isUserControllingOffset: boolean = false;
+	protected _isUserControllingZoom: boolean = false;
 
 	// velocities for smoothDamp
 	protected _thetaVelocity: Ref = { value: 0 };
@@ -818,6 +826,7 @@ export class CameraControls extends EventDispatcher {
 				case ACTION.ROTATE: {
 
 					this._rotateInternal( event.deltaX, event.deltaY );
+					this._isUserControllingRotate = true;
 					break;
 
 				}
@@ -825,6 +834,7 @@ export class CameraControls extends EventDispatcher {
 				case ACTION.TRUCK: {
 
 					this._truckInternal( event.deltaX, event.deltaY, false );
+					this._isUserControllingTruck = true;
 					break;
 
 				}
@@ -832,6 +842,7 @@ export class CameraControls extends EventDispatcher {
 				case ACTION.OFFSET: {
 
 					this._truckInternal( event.deltaX, event.deltaY, true );
+					this._isUserControllingOffset = true;
 					break;
 
 				}
@@ -839,6 +850,7 @@ export class CameraControls extends EventDispatcher {
 				case ACTION.DOLLY: {
 
 					this._dollyInternal( - delta, x, y );
+					this._isUserControllingDolly = true;
 					break;
 
 				}
@@ -846,6 +858,7 @@ export class CameraControls extends EventDispatcher {
 				case ACTION.ZOOM: {
 
 					this._zoomInternal( - delta, x, y );
+					this._isUserControllingZoom = true;
 					break;
 
 				}
@@ -1032,6 +1045,7 @@ export class CameraControls extends EventDispatcher {
 			) {
 
 				this._rotateInternal( deltaX, deltaY );
+				this._isUserControllingRotate = true;
 
 			}
 
@@ -1042,9 +1056,17 @@ export class CameraControls extends EventDispatcher {
 
 				const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 				const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
-				( this._state & ACTION.DOLLY ) === ACTION.DOLLY ?
-					this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
+				if ( ( this._state & ACTION.DOLLY ) === ACTION.DOLLY ) {
+
+					this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._isUserControllingDolly = true;
+
+				} else {
+
 					this._zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._isUserControllingZoom = true;
+
+				}
 
 			}
 
@@ -1068,12 +1090,22 @@ export class CameraControls extends EventDispatcher {
 				const dollyX = this.dollyToCursor ? ( lastDragPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 				const dollyY = this.dollyToCursor ? ( lastDragPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
-				( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
-				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
-				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
-				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ?
-					this._dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY ) :
+				if (
+					( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
+					( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
+					( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
+					( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET
+				) {
+
+					this._dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._isUserControllingDolly = true;
+
+				} else {
+
 					this._zoomInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._isUserControllingZoom = true;
+
+				}
 
 			}
 
@@ -1085,6 +1117,7 @@ export class CameraControls extends EventDispatcher {
 			) {
 
 				this._truckInternal( deltaX, deltaY, false );
+				this._isUserControllingTruck = true;
 
 			}
 
@@ -1096,6 +1129,7 @@ export class CameraControls extends EventDispatcher {
 			) {
 
 				this._truckInternal( deltaX, deltaY, true );
+				this._isUserControllingOffset = true;
 
 			}
 
@@ -1498,6 +1532,8 @@ export class CameraControls extends EventDispatcher {
 	 */
 	rotateTo( azimuthAngle: number, polarAngle: number, enableTransition: boolean = false ): Promise<void> {
 
+		this._isUserControllingRotate = false;
+
 		const theta = clamp( azimuthAngle, this.minAzimuthAngle, this.maxAzimuthAngle );
 		const phi   = clamp( polarAngle,   this.minPolarAngle,   this.maxPolarAngle );
 
@@ -1540,6 +1576,8 @@ export class CameraControls extends EventDispatcher {
 	 * @category Methods
 	 */
 	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
+
+		this._isUserControllingDolly = false;
 
 		const lastRadius = this._sphericalEnd.radius;
 		const newRadius = clamp( distance, this.minDistance, this.maxDistance );
@@ -1595,6 +1633,8 @@ export class CameraControls extends EventDispatcher {
 	 * @category Methods
 	 */
 	zoomTo( zoom: number, enableTransition: boolean = false ): Promise<void> {
+
+		this._isUserControllingZoom = false;
 
 		this._zoomEnd = clamp( zoom, this.minZoom, this.maxZoom );
 		this._needsUpdate = true;
@@ -1669,6 +1709,8 @@ export class CameraControls extends EventDispatcher {
 	 * @category Methods
 	 */
 	moveTo( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
+
+		this._isUserControllingTruck = false;
 
 		const offset = _v3A.set( x, y, z ).sub( this._targetEnd );
 		this._encloseToBoundary( this._targetEnd, offset, this.boundaryFriction );
@@ -1893,6 +1935,10 @@ export class CameraControls extends EventDispatcher {
 		enableTransition: boolean = false,
 	): Promise<void> {
 
+		this._isUserControllingRotate = false;
+		this._isUserControllingDolly = false;
+		this._isUserControllingTruck = false;
+
 		const target = _v3B.set( targetX, targetY, targetZ );
 		const position = _v3A.set( positionX, positionY, positionZ );
 
@@ -1946,6 +1992,10 @@ export class CameraControls extends EventDispatcher {
 		t: number,
 		enableTransition: boolean = false,
 	): Promise<void> {
+
+		this._isUserControllingRotate = false;
+		this._isUserControllingDolly = false;
+		this._isUserControllingTruck = false;
 
 		const targetA = _v3A.set( targetAX, targetAY, targetAZ );
 		const positionA = _v3B.set( positionAX, positionAY, positionAZ );
@@ -2043,6 +2093,8 @@ export class CameraControls extends EventDispatcher {
 	 * @category Methods
 	 */
 	setFocalOffset( x: number, y: number, z: number, enableTransition: boolean = false ): Promise<void> {
+
+		this._isUserControllingOffset = false;
 
 		this._focalOffsetEnd.set( x, y, z );
 		this._needsUpdate = true;
@@ -2291,24 +2343,6 @@ export class CameraControls extends EventDispatcher {
 	 */
 	update( delta: number ): boolean {
 
-		const isDragging = this._state !== ACTION.NONE;
-		const hasDragStateChanged = isDragging !== this._isLastDragging;
-		this._isLastDragging = isDragging;
-
-		const smoothTime = isDragging ? this.draggingSmoothTime : this.smoothTime;
-
-		if ( hasDragStateChanged && ! isDragging && this.smoothTime !== 0 ) {
-
-			const changedSpeed = this.draggingSmoothTime / this.smoothTime;
-			this._thetaVelocity.value *= changedSpeed;
-			this._phiVelocity.value *= changedSpeed;
-			this._radiusVelocity.value *= changedSpeed;
-			this._targetVelocity.multiplyScalar( changedSpeed );
-			this._focalOffsetVelocity.multiplyScalar( changedSpeed );
-			this._zoomVelocity.value *= changedSpeed;
-
-		}
-
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
@@ -2324,6 +2358,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
+			const smoothTime = this._isUserControllingRotate ? this.draggingSmoothTime : this.smoothTime;
 			this._spherical.theta = smoothDamp( this._spherical.theta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta );
 			this._needsUpdate = true;
 
@@ -2337,6 +2372,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
+			const smoothTime = this._isUserControllingRotate ? this.draggingSmoothTime : this.smoothTime;
 			this._spherical.phi = smoothDamp( this._spherical.phi, this._sphericalEnd.phi, this._phiVelocity, smoothTime, Infinity, delta );
 			this._needsUpdate = true;
 
@@ -2350,6 +2386,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
+			const smoothTime = this._isUserControllingDolly ? this.draggingSmoothTime : this.smoothTime;
 			this._spherical.radius = smoothDamp( this._spherical.radius, this._sphericalEnd.radius, this._radiusVelocity, smoothTime, this.maxSpeed, delta );
 			this._needsUpdate = true;
 
@@ -2363,6 +2400,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
+			const smoothTime = this._isUserControllingTruck ? this.draggingSmoothTime : this.smoothTime;
 			smoothDampVec3( this._target, this._targetEnd, this._targetVelocity, smoothTime, this.maxSpeed, delta, this._target );
 			this._needsUpdate = true;
 
@@ -2376,6 +2414,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
+			const smoothTime = this._isUserControllingOffset ? this.draggingSmoothTime : this.smoothTime;
 			smoothDampVec3( this._focalOffset, this._focalOffsetEnd, this._focalOffsetVelocity, smoothTime, this.maxSpeed, delta, this._focalOffset );
 			this._needsUpdate = true;
 
@@ -2441,7 +2480,8 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
-			this._zoom = smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, this.smoothTime, Infinity, delta );
+			const smoothTime = this._isUserControllingZoom ? this.draggingSmoothTime : this.smoothTime;
+			this._zoom = smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, smoothTime, Infinity, delta );
 
 		}
 
@@ -2837,8 +2877,6 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		return;
-
 	};
 
 	protected _zoomInternal = ( delta: number, x: number, y: number ): void => {
@@ -2855,8 +2893,6 @@ export class CameraControls extends EventDispatcher {
 			this._dollyControlCoord.set( x, y );
 
 		}
-
-		return;
 
 	};
 
