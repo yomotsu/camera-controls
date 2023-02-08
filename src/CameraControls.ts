@@ -873,6 +873,31 @@ export class CameraControls extends EventDispatcher {
 
 			if ( ! this._enabled ) return;
 
+			// contextmenu event is fired right after pointerdown/mousedown.
+			// remove attached handlers and active pointer, if interrupted by contextmenu.
+			if ( this.mouseButtons.right === CameraControls.ACTION.NONE ) {
+
+				const pointerId =
+					event instanceof PointerEvent ? event.pointerId :
+					event instanceof MouseEvent ? 0 :
+					0;
+
+				const pointer = this._findPointerById( pointerId );
+				pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+
+				if ( this._domElement ) {
+
+					this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
+					this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+					this._domElement.ownerDocument.removeEventListener( 'mousemove', onMouseMove );
+					this._domElement.ownerDocument.removeEventListener( 'mouseup', onMouseUp );
+
+				}
+
+				return;
+
+			}
+
 			event.preventDefault();
 
 		};
