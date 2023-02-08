@@ -591,7 +591,7 @@ export class CameraControls extends EventDispatcher {
 			const pointerId = event.pointerId;
 			const pointer = this._findPointerById( pointerId );
 
-			if ( ! pointer ) return;
+			if ( pointer === undefined  ) return;
 
 			pointer.clientX = event.clientX;
 			pointer.clientY = event.clientY;
@@ -691,7 +691,7 @@ export class CameraControls extends EventDispatcher {
 				const pointerId = touch.identifier;
 				const pointer = this._findPointerById( pointerId );
 
-				if ( ! pointer ) return;
+				if ( pointer === undefined ) return;
 
 				pointer.clientX = touch.clientX;
 				pointer.clientY = touch.clientY;
@@ -707,7 +707,7 @@ export class CameraControls extends EventDispatcher {
 
 			const pointerId = event.pointerId;
 			const pointer = this._findPointerById( pointerId );
-			pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+			pointer !== undefined && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
 
 			if ( event.pointerType === 'touch' ) {
 
@@ -748,7 +748,7 @@ export class CameraControls extends EventDispatcher {
 		const onMouseUp = () => {
 
 			const pointer = this._findPointerById( 0 );
-			pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+			pointer !== undefined && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
 			this._state = ACTION.NONE;
 
 			endDragging();
@@ -761,7 +761,7 @@ export class CameraControls extends EventDispatcher {
 
 				const pointerId = touch.identifier;
 				const pointer = this._findPointerById( pointerId );
-				pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+				pointer !== undefined && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
 
 			} );
 
@@ -2697,23 +2697,9 @@ export class CameraControls extends EventDispatcher {
 	}
 
 
-	protected _findPointerById( pointerId: number ): PointerInput | null {
+	protected _findPointerById( pointerId: number ): PointerInput | undefined {
 
-		// to support IE11 use some instead of Array#find (will be removed when IE11 is deprecated)
-		let pointer: PointerInput | null = null;
-		this._activePointers.some( ( activePointer ) => {
-
-			if ( activePointer.pointerId === pointerId ) {
-
-				pointer = activePointer;
-				return true;
-
-			}
-
-			return false;
-
-		} );
-		return pointer;
+		return this._activePointers.find( ( activePointer ) => activePointer.pointerId === pointerId );
 
 	}
 
