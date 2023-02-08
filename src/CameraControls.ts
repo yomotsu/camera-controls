@@ -561,7 +561,7 @@ export class CameraControls extends EventDispatcher {
 			const pointerId = event.pointerId;
 			const pointer = this._findPointerById( pointerId );
 
-			if ( pointer === undefined  ) return;
+			if ( ! pointer ) return;
 
 			pointer.clientX = event.clientX;
 			pointer.clientY = event.clientY;
@@ -656,7 +656,7 @@ export class CameraControls extends EventDispatcher {
 
 			const pointerId = event.pointerId;
 			const pointer = this._findPointerById( pointerId );
-			pointer !== undefined && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+			pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
 
 			if ( event.pointerType === 'touch' ) {
 
@@ -697,7 +697,7 @@ export class CameraControls extends EventDispatcher {
 		const onMouseUp = () => {
 
 			const pointer = this._findPointerById( 0 );
-			pointer !== undefined && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+			pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
 			this._state = ACTION.NONE;
 
 			endDragging();
