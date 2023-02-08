@@ -887,6 +887,7 @@ export class CameraControls extends EventDispatcher {
 
 				if ( this._domElement ) {
 
+					// eslint-disable-next-line no-undef
 					this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
 					this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
 					this._domElement.ownerDocument.removeEventListener( 'mousemove', onMouseMove );
