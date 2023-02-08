@@ -36,7 +36,7 @@ const TOUCH_DOLLY_FACTOR = 1 / 8;
 
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test( navigator.platform );
-const isPointerEventsNotSupported = ! ( isBrowser && 'PointerEvent' in window ); // Safari 12 does not support PointerEvents API
+const isPointerEventsNotSupported = ! ( isBrowser && 'PointerEvent' in window ); // macOS Safari 12 does not support PointerEvents API
 
 let THREE: THREESubset;
 let _ORIGIN: _THREE.Vector3;
@@ -554,36 +554,6 @@ export class CameraControls extends EventDispatcher {
 
 		};
 
-		const onTouchStart = ( event:TouchEvent ): void => {
-
-			if ( ! this._enabled || ! this._domElement ) return;
-
-			event.preventDefault();
-
-			Array.prototype.forEach.call( event.changedTouches, ( touch ) => {
-
-				const pointer = {
-					pointerId: touch.identifier,
-					clientX: touch.clientX,
-					clientY: touch.clientY,
-					deltaX: 0,
-					deltaY: 0,
-				};
-				this._activePointers.push( pointer );
-
-			} );
-
-			// eslint-disable-next-line no-undef
-			this._domElement.ownerDocument.removeEventListener( 'touchmove', onTouchMove, { passive: false } as AddEventListenerOptions );
-			this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
-
-			this._domElement.ownerDocument.addEventListener( 'touchmove', onTouchMove, { passive: false } );
-			this._domElement.ownerDocument.addEventListener( 'touchend', onTouchEnd );
-
-			startDragging( event );
-
-		};
-
 		const onPointerMove = ( event: PointerEvent ) => {
 
 			if ( event.cancelable ) event.preventDefault();
@@ -682,27 +652,6 @@ export class CameraControls extends EventDispatcher {
 
 		};
 
-		const onTouchMove = ( event: TouchEvent ) => {
-
-			if ( event.cancelable ) event.preventDefault();
-
-			Array.prototype.forEach.call( event.changedTouches, ( touch: Touch ) => {
-
-				const pointerId = touch.identifier;
-				const pointer = this._findPointerById( pointerId );
-
-				if ( pointer === undefined ) return;
-
-				pointer.clientX = touch.clientX;
-				pointer.clientY = touch.clientY;
-				// touch event does not have movementX and movementY.
-
-			} );
-
-			dragging();
-
-		};
-
 		const onPointerUp = ( event: PointerEvent ) => {
 
 			const pointerId = event.pointerId;
@@ -750,44 +699,6 @@ export class CameraControls extends EventDispatcher {
 			const pointer = this._findPointerById( 0 );
 			pointer !== undefined && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
 			this._state = ACTION.NONE;
-
-			endDragging();
-
-		};
-
-		const onTouchEnd = ( event: TouchEvent ) => {
-
-			Array.prototype.forEach.call( event.changedTouches, ( touch: Touch ) => {
-
-				const pointerId = touch.identifier;
-				const pointer = this._findPointerById( pointerId );
-				pointer !== undefined && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
-
-			} );
-
-			switch ( this._activePointers.length ) {
-
-				case 0:
-
-					this._state = ACTION.NONE;
-					break;
-
-				case 1:
-
-					this._state = this.touches.one;
-					break;
-
-				case 2:
-
-					this._state = this.touches.two;
-					break;
-
-				case 3:
-
-					this._state = this.touches.three;
-					break;
-
-			}
 
 			endDragging();
 
@@ -877,7 +788,7 @@ export class CameraControls extends EventDispatcher {
 
 		};
 
-		const startDragging = ( event: PointerEvent | MouseEvent | TouchEvent ): void => {
+		const startDragging = ( event: PointerEvent | MouseEvent ): void => {
 
 			if ( ! this._enabled ) return;
 
@@ -906,10 +817,7 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
-			if (
-				'touches' in event ||
-				'pointerType' in event && event.pointerType === 'touch'
-			) {
+			if ( 'pointerType' in event && event.pointerType === 'touch' ) {
 
 				switch ( this._activePointers.length ) {
 
@@ -1148,10 +1056,6 @@ export class CameraControls extends EventDispatcher {
 				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
 				this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
 
-				// eslint-disable-next-line no-undef
-				this._domElement.ownerDocument.removeEventListener( 'touchmove', onTouchMove, { passive: false } as AddEventListenerOptions );
-				this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
-
 				this.dispatchEvent( { type: 'controlend' } );
 
 			}
@@ -1168,7 +1072,6 @@ export class CameraControls extends EventDispatcher {
 
 			this._domElement.addEventListener( 'pointerdown', onPointerDown );
 			isPointerEventsNotSupported && this._domElement.addEventListener( 'mousedown', onMouseDown );
-			isPointerEventsNotSupported && this._domElement.addEventListener( 'touchstart', onTouchStart );
 			this._domElement.addEventListener( 'pointercancel', onPointerUp );
 			this._domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
 			this._domElement.addEventListener( 'contextmenu', onContextMenu );
@@ -1181,7 +1084,6 @@ export class CameraControls extends EventDispatcher {
 
 			this._domElement.removeEventListener( 'pointerdown', onPointerDown );
 			this._domElement.removeEventListener( 'mousedown', onMouseDown );
-			this._domElement.removeEventListener( 'touchstart', onTouchStart );
 			this._domElement.removeEventListener( 'pointercancel', onPointerUp );
 			// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#matching_event_listeners_for_removal
 			// > it's probably wise to use the same values used for the call to `addEventListener()` when calling `removeEventListener()`
@@ -1192,11 +1094,8 @@ export class CameraControls extends EventDispatcher {
 			// eslint-disable-next-line no-undef
 			this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
 			this._domElement.ownerDocument.removeEventListener( 'mousemove', onMouseMove );
-			// eslint-disable-next-line no-undef
-			this._domElement.ownerDocument.removeEventListener( 'touchmove', onTouchMove, { passive: false } as AddEventListenerOptions );
 			this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
 			this._domElement.ownerDocument.removeEventListener( 'mouseup', onMouseUp );
-			this._domElement.ownerDocument.removeEventListener( 'touchend', onTouchEnd );
 
 		};
 
