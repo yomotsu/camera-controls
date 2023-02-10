@@ -354,7 +354,6 @@ export class CameraControls extends EventDispatcher {
 
 	protected _focalOffset: _THREE.Vector3;
 	protected _focalOffsetEnd: _THREE.Vector3;
-	protected _affectOffset = false;
 
 	// rotation and dolly distance
 	protected _spherical: _THREE.Spherical;
@@ -1054,7 +1053,9 @@ export class CameraControls extends EventDispatcher {
 
 				// eslint-disable-next-line no-undef
 				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
+				this._domElement.ownerDocument.removeEventListener( 'mousemove', onMouseMove );
 				this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+				this._domElement.ownerDocument.removeEventListener( 'mouseup', onMouseUp );
 
 				this.dispatchEvent( { type: 'controlend' } );
 
@@ -1081,6 +1082,10 @@ export class CameraControls extends EventDispatcher {
 		this._removeAllEventListeners = (): void => {
 
 			if ( ! this._domElement ) return;
+
+			this._domElement.style.touchAction = '';
+			this._domElement.style.userSelect = '';
+			this._domElement.style.webkitUserSelect = '';
 
 			this._domElement.removeEventListener( 'pointerdown', onPointerDown );
 			this._domElement.removeEventListener( 'mousedown', onMouseDown );
@@ -2403,11 +2408,11 @@ export class CameraControls extends EventDispatcher {
 		this._camera.lookAt( this._target );
 
 		// set offset after the orbit movement
-		this._affectOffset =
+		const affectOffset =
 			! approxZero( this._focalOffset.x ) ||
 			! approxZero( this._focalOffset.y ) ||
 			! approxZero( this._focalOffset.z );
-		if ( this._affectOffset ) {
+		if ( affectOffset ) {
 
 			this._camera.updateMatrixWorld();
 			_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
@@ -2579,8 +2584,15 @@ export class CameraControls extends EventDispatcher {
 	 */
 	disconnect() {
 
+		this.cancel();
 		this._removeAllEventListeners();
-		this._domElement = undefined;
+
+		if ( this._domElement ) {
+
+			this._domElement.removeAttribute( 'data-camera-controls-version' );
+			this._domElement = undefined;
+
+		}
 
 	}
 
@@ -2591,7 +2603,6 @@ export class CameraControls extends EventDispatcher {
 	dispose(): void {
 
 		this.disconnect();
-		if ( this._domElement && 'setAttribute' in this._domElement ) this._domElement.removeAttribute( 'data-camera-controls-version' );
 
 	}
 
