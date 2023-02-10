@@ -280,11 +280,11 @@ Camera view will rotate over the orbit pivot absolutely:
 
 Azimuth angle
 ```
-      0º
-      |
-90º -- -- -90º
-      |
-     180º
+       0º
+         \
+ 90º -----+----- -90º
+           \
+           180º
 ```
 0º front, 90º (`Math.PI / 2`) left, -90º (`- Math.PI / 2`) right, 180º (`Math.PI`) back
 
@@ -375,7 +375,7 @@ Truck and pedestal camera using current azimuthal angle.
 
 ---
 
-### `lookInDirectionOf( x, y, z, enableTransition )`
+#### `lookInDirectionOf( x, y, z, enableTransition )`
 
 Look in the given point direction.
 
@@ -634,13 +634,13 @@ When you change camera-up vector, run `.updateCameraUp()` to sync.
 
 ---
 
-### `connect()`
+#### `connect()`
 
 Attach all internal event handlers to enable drag control.
 
 ---
 
-### `disconnect()`
+#### `disconnect()`
 
 Detach all internal event handlers to disable drag control.
 

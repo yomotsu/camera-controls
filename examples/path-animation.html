@@ -17,7 +17,7 @@
 </div>
 
 <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
-<script src="https://unpkg.com/gsap@3.11.3/dist/gsap.min.js"></script>
+<script src="https://unpkg.com/gsap@3.11.4/dist/gsap.min.js"></script>
 <script src="../dist/camera-controls.js"></script>
 <script>
 CameraControls.install( { THREE: THREE } );
@@ -74,9 +74,12 @@ const pathAnimation = gsap.fromTo(
 	{
 		value: 1,
 		duration: 3,
+		overwrite: true,
 		paused: true,
 		onUpdateParams: [ animationProgress ],
 		onUpdate( { value } ) {
+
+			if ( ! pathAnimation.isActive() ) return;
 
 			curve.getPoint ( value, _tmp );
 			const cameraX = _tmp.x;
@@ -93,7 +96,7 @@ const pathAnimation = gsap.fromTo(
 				lookAtX,
 				lookAtY,
 				lookAtZ,
-				false
+				false, // IMPORTANT! disable cameraControls's transition and leave it to gsap.
 			);
 
 		},
