@@ -1,0 +1,56 @@
+name: Build and Release to npm
+on:
+  push:
+    branches:
+      - 'dev'
+
+# Cancel any previous run (see: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  release-job:
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.main.outputs.released }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+      - id: main
+        run: |
+          npm ci
+          npm run release
+          if [ -d "dist/" ]; then
+              echo "released=true" >> "$GITHUB_OUTPUT"
+
+              npm run typedoc
+              cp -rf dist examples docs
+          fi
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.main.outputs.released == 'true'
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./docs
+
+  # See: https://github.com/actions/deploy-pages
+  deploy-job:
+    needs: release-job
+    if: needs.release-job.outputs.released == 'true'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
