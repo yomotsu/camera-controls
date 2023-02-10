@@ -2624,6 +2624,7 @@ export class CameraControls extends EventDispatcher {
 	 */
 	dispose(): void {
 
+		this.removeAllEventListeners();
 		this.disconnect();
 
 	}
