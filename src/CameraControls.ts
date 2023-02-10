@@ -1174,9 +1174,9 @@ export class CameraControls extends EventDispatcher {
 
 	set enabled( enabled: boolean ) {
 
-		if ( ! this._domElement ) return;
-
 		this._enabled = enabled;
+
+		if ( ! this._domElement ) return;
 		if ( enabled ) {
 
 			this._domElement.style.touchAction = 'none';
