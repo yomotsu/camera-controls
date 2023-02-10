@@ -238,7 +238,7 @@ const VERSION = '2.0.1'; // will be replaced with `version` in package.json duri
 const TOUCH_DOLLY_FACTOR = 1 / 8;
 const isBrowser = typeof window !== 'undefined';
 const isMac = isBrowser && /Mac/.test(navigator.platform);
-const isPointerEventsNotSupported = !(isBrowser && 'PointerEvent' in window); // Safari 12 does not support PointerEvents API
+const isPointerEventsNotSupported = !(isBrowser && 'PointerEvent' in window); // macOS Safari 12 does not support PointerEvents API
 let THREE;
 let _ORIGIN;
 let _AXIS_Y;
@@ -503,7 +503,6 @@ class CameraControls extends EventDispatcher {
         this._enabled = true;
         this._state = ACTION.NONE;
         this._viewport = null;
-        this._affectOffset = false;
         this._dollyControlAmount = 0;
         this._hasRested = true;
         this._boundaryEnclosesCamera = false;
@@ -684,27 +683,6 @@ class CameraControls extends EventDispatcher {
             this._domElement.ownerDocument.addEventListener('mouseup', onMouseUp);
             startDragging(event);
         };
-        const onTouchStart = (event) => {
-            if (!this._enabled || !this._domElement)
-                return;
-            event.preventDefault();
-            Array.prototype.forEach.call(event.changedTouches, (touch) => {
-                const pointer = {
-                    pointerId: touch.identifier,
-                    clientX: touch.clientX,
-                    clientY: touch.clientY,
-                    deltaX: 0,
-                    deltaY: 0,
-                };
-                this._activePointers.push(pointer);
-            });
-            // eslint-disable-next-line no-undef
-            this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
-            this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
-            this._domElement.ownerDocument.addEventListener('touchmove', onTouchMove, { passive: false });
-            this._domElement.ownerDocument.addEventListener('touchend', onTouchEnd);
-            startDragging(event);
-        };
         const onPointerMove = (event) => {
             if (event.cancelable)
                 event.preventDefault();
@@ -763,20 +741,6 @@ class CameraControls extends EventDispatcher {
             }
             dragging();
         };
-        const onTouchMove = (event) => {
-            if (event.cancelable)
-                event.preventDefault();
-            Array.prototype.forEach.call(event.changedTouches, (touch) => {
-                const pointerId = touch.identifier;
-                const pointer = this._findPointerById(pointerId);
-                if (!pointer)
-                    return;
-                pointer.clientX = touch.clientX;
-                pointer.clientY = touch.clientY;
-                // touch event does not have movementX and movementY.
-            });
-            dragging();
-        };
         const onPointerUp = (event) => {
             const pointerId = event.pointerId;
             const pointer = this._findPointerById(pointerId);
@@ -806,28 +770,6 @@ class CameraControls extends EventDispatcher {
             const pointer = this._findPointerById(0);
             pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
             this._state = ACTION.NONE;
-            endDragging();
-        };
-        const onTouchEnd = (event) => {
-            Array.prototype.forEach.call(event.changedTouches, (touch) => {
-                const pointerId = touch.identifier;
-                const pointer = this._findPointerById(pointerId);
-                pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
-            });
-            switch (this._activePointers.length) {
-                case 0:
-                    this._state = ACTION.NONE;
-                    break;
-                case 1:
-                    this._state = this.touches.one;
-                    break;
-                case 2:
-                    this._state = this.touches.two;
-                    break;
-                case 3:
-                    this._state = this.touches.three;
-                    break;
-            }
             endDragging();
         };
         let lastScrollTimeStamp = -1;
@@ -879,8 +821,23 @@ class CameraControls extends EventDispatcher {
             this.dispatchEvent({ type: 'control' });
         };
         const onContextMenu = (event) => {
-            if (!this._enabled)
+            if (!this._domElement || !this._enabled)
                 return;
+            // contextmenu event is fired right after pointerdown/mousedown.
+            // remove attached handlers and active pointer, if interrupted by contextmenu.
+            if (this.mouseButtons.right === CameraControls.ACTION.NONE) {
+                const pointerId = event instanceof PointerEvent ? event.pointerId :
+                    event instanceof MouseEvent ? 0 :
+                        0;
+                const pointer = this._findPointerById(pointerId);
+                pointer && this._activePointers.splice(this._activePointers.indexOf(pointer), 1);
+                // eslint-disable-next-line no-undef
+                this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+                this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+                this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+                this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
+                return;
+            }
             event.preventDefault();
         };
         const startDragging = (event) => {
@@ -902,8 +859,7 @@ class CameraControls extends EventDispatcher {
                 const y = (this._activePointers[0].clientY + this._activePointers[1].clientY) * 0.5;
                 lastDragPosition.set(x, y);
             }
-            if ('touches' in event ||
-                'pointerType' in event && event.pointerType === 'touch') {
+            if ('pointerType' in event && event.pointerType === 'touch') {
                 switch (this._activePointers.length) {
                     case 1:
                         this._state = this.touches.one;
@@ -1049,10 +1005,9 @@ class CameraControls extends EventDispatcher {
             if (this._activePointers.length === 0 && this._domElement) {
                 // eslint-disable-next-line no-undef
                 this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
+                this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
                 this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                // eslint-disable-next-line no-undef
-                this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
-                this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
+                this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
                 this.dispatchEvent({ type: 'controlend' });
             }
         };
@@ -1063,7 +1018,6 @@ class CameraControls extends EventDispatcher {
             this._domElement.style.webkitUserSelect = 'none';
             this._domElement.addEventListener('pointerdown', onPointerDown);
             isPointerEventsNotSupported && this._domElement.addEventListener('mousedown', onMouseDown);
-            isPointerEventsNotSupported && this._domElement.addEventListener('touchstart', onTouchStart);
             this._domElement.addEventListener('pointercancel', onPointerUp);
             this._domElement.addEventListener('wheel', onMouseWheel, { passive: false });
             this._domElement.addEventListener('contextmenu', onContextMenu);
@@ -1071,9 +1025,11 @@ class CameraControls extends EventDispatcher {
         this._removeAllEventListeners = () => {
             if (!this._domElement)
                 return;
+            this._domElement.style.touchAction = '';
+            this._domElement.style.userSelect = '';
+            this._domElement.style.webkitUserSelect = '';
             this._domElement.removeEventListener('pointerdown', onPointerDown);
             this._domElement.removeEventListener('mousedown', onMouseDown);
-            this._domElement.removeEventListener('touchstart', onTouchStart);
             this._domElement.removeEventListener('pointercancel', onPointerUp);
             // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener#matching_event_listeners_for_removal
             // > it's probably wise to use the same values used for the call to `addEventListener()` when calling `removeEventListener()`
@@ -1084,11 +1040,8 @@ class CameraControls extends EventDispatcher {
             // eslint-disable-next-line no-undef
             this._domElement.ownerDocument.removeEventListener('pointermove', onPointerMove, { passive: false });
             this._domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
-            // eslint-disable-next-line no-undef
-            this._domElement.ownerDocument.removeEventListener('touchmove', onTouchMove, { passive: false });
             this._domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
             this._domElement.ownerDocument.removeEventListener('mouseup', onMouseUp);
-            this._domElement.ownerDocument.removeEventListener('touchend', onTouchEnd);
         };
         this.cancel = () => {
             if (this._state === ACTION.NONE)
@@ -1124,9 +1077,9 @@ class CameraControls extends EventDispatcher {
         return this._enabled;
     }
     set enabled(enabled) {
+        this._enabled = enabled;
         if (!this._domElement)
             return;
-        this._enabled = enabled;
         if (enabled) {
             this._domElement.style.touchAction = 'none';
             this._domElement.style.userSelect = 'none';
@@ -2024,11 +1977,10 @@ class CameraControls extends EventDispatcher {
         this._camera.position.setFromSpherical(this._spherical).applyQuaternion(this._yAxisUpSpaceInverse).add(this._target);
         this._camera.lookAt(this._target);
         // set offset after the orbit movement
-        this._affectOffset =
-            !approxZero(this._focalOffset.x) ||
-                !approxZero(this._focalOffset.y) ||
-                !approxZero(this._focalOffset.z);
-        if (this._affectOffset) {
+        const affectOffset = !approxZero(this._focalOffset.x) ||
+            !approxZero(this._focalOffset.y) ||
+            !approxZero(this._focalOffset.z);
+        if (affectOffset) {
             this._camera.updateMatrixWorld();
             _xColumn.setFromMatrixColumn(this._camera.matrix, 0);
             _yColumn.setFromMatrixColumn(this._camera.matrix, 1);
@@ -2154,29 +2106,25 @@ class CameraControls extends EventDispatcher {
      * Detach all internal event handlers to disable drag control.
      */
     disconnect() {
+        this.cancel();
         this._removeAllEventListeners();
-        this._domElement = undefined;
+        if (this._domElement) {
+            this._domElement.removeAttribute('data-camera-controls-version');
+            this._domElement = undefined;
+        }
     }
     /**
      * Dispose the cameraControls instance itself, remove all eventListeners.
      * @category Methods
      */
     dispose() {
+        // remove all user event listeners
+        this.removeAllEventListeners();
+        // remove all internal event listeners
         this.disconnect();
-        if (this._domElement && 'setAttribute' in this._domElement)
-            this._domElement.removeAttribute('data-camera-controls-version');
     }
     _findPointerById(pointerId) {
-        // to support IE11 use some instead of Array#find (will be removed when IE11 is deprecated)
-        let pointer = null;
-        this._activePointers.some((activePointer) => {
-            if (activePointer.pointerId === pointerId) {
-                pointer = activePointer;
-                return true;
-            }
-            return false;
-        });
-        return pointer;
+        return this._activePointers.find((activePointer) => activePointer.pointerId === pointerId);
     }
     _encloseToBoundary(position, offset, friction) {
         const offsetLength2 = offset.lengthSq();
