@@ -701,10 +701,10 @@ const normalizedAzimuthAngle = normalizeAngle( cameraControls.azimuthAngle );
 
 ---
 ### Find the absolute angle to shortest azimuth rotatation:
-You may rotate with 380deg but actually you expect rotate -20deg.
-to get the absolute angle, use the below:
+You may rotate 380deg but actually, you expect to rotate -20deg.  
+To get the absolute angle, use the below:
 
-```
+```js
 const TAU = Math.PI * 2;
 
 function absoluteAngle( targetAngle, sourceAngle ){
