@@ -688,7 +688,34 @@ Reproduce the control state with JSON. `enableTransition` is where anim or not i
 If you need a normalized accumulated azimuth angle (between 0 and 360 deg), compute with [THREE.MathUtils.euclideanModulo](https://threejs.org/docs/#api/en/math/MathUtils)
 e.g.:
 ``` js
-const normalizedAzimuthAngle = THREE.MathUtils.euclideanModulo( cameraControls.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD );
+const TAU = Math.PI * 2;
+
+function normalizeAngle( angle ) {
+
+	return THREE.MathUtils.euclideanModulo( angle, TAU );
+
+}
+
+const normalizedAzimuthAngle = normalizeAngle( cameraControls.azimuthAngle );
+```
+
+---
+### Find the absolute angle to shortest azimuth rotatation:
+You may rotate with 380deg but actually you expect rotate -20deg.
+to get the absolute angle, use the below:
+
+```
+const TAU = Math.PI * 2;
+
+function absoluteAngle( targetAngle, sourceAngle ){
+
+  const angle = targetAngle - sourceAngle
+  return THREE.MathUtils.euclideanModulo( angle + Math.PI, TAU ) - Math.PI;
+
+}
+
+console.log( absoluteAngle( 380 * THREE.MathUtils.DEG2RAD, 0 ) * THREE.MathUtils.RAD2DEG ); // -20deg
+console.log( absoluteAngle( -1000 * THREE.MathUtils.DEG2RAD, 0 ) * THREE.MathUtils.RAD2DEG ); // 80deg
 ```
 
 ---
