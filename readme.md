@@ -2,9 +2,10 @@
 
 A camera control for three.js, similar to THREE.OrbitControls yet supports smooth transitions and more features.
 
-[![Latest NPM release](https://img.shields.io/npm/v/camera-controls.svg)](https://www.npmjs.com/package/camera-controls)
+[![Latest NPM release](https://img.shields.io/npm/v/camera-controls.svg)](https://www.npmjs.com/package/camera-controls) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub&message=Open%20in%20%20Codespaces&color=24292f)](https://github.com/codespaces/new?template_repository=yomotsu%2Fcamera-controls)
 
 [documentation](https://yomotsu.github.io/camera-controls/classes/CameraControls)
+
 ## Examples
 
 | camera move    | default user input (Configurable) |
