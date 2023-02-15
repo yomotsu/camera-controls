@@ -508,12 +508,26 @@ export class CameraControls extends EventDispatcher {
 			// to keep receiving pointermove evens outside dragging iframe
 			// https://taye.me/blog/tips/2015/11/16/mouse-drag-outside-iframe/
 
+			const mouseButton =
+				( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ? MOUSE_BUTTON.LEFT :
+				( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ? MOUSE_BUTTON.MIDDLE :
+				( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ? MOUSE_BUTTON.RIGHT :
+				null;
+
+			if ( mouseButton !== null ) {
+
+				const zombiePointer = this._findPointerByMouseButton( mouseButton );
+				zombiePointer && this._activePointers.splice( this._activePointers.indexOf( zombiePointer ), 1 );
+
+			}
+
 			const pointer = {
 				pointerId: event.pointerId,
 				clientX: event.clientX,
 				clientY: event.clientY,
 				deltaX: 0,
 				deltaY: 0,
+				mouseButton,
 			};
 			this._activePointers.push( pointer );
 
@@ -532,12 +546,30 @@ export class CameraControls extends EventDispatcher {
 
 			if ( ! this._enabled || ! this._domElement ) return;
 
+			const mouseButton =
+				( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ? MOUSE_BUTTON.LEFT :
+				( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ? MOUSE_BUTTON.MIDDLE :
+				( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ? MOUSE_BUTTON.RIGHT :
+				null;
+
+			if ( mouseButton !== null ) {
+
+				const zombiePointer = this._findPointerByMouseButton( mouseButton );
+				zombiePointer && this._activePointers.splice( this._activePointers.indexOf( zombiePointer ), 1 );
+
+			}
+
 			const pointer = {
 				pointerId: 0,
 				clientX: event.clientX,
 				clientY: event.clientY,
 				deltaX: 0,
 				deltaY: 0,
+				mouseButton:
+					( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ? MOUSE_BUTTON.LEFT :
+					( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.LEFT ? MOUSE_BUTTON.MIDDLE :
+					( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.LEFT ? MOUSE_BUTTON.RIGHT :
+					null,
 			};
 			this._activePointers.push( pointer );
 
@@ -2635,6 +2667,12 @@ export class CameraControls extends EventDispatcher {
 	protected _findPointerById( pointerId: number ): PointerInput | undefined {
 
 		return this._activePointers.find( ( activePointer ) => activePointer.pointerId === pointerId );
+
+	}
+
+	protected _findPointerByMouseButton( mouseButton: MOUSE_BUTTON ): PointerInput | undefined {
+
+		return this._activePointers.find( ( activePointer ) => activePointer.mouseButton === mouseButton );
 
 	}
 
