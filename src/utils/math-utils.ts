@@ -106,12 +106,17 @@ export function smoothDampVec3(
 	const x = omega * deltaTime;
 	const exp = 1 / ( 1 + x + 0.48 * x * x + 0.235 * x * x * x );
 
-	let changeX = current.x - target.x;
-	let changeY = current.y - target.y;
-	let changeZ = current.z - target.z;
-	const originalToX = target.x;
-	const originalToY = target.y;
-	const originalToZ = target.z;
+	let targetX = target.x;
+	let targetY = target.y;
+	let targetZ = target.z;
+
+	let changeX = current.x - targetX;
+	let changeY = current.y - targetY;
+	let changeZ = current.z - targetZ;
+
+	const originalToX = targetX;
+	const originalToY = targetY;
+	const originalToZ = targetZ;
 
 	// Clamp maximum speed
 	const maxChange = maxSpeed * smoothTime;
@@ -128,9 +133,9 @@ export function smoothDampVec3(
 
 	}
 
-	target.x = current.x - changeX;
-	target.y = current.y - changeY;
-	target.z = current.z - changeZ;
+	targetX = current.x - changeX;
+	targetY = current.y - changeY;
+	targetZ = current.z - changeZ;
 
 	const tempX = ( currentVelocityRef.x + omega * changeX ) * deltaTime;
 	const tempY = ( currentVelocityRef.y + omega * changeY ) * deltaTime;
@@ -140,9 +145,9 @@ export function smoothDampVec3(
 	currentVelocityRef.y = ( currentVelocityRef.y - omega * tempY ) * exp;
 	currentVelocityRef.z = ( currentVelocityRef.z - omega * tempZ ) * exp;
 
-	out.x = target.x + ( changeX + tempX ) * exp;
-	out.y = target.y + ( changeY + tempY ) * exp;
-	out.z = target.z + ( changeZ + tempZ ) * exp;
+	out.x = targetX + ( changeX + tempX ) * exp;
+	out.y = targetY + ( changeY + tempY ) * exp;
+	out.z = targetZ + ( changeZ + tempZ ) * exp;
 
 	// Prevent overshooting
 	const origMinusCurrentX = originalToX - current.x;
