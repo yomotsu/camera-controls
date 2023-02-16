@@ -23,7 +23,8 @@ export const MOUSE_BUTTON = {
 	LEFT: 1,
 	RIGHT: 2,
 	MIDDLE: 4,
-};
+} as const;
+export type MOUSE_BUTTON = typeof MOUSE_BUTTON[ keyof typeof MOUSE_BUTTON ];
 
 export const ACTION = Object.freeze( {
 	NONE: 0,
@@ -54,6 +55,7 @@ export interface PointerInput {
 	clientY: number;
 	deltaX: number;
 	deltaY: number;
+	mouseButton: MOUSE_BUTTON | null;
 }
 
 type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
