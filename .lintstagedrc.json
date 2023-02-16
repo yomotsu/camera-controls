@@ -1,0 +1,3 @@
+{
+  "src/**/*": "npx eslint --ext .ts --fix"
+}

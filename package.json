@@ -17,6 +17,8 @@
     "downlevel-dts": "^0.11.0",
     "eslint": "^8.32.0",
     "eslint-config-mdcs": "^5.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.2",
     "rollup": "^3.10.1",
     "terser": "^5.16.1",
     "three": "^0.148.0",
@@ -27,6 +29,7 @@
     "three": ">=0.126.1"
   },
   "scripts": {
+    "prepare": "husky install",
     "dev": "rollup --config --watch",
     "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/' && downlevel-dts . .",
     "lint": "eslint src --ext ts",
