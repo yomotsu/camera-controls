@@ -1627,6 +1627,24 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
+	 * Move up / down.
+	 * @param height Amount to move up / down. Negative value to move down
+	 * @param enableTransition Whether to move smoothly or immediately
+	 * @category Methods
+	 */
+	elevate( height: number, enableTransition: boolean = false ): Promise<void> {
+
+		_v3A.copy( this._camera.up ).multiplyScalar( height );
+		return this.moveTo(
+			this._targetEnd.x + _v3A.x,
+			this._targetEnd.y + _v3A.y,
+			this._targetEnd.z + _v3A.z,
+			enableTransition,
+		);
+
+	}
+
+	/**
 	 * Move target position to given point.
 	 * @param x x coord to move center position
 	 * @param y y coord to move center position
