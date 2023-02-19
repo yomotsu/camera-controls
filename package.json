@@ -1,12 +1,15 @@
 {
   "name": "camera-controls",
-  "version": "2.2.1",
+  "version": "0.0.0-semantic-release",
   "author": "Yomotsu",
   "license": "MIT",
   "main": "dist/camera-controls.js",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.2",
@@ -20,6 +23,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.1.2",
     "rollup": "^3.10.1",
+    "semantic-release": "^20.1.0",
     "terser": "^5.16.1",
     "three": "^0.148.0",
     "typedoc": "^0.23.24",
@@ -32,8 +36,10 @@
     "prepare": "husky install",
     "dev": "rollup --config --watch",
     "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/' && downlevel-dts . .",
+    "prepack": "npm run build",
     "lint": "eslint src --ext ts",
-    "typedoc": "typedoc"
+    "typedoc": "typedoc",
+    "release": "semantic-release"
   },
   "browserslist": [
     "last 3 versions",
