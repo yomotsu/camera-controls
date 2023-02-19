@@ -841,7 +841,7 @@ export class CameraControls extends EventDispatcher {
 
 		};
 
-		const startDragging = ( event: PointerEvent | MouseEvent ): void => {
+		const startDragging = ( event?: PointerEvent | MouseEvent ): void => {
 
 			if ( ! this._enabled ) return;
 
@@ -870,46 +870,50 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
-			if ( 'pointerType' in event && event.pointerType === 'touch' ) {
+			if ( event ) {
 
-				switch ( this._activePointers.length ) {
+				if ( 'pointerType' in event && event.pointerType === 'touch' ) {
 
-					case 1:
+					switch ( this._activePointers.length ) {
 
-						this._state = this.touches.one;
-						break;
+						case 1:
 
-					case 2:
+							this._state = this.touches.one;
+							break;
 
-						this._state = this.touches.two;
-						break;
+						case 2:
 
-					case 3:
+							this._state = this.touches.two;
+							break;
 
-						this._state = this.touches.three;
-						break;
+						case 3:
 
-				}
+							this._state = this.touches.three;
+							break;
 
-			} else {
+					}
 
-				this._state = 0;
+				} else {
 
-				if ( ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
+					this._state = 0;
 
-					this._state = this._state | this.mouseButtons.left;
+					if ( ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
 
-				}
+						this._state = this._state | this.mouseButtons.left;
 
-				if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
+					}
 
-					this._state = this._state | this.mouseButtons.middle;
+					if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
 
-				}
+						this._state = this._state | this.mouseButtons.middle;
 
-				if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
+					}
 
-					this._state = this._state | this.mouseButtons.right;
+					if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
+
+						this._state = this._state | this.mouseButtons.right;
+
+					}
 
 				}
 
@@ -1002,7 +1006,8 @@ export class CameraControls extends EventDispatcher {
 				( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
 				( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
 				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
-				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE ||
+				isPointerLockActive
 			) {
 
 				this._rotateInternal( deltaX, deltaY );
@@ -1117,6 +1122,58 @@ export class CameraControls extends EventDispatcher {
 
 		};
 
+		const lockPointer = (): void => {
+
+			if ( ! this._enabled || ! this._domElement ) return;
+
+			// Element.requestPointerLock is allowed to happen without any pointer active - create a faux one for compatibility with controls
+			const pointer: PointerInput = {
+				pointerId: 1,
+				clientX: 0,
+				clientY: 0,
+				deltaX: 0,
+				deltaY: 0,
+				mouseButton: null
+			};
+			this._activePointers.push( pointer );
+
+			this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
+			this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+
+			this._domElement.ownerDocument.addEventListener( 'pointermove', onPointerMove, { passive: false } );
+			this._domElement.ownerDocument.addEventListener( 'pointerup', onPointerUp );
+
+			startDragging();
+
+		};
+
+		const unlockPointer = (): void => {
+
+			this._activePointers = [];
+
+		};
+
+		const onPointerLockChange = (): void => {
+
+			const isPointerLockActive = this._domElement && this._domElement.ownerDocument.pointerLockElement === this._domElement;
+			if ( isPointerLockActive ) {
+
+				lockPointer();
+
+			} else {
+
+				unlockPointer();
+
+			}
+
+		};
+
+		const onPointerLockError = (): void => {
+
+			unlockPointer();
+
+		};
+
 		this._addAllEventListeners = ( domElement: HTMLElement ): void => {
 
 			this._domElement = domElement;
@@ -1130,6 +1187,9 @@ export class CameraControls extends EventDispatcher {
 			this._domElement.addEventListener( 'pointercancel', onPointerUp );
 			this._domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
 			this._domElement.addEventListener( 'contextmenu', onContextMenu );
+
+			this._domElement.ownerDocument.addEventListener( 'pointerlockchange', onPointerLockChange );
+			this._domElement.ownerDocument.addEventListener( 'pointerlockerror', onPointerLockError );
 
 		};
 
@@ -1155,6 +1215,9 @@ export class CameraControls extends EventDispatcher {
 			this._domElement.ownerDocument.removeEventListener( 'mousemove', onMouseMove );
 			this._domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
 			this._domElement.ownerDocument.removeEventListener( 'mouseup', onMouseUp );
+
+			this._domElement.ownerDocument.removeEventListener( 'pointerlockchange', onPointerLockChange );
+			this._domElement.ownerDocument.removeEventListener( 'pointerlockerror', onPointerLockError );
 
 		};
 
