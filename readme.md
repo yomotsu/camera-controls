@@ -436,6 +436,17 @@ Move `target` position to given point.
 
 ---
 
+#### `elevate( height, enableTransition )`
+
+Move up / down.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `height`           | `number`  | Amount to move up / down. Negative value to move down |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
+
 #### `fitToBox( box3OrMesh, enableTransition, { paddingTop, paddingLeft, paddingBottom, paddingRight } )`
 
 Fit the viewport to the box or the bounding box of the object, using the nearest axis. paddings are in unit.
