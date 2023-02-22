@@ -500,6 +500,21 @@ export class CameraControls extends EventDispatcher {
 		const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
 		const dollyStart = new THREE.Vector2() as _THREE.Vector2;
 
+		const disposePointer = ( pointer?: PointerInput ) => {
+
+			const isPointerLockActive = this._domElement && this._domElement.ownerDocument.pointerLockElement === this._domElement;
+
+			if ( ! pointer || isPointerLockActive && this._activePointers.length <= 1 ) {
+
+				// NOTE Do not dispose pointer-locked pointer
+				return;
+
+			}
+
+			this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+
+		};
+
 		const onPointerDown = ( event: PointerEvent ) => {
 
 			if ( ! this._enabled || ! this._domElement ) return;
@@ -516,8 +531,7 @@ export class CameraControls extends EventDispatcher {
 
 			if ( mouseButton !== null ) {
 
-				const zombiePointer = this._findPointerByMouseButton( mouseButton );
-				zombiePointer && this._activePointers.splice( this._activePointers.indexOf( zombiePointer ), 1 );
+				disposePointer( this._findPointerByMouseButton( mouseButton ) );
 
 			}
 
@@ -554,8 +568,7 @@ export class CameraControls extends EventDispatcher {
 
 			if ( mouseButton !== null ) {
 
-				const zombiePointer = this._findPointerByMouseButton( mouseButton );
-				zombiePointer && this._activePointers.splice( this._activePointers.indexOf( zombiePointer ), 1 );
+				disposePointer( this._findPointerByMouseButton( mouseButton ) );
 
 			}
 
@@ -685,15 +698,7 @@ export class CameraControls extends EventDispatcher {
 
 		const onPointerUp = ( event: PointerEvent ) => {
 
-			const pointerId = event.pointerId;
-			const isPointerLockActive = this._domElement && this._domElement.ownerDocument.pointerLockElement === this._domElement;
-
-			if ( ! isPointerLockActive || ( isPointerLockActive && this._activePointers.length > 1 ) ) {
-
-				const pointer = this._findPointerById( pointerId );
-				pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
-
-			}
+			disposePointer( this._findPointerById( event.pointerId ) );
 
 			if ( event.pointerType === 'touch' ) {
 
@@ -733,8 +738,7 @@ export class CameraControls extends EventDispatcher {
 
 		const onMouseUp = () => {
 
-			const pointer = this._findPointerById( 0 );
-			pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+			disposePointer( this._findPointerById( 0 ) );
 			this._state = ACTION.NONE;
 
 			endDragging();
@@ -830,8 +834,7 @@ export class CameraControls extends EventDispatcher {
 					event instanceof MouseEvent ? 0 :
 					0;
 
-				const pointer = this._findPointerById( pointerId );
-				pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+				disposePointer( this._findPointerById( pointerId ) );
 
 				// eslint-disable-next-line no-undef
 				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
