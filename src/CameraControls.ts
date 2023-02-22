@@ -509,6 +509,7 @@ export class CameraControls extends EventDispatcher {
 			// https://taye.me/blog/tips/2015/11/16/mouse-drag-outside-iframe/
 
 			const mouseButton =
+				event.pointerType !== 'mouse' ? null :
 				( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ? MOUSE_BUTTON.LEFT :
 				( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ? MOUSE_BUTTON.MIDDLE :
 				( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ? MOUSE_BUTTON.RIGHT :
