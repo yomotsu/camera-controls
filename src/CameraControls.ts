@@ -686,8 +686,14 @@ export class CameraControls extends EventDispatcher {
 		const onPointerUp = ( event: PointerEvent ) => {
 
 			const pointerId = event.pointerId;
-			const pointer = this._findPointerById( pointerId );
-			pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+			const isPointerLockActive = this._domElement && this._domElement.ownerDocument.pointerLockElement === this._domElement;
+
+			if ( ! isPointerLockActive || ( isPointerLockActive && this._activePointers.length > 1 ) ) {
+
+				const pointer = this._findPointerById( pointerId );
+				pointer && this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
+
+			}
 
 			if ( event.pointerType === 'touch' ) {
 
@@ -1126,6 +1132,8 @@ export class CameraControls extends EventDispatcher {
 
 			if ( ! this._enabled || ! this._domElement ) return;
 
+			this.cancel();
+
 			// Element.requestPointerLock is allowed to happen without any pointer active - create a faux one for compatibility with controls
 			const pointer: PointerInput = {
 				pointerId: 1,
@@ -1149,7 +1157,7 @@ export class CameraControls extends EventDispatcher {
 
 		const unlockPointer = (): void => {
 
-			this._activePointers = [];
+			this.cancel();
 
 		};
 
