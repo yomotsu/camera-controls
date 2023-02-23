@@ -500,11 +500,11 @@ export class CameraControls extends EventDispatcher {
 		const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
 		const dollyStart = new THREE.Vector2() as _THREE.Vector2;
 
-		const disposePointer = ( pointer?: PointerInput ) => {
+		const disposePointer = ( pointer: PointerInput ) => {
 
 			const isPointerLockActive = this._domElement && this._domElement.ownerDocument.pointerLockElement === this._domElement;
 
-			if ( ! pointer || isPointerLockActive && this._activePointers.length <= 1 ) {
+			if ( isPointerLockActive && this._activePointers.length <= 1 ) {
 
 				// NOTE Do not dispose pointer-locked pointer
 				return;
@@ -531,7 +531,8 @@ export class CameraControls extends EventDispatcher {
 
 			if ( mouseButton !== null ) {
 
-				disposePointer( this._findPointerByMouseButton( mouseButton ) );
+				const pointer = this._findPointerByMouseButton( mouseButton );
+				pointer && disposePointer( pointer );
 
 			}
 
@@ -568,7 +569,8 @@ export class CameraControls extends EventDispatcher {
 
 			if ( mouseButton !== null ) {
 
-				disposePointer( this._findPointerByMouseButton( mouseButton ) );
+				const pointer = this._findPointerByMouseButton( mouseButton );
+				pointer && disposePointer( pointer );
 
 			}
 
@@ -698,7 +700,8 @@ export class CameraControls extends EventDispatcher {
 
 		const onPointerUp = ( event: PointerEvent ) => {
 
-			disposePointer( this._findPointerById( event.pointerId ) );
+			const pointer = this._findPointerById( event.pointerId );
+			pointer && disposePointer( pointer );
 
 			if ( event.pointerType === 'touch' ) {
 
@@ -738,7 +741,9 @@ export class CameraControls extends EventDispatcher {
 
 		const onMouseUp = () => {
 
-			disposePointer( this._findPointerById( 0 ) );
+			const pointer = this._findPointerById( 0 );
+			pointer && disposePointer( pointer );
+
 			this._state = ACTION.NONE;
 
 			endDragging();
@@ -834,7 +839,8 @@ export class CameraControls extends EventDispatcher {
 					event instanceof MouseEvent ? 0 :
 					0;
 
-				disposePointer( this._findPointerById( pointerId ) );
+				const pointer = this._findPointerById( pointerId );
+				pointer && disposePointer( pointer );
 
 				// eslint-disable-next-line no-undef
 				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
