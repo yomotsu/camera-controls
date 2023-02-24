@@ -23,6 +23,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.1.2",
     "rollup": "^3.10.1",
+    "serve": "^14.2.0",
     "semantic-release": "^20.1.0",
     "terser": "^5.16.1",
     "three": "^0.148.0",
@@ -34,7 +35,7 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "dev": "rollup --config --watch",
+    "dev": "rollup --config --watch & serve -S -p 3000 examples/ && kill $!",
     "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/' && downlevel-dts . .",
     "prepack": "npm run build",
     "lint": "eslint src --ext ts",
