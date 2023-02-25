@@ -14,10 +14,19 @@
 	<button onclick="rotate0To120()">rotate 0 to 120 deg with easing in 3 sec</button><br>
 </div>
 
-<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
-<script src="https://unpkg.com/gsap@3.10.4/dist/gsap.min.js"></script>
-<script src="dist/camera-controls.js"></script>
-<script>
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.149.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.149.0/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import gsap from "https://unpkg.com/gsap@3.10.4/index.js";
+import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
 
 const width = window.innerWidth;
@@ -31,6 +40,7 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
+globalThis.cameraControls = cameraControls;
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),
@@ -59,6 +69,7 @@ const rotate45 = function () {
 	tween.play( 0 );
 
 }
+globalThis.rotate45 = rotate45;
 
 
 const rotate0To120 = function () {
@@ -79,6 +90,7 @@ const rotate0To120 = function () {
 	tween.play( 0 );
 
 }
+globalThis.rotate0To120 = rotate0To120;
 
 
 renderer.render( scene, camera );

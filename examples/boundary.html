@@ -28,9 +28,18 @@
 	<button type="button" onclick="cameraControls.reset( true )">reset</button>
 </div>
 
-<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
-<script src="dist/camera-controls.js"></script>
-<script>
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.149.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.149.0/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
 
 const width = window.innerWidth;
@@ -44,6 +53,7 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
+globalThis.cameraControls = cameraControls;
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),
@@ -95,6 +105,7 @@ function setBoundary0 () {
 	bbHelper.visible = false;
 
 }
+globalThis.setBoundary0 = setBoundary0;
 
 function setBoundary1 () {
 
@@ -109,6 +120,7 @@ function setBoundary1 () {
 	bbHelper.visible = true;
 
 }
+globalThis.setBoundary1 = setBoundary1;
 
 function setBoundary2 () {
 
@@ -123,6 +135,7 @@ function setBoundary2 () {
 	bbHelper.visible = true;
 
 }
+globalThis.setBoundary2 = setBoundary2;
 
 function setBoundary3 () {
 
@@ -137,6 +150,7 @@ function setBoundary3 () {
 	bbHelper.visible = true;
 
 }
+globalThis.setBoundary3 = setBoundary3;
 </script>
 
 </body>
