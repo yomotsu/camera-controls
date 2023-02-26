@@ -38,16 +38,28 @@
 	</select>
 </div>
 
-<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
-<script src="dist/camera-controls.js"></script>
-<script>
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.149.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.149.0/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
+globalThis.THREE = THREE;
+globalThis.CameraControls = CameraControls;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
 const clock = new THREE.Clock();
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+globalThis.camera = camera;
 
 const EPS = 1e-5;
 // in order to archive FPS look, set EPSILON for the distance to the center
@@ -57,6 +69,7 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
+globalThis.cameraControls = cameraControls;
 cameraControls.minDistance = cameraControls.maxDistance = 1;
 cameraControls.azimuthRotateSpeed = - 0.3; // negative value to invert rotation direction
 cameraControls.polarRotateSpeed   = - 0.3; // negative value to invert rotation direction
@@ -105,7 +118,7 @@ const meshBBDepth  = meshBBSize.z;
 
 function customFitTo() {
 
-	const distanceToFit = cameraControls.getDistanceToFit( meshBBWidth, meshBBHeight, meshBBDepth );
+	const distanceToFit = cameraControls.getDistanceToFitBox( meshBBWidth, meshBBHeight, meshBBDepth );
 	cameraControls.moveTo(
 		mesh.position.x,
 		mesh.position.y,
@@ -115,6 +128,7 @@ function customFitTo() {
 	cameraControls.rotateTo( 0, 90 * THREE.MathUtils.DEG2RAD, true );
 
 }
+globalThis.customFitTo = customFitTo;
 </script>
 
 </body>

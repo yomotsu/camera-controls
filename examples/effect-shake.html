@@ -14,9 +14,18 @@
 	<button type="button" onclick="cameraShale2.shake()">shake 3</button>
 </div>
 
-<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
-<script src="dist/camera-controls.js"></script>
-<script>
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.149.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.149.0/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
 
 const width = window.innerWidth;
@@ -204,9 +213,9 @@ function sineOut( t ) {
 
 }
 
-window.cameraShale0 = new CameraShake( cameraControls, 500, 10, 0.5 );
-window.cameraShale1 = new CameraShake( cameraControls, 1000, 10, 1 );
-window.cameraShale2 = new CameraShake( cameraControls, 5000, 2, 0.5 );
+globalThis.cameraShale0 = new CameraShake( cameraControls, 500, 10, 0.5 );
+globalThis.cameraShale1 = new CameraShake( cameraControls, 1000, 10, 1 );
+globalThis.cameraShale2 = new CameraShake( cameraControls, 5000, 2, 0.5 );
 </script>
 
 </body>

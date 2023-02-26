@@ -21,10 +21,19 @@
 	<button onclick="rotateTo( 'left' ), paddingInCssPixel( 100, 100, 200, 100 )">fit left side with padding in pixel( top: 100<b>px</b>, right: 100<b>px</b>, bottom: 200<b>px</b>, right: 100<b>px</b> )</button>
 </div>
 
-<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
-<script src="https://unpkg.com/gsap@3.11.3/dist/gsap.min.js"></script>
-<script src="dist/camera-controls.js"></script>
-<script>
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.149.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.149.0/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import gsap from "https://unpkg.com/gsap@3.10.4/index.js";
+import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
 
 const width = window.innerWidth;
@@ -38,6 +47,7 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
+globalThis.cameraControls = cameraControls;
 
 const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.rotation.x = - Math.PI / 2;
@@ -52,6 +62,7 @@ const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 2, 2, 1 ),
 	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
 );
+globalThis.mesh = mesh;
 scene.add( mesh );
 
 renderer.render( scene, camera );
@@ -121,6 +132,7 @@ function rotateTo( side ) {
 	}
 
 }
+globalThis.rotateTo = rotateTo;
 
 function paddingInCssPixel( top, right, bottom, left ) {
 
@@ -160,6 +172,7 @@ function paddingInCssPixel( top, right, bottom, left ) {
 	cameraControls.fitToBox( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop } );
 
 }
+globalThis.paddingInCssPixel = paddingInCssPixel;
 </script>
 
 </body>
