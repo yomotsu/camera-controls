@@ -504,12 +504,6 @@ export class CameraControls extends EventDispatcher {
 		const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
 		const dollyStart = new THREE.Vector2() as _THREE.Vector2;
 
-		const disposePointer = ( pointer: PointerInput ) => {
-
-			this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
-
-		};
-
 		const onPointerDown = ( event: PointerEvent ) => {
 
 			if ( ! this._enabled || ! this._domElement ) return;
@@ -528,7 +522,7 @@ export class CameraControls extends EventDispatcher {
 			if ( mouseButton !== null ) {
 
 				const zombiePointer = this._findPointerByMouseButton( mouseButton );
-				zombiePointer && disposePointer( zombiePointer );
+				zombiePointer && this._disposePointer( zombiePointer );
 
 			}
 
@@ -569,7 +563,7 @@ export class CameraControls extends EventDispatcher {
 			if ( mouseButton !== null ) {
 
 				const zombiePointer = this._findPointerByMouseButton( mouseButton );
-				zombiePointer && disposePointer( zombiePointer );
+				zombiePointer && this._disposePointer( zombiePointer );
 
 			}
 
@@ -710,7 +704,7 @@ export class CameraControls extends EventDispatcher {
 
 			if ( pointer && pointer === this._lockedPointer ) return;
 
-			pointer && disposePointer( pointer );
+			pointer && this._disposePointer( pointer );
 
 			if ( event.pointerType === 'touch' ) {
 
@@ -754,7 +748,7 @@ export class CameraControls extends EventDispatcher {
 
 			if ( pointer && pointer === this._lockedPointer ) return;
 
-			pointer && disposePointer( pointer );
+			pointer && this._disposePointer( pointer );
 
 			this._state = ACTION.NONE;
 
@@ -852,7 +846,7 @@ export class CameraControls extends EventDispatcher {
 					0;
 
 				const pointer = this._findPointerById( pointerId );
-				pointer && disposePointer( pointer );
+				pointer && this._disposePointer( pointer );
 
 				// eslint-disable-next-line no-undef
 				this._domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } as AddEventListenerOptions );
@@ -1024,8 +1018,9 @@ export class CameraControls extends EventDispatcher {
 			// When pointer lock is enabled clientX, clientY, screenX, and screenY remain 0.
 			// If pointer lock is enabled, use the Delta directory, and assume active-pointer is not multiple.
 			const isPointerLockActive = this._domElement && document.pointerLockElement === this._domElement;
-			const deltaX = isPointerLockActive ? - ( this._lockedPointer || this._activePointers[ 0 ] ).deltaX : lastDragPosition.x - _v2.x;
-			const deltaY = isPointerLockActive ? - ( this._lockedPointer || this._activePointers[ 0 ] ).deltaY : lastDragPosition.y - _v2.y;
+			const lockedPointer = isPointerLockActive ? this._lockedPointer || this._activePointers[ 0 ] : null;
+			const deltaX = lockedPointer ? - lockedPointer.deltaX : lastDragPosition.x - _v2.x;
+			const deltaY = lockedPointer ? - lockedPointer.deltaY : lastDragPosition.y - _v2.y;
 
 			lastDragPosition.copy( _v2 );
 
@@ -1193,7 +1188,7 @@ export class CameraControls extends EventDispatcher {
 
 			if ( this._lockedPointer !== null ) {
 
-				disposePointer( this._lockedPointer );
+				this._disposePointer( this._lockedPointer );
 				this._lockedPointer = null;
 
 			}
@@ -2798,6 +2793,13 @@ export class CameraControls extends EventDispatcher {
 	protected _findPointerByMouseButton( mouseButton: MOUSE_BUTTON ): PointerInput | undefined {
 
 		return this._activePointers.find( ( activePointer ) => activePointer.mouseButton === mouseButton );
+
+	}
+
+
+	protected _disposePointer( pointer: PointerInput ): void {
+
+		this._activePointers.splice( this._activePointers.indexOf( pointer ), 1 );
 
 	}
 
