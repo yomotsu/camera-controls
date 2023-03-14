@@ -2307,7 +2307,7 @@ export class CameraControls extends EventDispatcher {
 	updateCameraUp(): void {
 
 		this._yAxisUpSpace.setFromUnitVectors( this._camera.up, _AXIS_Y );
-		this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ).invert;
+		this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ).invert();
 
 	}
 
