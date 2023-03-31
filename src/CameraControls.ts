@@ -2307,6 +2307,7 @@ export class CameraControls extends EventDispatcher {
 	 */
 	saveState(): void {
 
+		this._cameraUp0.copy( this._camera.up );
 		this.getTarget( this._target0 );
 		this.getPosition( this._position0 );
 		this._zoom0 = this._zoom;
