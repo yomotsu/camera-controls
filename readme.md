@@ -172,6 +172,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.truckSpeed`             | `number`  | `2.0`       | Speed of drag for truck and pedestal. |
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
+| `.dollyDragInverted`      | `boolean` | `false`     | `true` to invert direction when dollying or zooming via drag. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ². |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ³. |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
