@@ -3089,30 +3089,13 @@ export class CameraControls extends EventDispatcher {
 			const geometry = mesh.geometry.clone();
 			geometry.applyMatrix4( mesh.matrixWorld );
 
-			if ( geometry.isBufferGeometry ) {
+			const bufferGeometry = geometry;
+			const position = bufferGeometry.attributes.position as _THREE.BufferAttribute;
 
-				const bufferGeometry = geometry;
-				const position = bufferGeometry.attributes.position as _THREE.BufferAttribute;
+			for ( let i = 0, l = position.count; i < l; i ++ ) {
 
-				for ( let i = 0, l = position.count; i < l; i ++ ) {
-
-					_v3A.fromBufferAttribute( position, i );
-					maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
-
-				}
-
-			} else {
-
-				// for old three.js, which supports both BufferGeometry and Geometry
-				// this condition block will be removed in the near future.
-				const position = geometry.attributes.position;
-
-				for ( let i = 0, l = position.count; i < l; i ++ ) {
-
-					_v3A.fromBufferAttribute( position, i );
-					maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
-
-				}
+				_v3A.fromBufferAttribute( position, i );
+				maxRadiusSq = Math.max( maxRadiusSq, center.distanceToSquared( _v3A ) );
 
 			}
 

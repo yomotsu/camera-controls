@@ -14,21 +14,21 @@
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-typescript": "^11.0.0",
-    "@types/three": "^0.148.1",
-    "@typescript-eslint/eslint-plugin": "^5.49.0",
-    "@typescript-eslint/parser": "^5.49.0",
+    "@types/three": "^0.150.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
     "downlevel-dts": "^0.11.0",
-    "eslint": "^8.32.0",
+    "eslint": "^8.37.0",
     "eslint-config-mdcs": "^5.0.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.1.2",
-    "rollup": "^3.10.1",
+    "lint-staged": "^13.2.0",
+    "rollup": "^3.20.2",
     "serve": "^14.2.0",
-    "semantic-release": "^20.1.0",
-    "terser": "^5.16.1",
-    "three": "^0.148.0",
-    "typedoc": "^0.23.24",
-    "typescript": "^4.9.4"
+    "semantic-release": "^21.0.1",
+    "terser": "^5.16.8",
+    "three": "^0.151.2",
+    "typedoc": "^0.23.28",
+    "typescript": "^5.0.3"
   },
   "peerDependencies": {
     "three": ">=0.126.1"
@@ -43,8 +43,9 @@
     "release": "semantic-release"
   },
   "browserslist": [
+    "> 1%",
     "last 3 versions",
-    "not ie <= 11"
+    "not dead"
   ],
   "eslintConfig": {
     "root": true,
