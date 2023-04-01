@@ -370,6 +370,7 @@ export class CameraControls extends EventDispatcher {
 	protected _zoomEnd: number;
 
 	// reset
+	protected _cameraUp0: _THREE.Vector3;
 	protected _target0: _THREE.Vector3;
 	protected _position0: _THREE.Vector3;
 	protected _zoom0: number;
@@ -475,6 +476,7 @@ export class CameraControls extends EventDispatcher {
 		);
 
 		// reset
+		this._cameraUp0 = this._camera.up.clone();
 		this._target0 = this._target.clone();
 		this._position0 = this._camera.position.clone();
 		this._zoom0 = this._zoom;
@@ -2276,6 +2278,19 @@ export class CameraControls extends EventDispatcher {
 	 */
 	reset( enableTransition: boolean = false ): Promise<void[]> {
 
+		if (
+			! approxEquals( this._camera.up.x, this._cameraUp0.x ) ||
+			! approxEquals( this._camera.up.y, this._cameraUp0.y ) ||
+			! approxEquals( this._camera.up.z, this._cameraUp0.z )
+		) {
+
+			this._camera.up.copy( this._cameraUp0 );
+			const position = this.getPosition( _v3A );
+			this.updateCameraUp();
+			this.setPosition( position.x, position.y, position.z );
+
+		}
+
 		const promises = [
 			this.setLookAt(
 				this._position0.x, this._position0.y, this._position0.z,
@@ -2301,6 +2316,7 @@ export class CameraControls extends EventDispatcher {
 	 */
 	saveState(): void {
 
+		this._cameraUp0.copy( this._camera.up );
 		this.getTarget( this._target0 );
 		this.getPosition( this._position0 );
 		this._zoom0 = this._zoom;
@@ -2317,6 +2333,29 @@ export class CameraControls extends EventDispatcher {
 
 		this._yAxisUpSpace.setFromUnitVectors( this._camera.up, _AXIS_Y );
 		this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ).invert();
+
+	}
+
+	/**
+	 * Apply current camera-up direction to the camera.  
+	 * The orbit system will be re-initialized with the current position.
+	 * @category Methods
+	 */
+	applyCameraUp():void {
+
+		const cameraDirection = _v3A.subVectors( this._target, this._camera.position ).normalize();
+
+		// So first find the vector off to the side, orthogonal to both this.object.up and
+		// the "view" vector.
+		const side = _v3B.crossVectors( cameraDirection, this._camera.up ).normalize();
+		// Then find the vector orthogonal to both this "side" vector and the "view" vector.
+		// This vector will be the new "up" vector.
+		this._camera.up.crossVectors( side, cameraDirection ).normalize();
+		this._camera.updateMatrixWorld();
+
+		const position = this.getPosition( _v3A );
+		this.updateCameraUp();
+		this.setPosition( position.x, position.y, position.z );
 
 	}
 
