@@ -14,18 +14,17 @@
 	<button onclick="cameraControls.reset( true )">reset</button>
 </div>
 
-<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script async src="https://unpkg.com/es-module-shims@1.7.1/dist/es-module-shims.js"></script>
 <script type="importmap">
 {
 	"imports": {
-		"three": "https://unpkg.com/three@0.149.0/build/three.module.js",
-		"three/addons/": "https://unpkg.com/three@0.149.0/examples/jsm/"
+		"three": "https://unpkg.com/three@0.151.2/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.151.2/examples/jsm/"
 	}
 }
 </script>
 <script type="module">
 import * as THREE from 'three';
-import gsap from "https://unpkg.com/gsap@3.10.4/index.js";
 import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
 
@@ -70,8 +69,9 @@ renderer.render( scene, camera );
 
 } )();
 
-globalThis.cameraControls = cameraControls;
+// make variable available to browser console
 globalThis.renderer = renderer;
+globalThis.cameraControls = cameraControls;
 </script>
 
 </body>
