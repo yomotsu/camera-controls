@@ -2327,6 +2327,11 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	/**
+	 * Apply current camera-up direction to the camera.  
+	 * The orbit system will be re-initialized with the current position.
+	 * @category Methods
+	 */
 	applyCameraUp():void {
 
 		const cameraDirection = _v3A.subVectors( this._target, this._camera.position ).normalize();

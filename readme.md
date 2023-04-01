@@ -646,6 +646,13 @@ When you change camera-up vector, run `.updateCameraUp()` to sync.
 
 ---
 
+#### `applyCameraUp()`
+
+Apply current camera-up direction to the camera.  
+The orbit system will be re-initialized with the current position.
+
+---
+
 #### `connect()`
 
 Attach all internal event handlers to enable drag control.
