@@ -56,7 +56,6 @@ renderer.domElement.addEventListener( 'mousedown', detectDoubleTap );
 renderer.domElement.addEventListener( 'touchstart', detectDoubleTap );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-globalThis.cameraControls = cameraControls;
 
 // switch the behavior with the pointer condition
 customPointerEvent.addEventListener( 'doubletap', function() {
@@ -102,6 +101,9 @@ renderer.render( scene, camera );
 	}
 
 } )();
+
+// make variable available to browser console
+globalThis.cameraControls = cameraControls;
 </script>
 
 </body>

@@ -47,7 +47,6 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-globalThis.cameraControls = cameraControls;
 
 const gridHelper = new THREE.GridHelper( 50, 50 );
 gridHelper.rotation.x = - Math.PI / 2;
@@ -62,7 +61,6 @@ const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 2, 2, 1 ),
 	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
 );
-globalThis.mesh = mesh;
 scene.add( mesh );
 
 renderer.render( scene, camera );
@@ -132,7 +130,6 @@ function rotateTo( side ) {
 	}
 
 }
-globalThis.rotateTo = rotateTo;
 
 function paddingInCssPixel( top, right, bottom, left ) {
 
@@ -172,6 +169,11 @@ function paddingInCssPixel( top, right, bottom, left ) {
 	cameraControls.fitToBox( mesh, true, { paddingLeft: paddingLeft, paddingRight: paddingRight, paddingBottom: paddingBottom, paddingTop: paddingTop } );
 
 }
+
+// make variable available to browser console
+globalThis.cameraControls = cameraControls;
+globalThis.mesh = mesh;
+globalThis.rotateTo = rotateTo;
 globalThis.paddingInCssPixel = paddingInCssPixel;
 </script>
 

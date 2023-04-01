@@ -42,7 +42,6 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-globalThis.cameraControls = cameraControls;
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),
@@ -73,7 +72,6 @@ const moveToStartPoint = () => {
 	cameraControls.setLookAt( _tmp.x, _tmp.y, _tmp.z, 0, 0, 0, true );
 
 };
-globalThis.moveToStartPoint = moveToStartPoint;
 
 const _tmp = new THREE.Vector3();
 const animationProgress = { value: 0 };
@@ -123,7 +121,6 @@ const pathAnimation = gsap.fromTo(
 		},
 	}
 );
-globalThis.pathAnimation = pathAnimation;
 
 renderer.render( scene, camera );
 
@@ -145,6 +142,11 @@ renderer.render( scene, camera );
 	}
 
 } )();
+
+// make variable available to browser console
+globalThis.cameraControls = cameraControls;
+globalThis.moveToStartPoint = moveToStartPoint;
+globalThis.pathAnimation = pathAnimation;
 </script>
 
 </body>

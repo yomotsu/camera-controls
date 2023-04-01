@@ -213,6 +213,8 @@ function sineOut( t ) {
 
 }
 
+// make variable available to browser console
+globalThis.cameraControls  = cameraControls;
 globalThis.cameraShale0 = new CameraShake( cameraControls, 500, 10, 0.5 );
 globalThis.cameraShale1 = new CameraShake( cameraControls, 1000, 10, 1 );
 globalThis.cameraShale2 = new CameraShake( cameraControls, 5000, 2, 0.5 );

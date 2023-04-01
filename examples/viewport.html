@@ -33,7 +33,6 @@
 import * as THREE from 'three';
 import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
-globalThis.THREE = THREE;
 // == basics ===================================================================================
 
 const width = window.innerWidth;
@@ -91,7 +90,6 @@ render();
 // == viewport =================================================================================
 
 const viewport = new THREE.Vector4( 0, 0, window.innerWidth, window.innerHeight );
-globalThis.viewport = viewport;
 function setViewport() {
 
 	camera.aspect = viewport.z / viewport.w;
@@ -103,7 +101,6 @@ function setViewport() {
 	render();
 
 }
-globalThis.setViewport = setViewport;
 
 // == animate ==================================================================================
 
@@ -124,6 +121,12 @@ function animate() {
 }
 
 animate();
+
+// make variable available to browser console
+globalThis.THREE = THREE;
+globalThis.cameraControls  = cameraControls;
+globalThis.viewport = viewport;
+globalThis.setViewport = setViewport;
 </script>
 </body>
 </html>

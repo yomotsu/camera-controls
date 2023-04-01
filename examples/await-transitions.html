@@ -153,7 +153,6 @@ async function transitionSequenceA() {
 	enableUI( true );
 
 }
-globalThis.transitionSequenceA = transitionSequenceA;
 
 async function transitionSequenceB() {
 
@@ -178,7 +177,6 @@ async function transitionSequenceB() {
 	enableUI( true );
 
 }
-globalThis.transitionSequenceB = transitionSequenceB;
 
 async function reset() {
 
@@ -188,8 +186,12 @@ async function reset() {
 	enableUI( true );
 
 }
-globalThis.reset = reset;
 
+// make variable available to browser console
+globalThis.cameraControls  = cameraControls;
+globalThis.transitionSequenceB = transitionSequenceB;
+globalThis.transitionSequenceA = transitionSequenceA;
+globalThis.reset = reset;
 </script>
 
 </body>

@@ -26,7 +26,6 @@
 import * as THREE from 'three';
 import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
-globalThis.THREE = THREE;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -39,7 +38,6 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-globalThis.cameraControls = cameraControls;
 cameraControls.mouseButtons.right = CameraControls.ACTION.OFFSET;
 
 const raycaster = new THREE.Raycaster();
@@ -113,6 +111,9 @@ function setOrbitPoint( mouseX, mouseY ) {
 
 }
 
+// make variable available to browser console
+globalThis.THREE = THREE;
+globalThis.cameraControls = cameraControls;
 </script>
 
 </body>

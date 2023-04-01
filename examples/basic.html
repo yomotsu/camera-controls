@@ -64,27 +64,23 @@
 import * as THREE from 'three';
 import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
-globalThis.THREE = THREE;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
 const clock = new THREE.Clock();
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
-globalThis.camera = camera;
 camera.position.set( 0, 0, 5 );
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-globalThis.cameraControls = cameraControls;
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),
 	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
 );
-globalThis.mesh = mesh;
 scene.add( mesh );
 
 const gridHelper = new THREE.GridHelper( 50, 50 );
@@ -111,6 +107,12 @@ renderer.render( scene, camera );
 	}
 
 } )();
+
+// make variable available to browser console
+globalThis.THREE = THREE;
+globalThis.camera = camera;
+globalThis.cameraControls = cameraControls;
+globalThis.mesh = mesh;
 </script>
 
 </body>

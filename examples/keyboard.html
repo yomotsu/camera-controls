@@ -42,7 +42,6 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-globalThis.cameraControls = cameraControls;
 
 const KEYCODE = {
 	W: 87,
@@ -103,6 +102,9 @@ renderer.render( scene, camera );
 	}
 
 } )();
+
+// make variable available to browser console
+globalThis.cameraControls = cameraControls;
 </script>
 
 </body>

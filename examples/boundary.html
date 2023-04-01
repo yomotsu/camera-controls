@@ -53,7 +53,6 @@ renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
-globalThis.cameraControls = cameraControls;
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),
@@ -105,7 +104,6 @@ function setBoundary0 () {
 	bbHelper.visible = false;
 
 }
-globalThis.setBoundary0 = setBoundary0;
 
 function setBoundary1 () {
 
@@ -120,7 +118,6 @@ function setBoundary1 () {
 	bbHelper.visible = true;
 
 }
-globalThis.setBoundary1 = setBoundary1;
 
 function setBoundary2 () {
 
@@ -135,7 +132,6 @@ function setBoundary2 () {
 	bbHelper.visible = true;
 
 }
-globalThis.setBoundary2 = setBoundary2;
 
 function setBoundary3 () {
 
@@ -150,6 +146,12 @@ function setBoundary3 () {
 	bbHelper.visible = true;
 
 }
+
+// make variable available to browser console
+globalThis.cameraControls = cameraControls;
+globalThis.setBoundary0 = setBoundary0;
+globalThis.setBoundary1 = setBoundary1;
+globalThis.setBoundary2 = setBoundary2;
 globalThis.setBoundary3 = setBoundary3;
 </script>
 
