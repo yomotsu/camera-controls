@@ -256,6 +256,13 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	dollySpeed = 1.0;
+
+	/**
+	 * `true` to invert direction when dollying or zooming via drag
+	 * @category Properties
+	 */
+	dollyDragInverted = false;
+
 	/**
 	 * Speed of drag for truck and pedestal.
 	 * @category Properties
@@ -1018,14 +1025,16 @@ export class CameraControls extends EventDispatcher {
 
 				const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 				const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
+				const dollyDirection = this.dollyDragInverted ? - 1 : 1;
+
 				if ( ( this._state & ACTION.DOLLY ) === ACTION.DOLLY ) {
 
-					this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._dollyInternal( dollyDirection * deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 					this._isUserControllingDolly = true;
 
 				} else {
 
-					this._zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._zoomInternal( dollyDirection * deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 					this._isUserControllingZoom = true;
 
 				}
