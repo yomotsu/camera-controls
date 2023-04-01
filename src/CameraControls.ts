@@ -345,7 +345,19 @@ export class CameraControls extends EventDispatcher {
 	 */
 	// cancel will be overwritten in the constructor.
 	cancel: () => void = () => {};
+
+	/**
+	 * Still an experimental feature.
+	 * This could change at any time.
+	 * @category Methods
+	 */
 	lockPointer: () => void;
+
+	/**
+	 * Still an experimental feature.
+	 * This could change at any time.
+	 * @category Methods
+	 */
 	unlockPointer: () => void;
 
 	protected _enabled = true;
