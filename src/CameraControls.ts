@@ -256,6 +256,13 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	dollySpeed = 1.0;
+
+	/**
+	 * `true` to invert direction when dollying or zooming via drag
+	 * @category Properties
+	 */
+	dollyDragInverted = false;
+
 	/**
 	 * Speed of drag for truck and pedestal.
 	 * @category Properties
@@ -365,6 +372,7 @@ export class CameraControls extends EventDispatcher {
 	protected _zoomEnd: number;
 
 	// reset
+	protected _cameraUp0: _THREE.Vector3;
 	protected _target0: _THREE.Vector3;
 	protected _position0: _THREE.Vector3;
 	protected _zoom0: number;
@@ -472,6 +480,7 @@ export class CameraControls extends EventDispatcher {
 		);
 
 		// reset
+		this._cameraUp0 = this._camera.up.clone();
 		this._target0 = this._target.clone();
 		this._position0 = this._camera.position.clone();
 		this._zoom0 = this._zoom;
@@ -1043,14 +1052,16 @@ export class CameraControls extends EventDispatcher {
 
 				const dollyX = this.dollyToCursor ? ( dragStartPosition.x - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 				const dollyY = this.dollyToCursor ? ( dragStartPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
+				const dollyDirection = this.dollyDragInverted ? - 1 : 1;
+
 				if ( ( this._state & ACTION.DOLLY ) === ACTION.DOLLY ) {
 
-					this._dollyInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._dollyInternal( dollyDirection * deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 					this._isUserControllingDolly = true;
 
 				} else {
 
-					this._zoomInternal( deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
+					this._zoomInternal( dollyDirection * deltaY * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
 					this._isUserControllingZoom = true;
 
 				}
@@ -2368,6 +2379,19 @@ export class CameraControls extends EventDispatcher {
 	 */
 	reset( enableTransition: boolean = false ): Promise<void[]> {
 
+		if (
+			! approxEquals( this._camera.up.x, this._cameraUp0.x ) ||
+			! approxEquals( this._camera.up.y, this._cameraUp0.y ) ||
+			! approxEquals( this._camera.up.z, this._cameraUp0.z )
+		) {
+
+			this._camera.up.copy( this._cameraUp0 );
+			const position = this.getPosition( _v3A );
+			this.updateCameraUp();
+			this.setPosition( position.x, position.y, position.z );
+
+		}
+
 		const promises = [
 			this.setLookAt(
 				this._position0.x, this._position0.y, this._position0.z,
@@ -2393,6 +2417,7 @@ export class CameraControls extends EventDispatcher {
 	 */
 	saveState(): void {
 
+		this._cameraUp0.copy( this._camera.up );
 		this.getTarget( this._target0 );
 		this.getPosition( this._position0 );
 		this._zoom0 = this._zoom;
@@ -2408,7 +2433,30 @@ export class CameraControls extends EventDispatcher {
 	updateCameraUp(): void {
 
 		this._yAxisUpSpace.setFromUnitVectors( this._camera.up, _AXIS_Y );
-		this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ).invert;
+		this._yAxisUpSpaceInverse.copy( this._yAxisUpSpace ).invert();
+
+	}
+
+	/**
+	 * Apply current camera-up direction to the camera.  
+	 * The orbit system will be re-initialized with the current position.
+	 * @category Methods
+	 */
+	applyCameraUp():void {
+
+		const cameraDirection = _v3A.subVectors( this._target, this._camera.position ).normalize();
+
+		// So first find the vector off to the side, orthogonal to both this.object.up and
+		// the "view" vector.
+		const side = _v3B.crossVectors( cameraDirection, this._camera.up ).normalize();
+		// Then find the vector orthogonal to both this "side" vector and the "view" vector.
+		// This vector will be the new "up" vector.
+		this._camera.up.crossVectors( side, cameraDirection ).normalize();
+		this._camera.updateMatrixWorld();
+
+		const position = this.getPosition( _v3A );
+		this.updateCameraUp();
+		this.setPosition( position.x, position.y, position.z );
 
 	}
 
@@ -2701,7 +2749,6 @@ export class CameraControls extends EventDispatcher {
 	fromJSON( json: string, enableTransition: boolean = false ): void {
 
 		const obj = JSON.parse( json );
-		const position = _v3A.fromArray( obj.position );
 
 		this.enabled               = obj.enabled;
 
@@ -2726,8 +2773,9 @@ export class CameraControls extends EventDispatcher {
 		this._focalOffset0.fromArray( obj.focalOffset0 );
 
 		this.moveTo( obj.target[ 0 ], obj.target[ 1 ], obj.target[ 2 ], enableTransition );
-		_sphericalA.setFromVector3( position.sub( this._targetEnd ).applyQuaternion( this._yAxisUpSpace ) );
+		_sphericalA.setFromVector3( _v3A.fromArray( obj.position ).sub( this._targetEnd ).applyQuaternion( this._yAxisUpSpace ) );
 		this.rotateTo( _sphericalA.theta, _sphericalA.phi, enableTransition );
+		this.dollyTo( _sphericalA.radius, enableTransition );
 		this.zoomTo( obj.zoom, enableTransition );
 		this.setFocalOffset( obj.focalOffset[ 0 ], obj.focalOffset[ 1 ], obj.focalOffset[ 2 ], enableTransition );
 
