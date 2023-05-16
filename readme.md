@@ -37,6 +37,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [third-person](https://yomotsu.github.io/meshwalk/examples/5_terrain.html) (with [meshwalk](https://github.com/yomotsu/meshwalk))
 - [pointer lock](https://yomotsu.github.io/camera-controls/examples/pointer-lock.html)
 - [auto rotate](https://yomotsu.github.io/camera-controls/examples/auto-rotate.html)
+- [view offset translate](https://yomotsu.github.io/camera-controls/examples/view-offset.html)
 - [camera shake effect](https://yomotsu.github.io/camera-controls/examples/effect-shake.html)
 - [rotate with time duration and easing](https://yomotsu.github.io/camera-controls/examples/easing.html) (with [gsap](https://www.npmjs.com/package/gsap))
 - [path animation](https://yomotsu.github.io/camera-controls/examples/path-animation.html) (with [gsap](https://www.npmjs.com/package/gsap))
