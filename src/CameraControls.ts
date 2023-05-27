@@ -379,9 +379,11 @@ export class CameraControls extends EventDispatcher {
 	// rotation and dolly distance
 	protected _spherical: _THREE.Spherical;
 	protected _sphericalEnd: _THREE.Spherical;
+	protected _lastDistance: number;
 
 	protected _zoom: number;
 	protected _zoomEnd: number;
+	protected _lastZoom: number;
 
 	// reset
 	protected _cameraUp0: _THREE.Vector3;
@@ -471,9 +473,11 @@ export class CameraControls extends EventDispatcher {
 		// rotation
 		this._spherical = new THREE.Spherical().setFromVector3( _v3A.copy( this._camera.position ).applyQuaternion( this._yAxisUpSpace ) );
 		this._sphericalEnd = this._spherical.clone();
+		this._lastDistance = this._spherical.radius;
 
 		this._zoom = this._camera.zoom;
 		this._zoomEnd = this._zoom;
+		this._lastZoom = this._zoom;
 
 		// collisionTest uses nearPlane.s
 		this._nearPlaneCorners = [
@@ -2480,9 +2484,6 @@ export class CameraControls extends EventDispatcher {
 	 */
 	update( delta: number ): boolean {
 
-		const lastDistance = this._spherical.radius;
-		const lastZoom = this._zoom;
-
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
@@ -2568,7 +2569,7 @@ export class CameraControls extends EventDispatcher {
 
 			if ( isPerspectiveCamera( this._camera )  ) {
 
-				const dollyControlAmount = this._spherical.radius - lastDistance;
+				const dollyControlAmount = this._spherical.radius - this._lastDistance;
 
 				if ( dollyControlAmount !== 0 ) {
 
@@ -2593,7 +2594,7 @@ export class CameraControls extends EventDispatcher {
 
 			} else if ( isOrthographicCamera( this._camera ) ) {
 
-				const dollyControlAmount = this._zoom - lastZoom;
+				const dollyControlAmount = this._zoom - this._lastZoom;
 
 				if ( dollyControlAmount !== 0 ) {
 
@@ -2729,8 +2730,12 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
+		this._lastDistance = this._spherical.radius;
+		this._lastZoom = this._zoom;
+
 		this._updatedLastTime = updated;
 		this._needsUpdate = false;
+
 		return updated;
 
 	}
