@@ -51,6 +51,7 @@ let _yColumn: _THREE.Vector3;
 let _zColumn: _THREE.Vector3;
 let _deltaTarget: _THREE.Vector3;
 let _deltaOffset: _THREE.Vector3;
+let _lastTarget: _THREE.Vector3;
 let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
 let _box3A: _THREE.Box3;
@@ -390,7 +391,6 @@ export class CameraControls extends EventDispatcher {
 	protected _zoom0: number;
 	protected _focalOffset0: _THREE.Vector3;
 
-	protected _dollyControlAmount = 0;
 	protected _dollyControlCoord: _THREE.Vector2;
 
 	// collisionTest uses nearPlane. ( PerspectiveCamera only )
@@ -498,7 +498,6 @@ export class CameraControls extends EventDispatcher {
 		this._zoom0 = this._zoom;
 		this._focalOffset0 = this._focalOffset.clone();
 
-		this._dollyControlAmount = 0;
 		this._dollyControlCoord = new THREE.Vector2();
 
 		// configs
@@ -2481,6 +2480,10 @@ export class CameraControls extends EventDispatcher {
 	 */
 	update( delta: number ): boolean {
 
+		const lastTarget = _lastTarget.copy( this._target );
+		const lastDistance = this._spherical.radius;
+		const lastZoom = this._zoom;
+
 		const deltaTheta  = this._sphericalEnd.theta  - this._spherical.theta;
 		const deltaPhi    = this._sphericalEnd.phi    - this._spherical.phi;
 		const deltaRadius = this._sphericalEnd.radius - this._spherical.radius;
@@ -2558,9 +2561,13 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		if ( this._dollyControlAmount !== 0 ) {
+		if ( isPerspectiveCamera( this._camera ) ) {
 
-			if ( isPerspectiveCamera( this._camera ) ) {
+			const dollyControlAmount = this.infinityDolly ?
+				this._spherical.radius - lastDistance + _v3A.subVectors( this._target, lastTarget ).multiply( this._camera.getWorldDirection( _v3A ).normalize() ).length() :
+				this._spherical.radius - lastDistance;
+
+			if ( dollyControlAmount !== 0 ) {
 
 				const camera = this._camera;
 				const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
@@ -2568,14 +2575,24 @@ export class CameraControls extends EventDispatcher {
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, cameraDirection );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * DEG2RAD * 0.5 );
-				const prevRadius = this._sphericalEnd.radius - this._dollyControlAmount;
+				const prevRadius = this._sphericalEnd.radius - dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
 				const cursor = _v3A.copy( this._targetEnd )
 					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
 				this._targetEnd.lerp( cursor, lerpRatio );
 
-			} else if ( isOrthographicCamera( this._camera ) ) {
+				this._target.copy( this._targetEnd );
+				// target position may be moved beyond boundary.
+				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+
+			}
+
+		} else if ( isOrthographicCamera( this._camera ) ) {
+
+			const dollyControlAmount = this._zoom - lastZoom;
+
+			if ( dollyControlAmount !== 0 ) {
 
 				const camera = this._camera;
 				const worldCursorPosition = _v3A.set(
@@ -2585,7 +2602,7 @@ export class CameraControls extends EventDispatcher {
 				).unproject( camera );//.sub( _v3B.set( this._focalOffset.x, this._focalOffset.y, 0 ) );
 				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
 				const cursor = _v3C.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
-				const prevZoom = this._zoom - this._dollyControlAmount;
+				const prevZoom = this._zoom - dollyControlAmount;
 				const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
 
 				// find the "distance" (aka plane constant in three.js) of Plane
@@ -2601,12 +2618,11 @@ export class CameraControls extends EventDispatcher {
 				const pullBack = cameraDirection.multiplyScalar( newPlaneConstant - prevPlaneConstant );
 				this._targetEnd.sub( pullBack );
 
-			}
+				this._target.copy( this._targetEnd );
+				// target position may be moved beyond boundary.
+				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
-			this._target.copy( this._targetEnd );
-			// target position may be moved beyond boundary.
-			this._boundary.clampPoint( this._targetEnd, this._targetEnd );
-			this._dollyControlAmount = 0;
+			}
 
 		}
 
@@ -3004,12 +3020,12 @@ export class CameraControls extends EventDispatcher {
 		const dollyScale = Math.pow( 0.95, - delta * this.dollySpeed );
 		const distance = this._sphericalEnd.radius * dollyScale;
 		const prevRadius = this._sphericalEnd.radius;
-		const signedPrevRadius = prevRadius * ( delta >= 0 ? - 1 : 1 );
 
 		this.dollyTo( distance );
 
 		if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
 
+			const signedPrevRadius = prevRadius * ( delta >= 0 ? - 1 : 1 );
 			this._camera.getWorldDirection( _v3A );
 			this._targetEnd.add( _v3A.normalize().multiplyScalar( signedPrevRadius ) );
 			this._target.add( _v3A.normalize().multiplyScalar( signedPrevRadius ) );
@@ -3017,14 +3033,6 @@ export class CameraControls extends EventDispatcher {
 		}
 
 		if ( this.dollyToCursor ) {
-
-			this._dollyControlAmount += this._sphericalEnd.radius - prevRadius;
-
-			if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
-
-				this._dollyControlAmount -= signedPrevRadius;
-
-			}
 
 			this._dollyControlCoord.set( x, y );
 
@@ -3035,14 +3043,12 @@ export class CameraControls extends EventDispatcher {
 	protected _zoomInternal = ( delta: number, x: number, y: number ): void => {
 
 		const zoomScale = Math.pow( 0.95, delta * this.dollySpeed );
-		const prevZoom = this._zoomEnd;
 
 		// for both PerspectiveCamera and OrthographicCamera
 		this.zoomTo( this._zoom * zoomScale );
 
 		if ( this.dollyToCursor ) {
 
-			this._dollyControlAmount += this._zoomEnd - prevZoom;
 			this._dollyControlCoord.set( x, y );
 
 		}
