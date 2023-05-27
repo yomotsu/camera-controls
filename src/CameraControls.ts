@@ -194,13 +194,13 @@ export class CameraControls extends EventDispatcher {
 
 	// How far you can dolly in and out ( PerspectiveCamera only )
 	/**
-	 * Minimum distance for dolly. The value must be higher than `0`.  
+	 * Minimum distance for dolly. The value must be higher than `0`. Default is `Number.EPSILON`.  
 	 * PerspectiveCamera only.
 	 * @category Properties
 	 */
-	minDistance = 0;
+	minDistance = Number.EPSILON;
 	/**
-	 * Maximum distance for dolly. The value must be higher than `minDistance`.  
+	 * Maximum distance for dolly. The value must be higher than `minDistance`. Default is `Infinity`.  
 	 * PerspectiveCamera only.
 	 * @category Properties
 	 */

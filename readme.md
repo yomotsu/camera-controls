@@ -155,7 +155,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.active`                 | `boolean` | `false`     | Returns `true` if the controls are active updating. |
 | `.currentAction`          | `ACTION`  | N/A         | Getter for the current `ACTION`. |
 | `.distance`               | `number`  | N/A         | Current distance. |
-| `.minDistance`            | `number`  | `0`         | Minimum distance for dolly. The value must be higher than `0` |
+| `.minDistance`            | `number`  | `Number.EPSILON` | Minimum distance for dolly. The value must be higher than `0` |
 | `.maxDistance`            | `number`  | `Infinity`  | Maximum distance for dolly. |
 | `.minZoom` 	              | `number`  | `0.01`      | Minimum camera zoom. |
 | `.maxZoom` 	              | `number`  | `Infinity`  | Maximum camera zoom. |
@@ -177,14 +177,12 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.dollyDragInverted`      | `boolean` | `false`     | `true` to invert direction when dollying or zooming via drag. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ². |
-| `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly ³. |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
 
 1. Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.  
   `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.  
   **Tip**: [How to normalize accumulated azimuthAngle?](#tips)
 2. Be aware colliderMeshes may decrease performance. The collision test uses 4 raycasters from the camera since the near plane has 4 corners.
-3. When the Dolly distance is less than the `minDistance`, radius of the sphere will be set `minDistance` automatically.
 
 ## Events
 
