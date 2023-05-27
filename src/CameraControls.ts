@@ -210,7 +210,7 @@ export class CameraControls extends EventDispatcher {
 	 * When the Dolly distance is less than the `minDistance`, radius of the sphere will be set `minDistance` automatically.
 	 * @category Properties
 	 */
-	infinityDolly = false;
+	protected _infinityDolly = false;
 
 	/**
 	 * Minimum camera zoom.
@@ -3033,7 +3033,7 @@ export class CameraControls extends EventDispatcher {
 
 		this.dollyTo( distance, true );
 
-		if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
+		if ( this._infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
 
 			const signedPrevRadius = prevRadius * ( delta >= 0 ? - 1 : 1 );
 			this._camera.getWorldDirection( _v3A );
@@ -3202,6 +3202,28 @@ export class CameraControls extends EventDispatcher {
 	set draggingDampingFactor( _: number ) {
 
 		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
+
+	}
+
+	/**
+	 * @deprecated infinityDolly will be removed in the next major release. use .forward() alternatively
+	 * @category Properties
+	 */
+	set infinityDolly( infinityDolly: boolean ) {
+
+		console.warn( '.infinityDolly will be removed. use .forward() alternatively' );
+		this._infinityDolly = infinityDolly;
+
+	}
+
+	/**
+	 * @deprecated infinityDolly will be removed in the next major release. use .forward() alternatively
+	 * @category Properties
+	 */
+	get infinityDolly() {
+
+		console.warn( '.infinityDolly will be removed. use .forward() alternatively' );
+		return this._infinityDolly;
 
 	}
 
