@@ -2042,6 +2042,7 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
+		this._dollyControlCoord.set( 0, 0 );
 
 		const target = _v3B.set( targetX, targetY, targetZ );
 		const position = _v3A.set( positionX, positionY, positionZ );
@@ -2100,6 +2101,7 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
+		this._dollyControlCoord.set( 0, 0 );
 
 		const targetA = _v3A.set( targetAX, targetAY, targetAZ );
 		const positionA = _v3B.set( positionAX, positionAY, positionAZ );
