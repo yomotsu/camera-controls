@@ -51,7 +51,6 @@ let _yColumn: _THREE.Vector3;
 let _zColumn: _THREE.Vector3;
 let _deltaTarget: _THREE.Vector3;
 let _deltaOffset: _THREE.Vector3;
-let _lastTarget: _THREE.Vector3;
 let _sphericalA: _THREE.Spherical;
 let _sphericalB: _THREE.Spherical;
 let _box3A: _THREE.Box3;
@@ -1660,6 +1659,7 @@ export class CameraControls extends EventDispatcher {
 	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._isUserControllingDolly = false;
+		this._dollyControlCoord.set( 0, 0 );
 
 		const lastRadius = this._sphericalEnd.radius;
 		const newRadius = clamp( distance, this.minDistance, this.maxDistance );
@@ -2480,7 +2480,6 @@ export class CameraControls extends EventDispatcher {
 	 */
 	update( delta: number ): boolean {
 
-		const lastTarget = _lastTarget.copy( this._target );
 		const lastDistance = this._spherical.radius;
 		const lastZoom = this._zoom;
 
@@ -2561,66 +2560,72 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		if ( isPerspectiveCamera( this._camera ) ) {
+		if (
+			this.dollyToCursor &&
+			! approxZero( this._dollyControlCoord.x ) &&
+			! approxZero( this._dollyControlCoord.y )
+		) {
 
-			const dollyControlAmount = this.infinityDolly ?
-				this._spherical.radius - lastDistance + _v3A.subVectors( this._target, lastTarget ).multiply( this._camera.getWorldDirection( _v3A ).normalize() ).length() :
-				this._spherical.radius - lastDistance;
+			if ( isPerspectiveCamera( this._camera )  ) {
 
-			if ( dollyControlAmount !== 0 ) {
+				const dollyControlAmount = this._spherical.radius - lastDistance;
 
-				const camera = this._camera;
-				const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
-				const planeX = _v3B.copy( cameraDirection ).cross( camera.up ).normalize();
-				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
-				const planeY = _v3C.crossVectors( planeX, cameraDirection );
-				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * DEG2RAD * 0.5 );
-				const prevRadius = this._sphericalEnd.radius - dollyControlAmount;
-				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
-				const cursor = _v3A.copy( this._targetEnd )
-					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
-					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
-				this._targetEnd.lerp( cursor, lerpRatio );
+				if ( dollyControlAmount !== 0 ) {
 
-				this._target.copy( this._targetEnd );
-				// target position may be moved beyond boundary.
-				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+					const camera = this._camera;
+					const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+					const planeX = _v3B.copy( cameraDirection ).cross( camera.up ).normalize();
+					if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
+					const planeY = _v3C.crossVectors( planeX, cameraDirection );
+					const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * DEG2RAD * 0.5 );
+					const prevRadius = this._sphericalEnd.radius - dollyControlAmount;
+					const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
+					const cursor = _v3A.copy( this._targetEnd )
+						.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
+						.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
+					this._targetEnd.lerp( cursor, lerpRatio );
 
-			}
+					this._target.copy( this._targetEnd );
+					// target position may be moved beyond boundary.
+					this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
-		} else if ( isOrthographicCamera( this._camera ) ) {
+				}
 
-			const dollyControlAmount = this._zoom - lastZoom;
+			} else if ( isOrthographicCamera( this._camera ) ) {
 
-			if ( dollyControlAmount !== 0 ) {
+				const dollyControlAmount = this._zoom - lastZoom;
 
-				const camera = this._camera;
-				const worldCursorPosition = _v3A.set(
-					this._dollyControlCoord.x,
-					this._dollyControlCoord.y,
-					( camera.near + camera.far ) / ( camera.near - camera.far )
-				).unproject( camera );//.sub( _v3B.set( this._focalOffset.x, this._focalOffset.y, 0 ) );
-				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
-				const cursor = _v3C.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
-				const prevZoom = this._zoom - dollyControlAmount;
-				const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
+				if ( dollyControlAmount !== 0 ) {
 
-				// find the "distance" (aka plane constant in three.js) of Plane
-				// from a given position (this._targetEnd) and normal vector (cameraDirection)
-				// https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
-				const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
-				const prevPlaneConstant = this._targetEnd.dot( cameraDirection );
+					const camera = this._camera;
+					const worldCursorPosition = _v3A.set(
+						this._dollyControlCoord.x,
+						this._dollyControlCoord.y,
+						( camera.near + camera.far ) / ( camera.near - camera.far )
+					).unproject( camera );//.sub( _v3B.set( this._focalOffset.x, this._focalOffset.y, 0 ) );
+					const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
+					const cursor = _v3C.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
+					const prevZoom = this._zoom - dollyControlAmount;
+					const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
 
-				this._targetEnd.lerp( cursor, lerpRatio );
-				const newPlaneConstant = this._targetEnd.dot( cameraDirection );
+					// find the "distance" (aka plane constant in three.js) of Plane
+					// from a given position (this._targetEnd) and normal vector (cameraDirection)
+					// https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
+					const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+					const prevPlaneConstant = this._targetEnd.dot( cameraDirection );
 
-				// Pull back the camera depth that has moved, to be the camera stationary as zoom
-				const pullBack = cameraDirection.multiplyScalar( newPlaneConstant - prevPlaneConstant );
-				this._targetEnd.sub( pullBack );
+					this._targetEnd.lerp( cursor, lerpRatio );
+					const newPlaneConstant = this._targetEnd.dot( cameraDirection );
 
-				this._target.copy( this._targetEnd );
-				// target position may be moved beyond boundary.
-				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+					// Pull back the camera depth that has moved, to be the camera stationary as zoom
+					const pullBack = cameraDirection.multiplyScalar( newPlaneConstant - prevPlaneConstant );
+					this._targetEnd.sub( pullBack );
+
+					this._target.copy( this._targetEnd );
+					// target position may be moved beyond boundary.
+					this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+
+				}
 
 			}
 
@@ -3021,14 +3026,13 @@ export class CameraControls extends EventDispatcher {
 		const distance = this._sphericalEnd.radius * dollyScale;
 		const prevRadius = this._sphericalEnd.radius;
 
-		this.dollyTo( distance );
+		this.dollyTo( distance, true );
 
 		if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
 
 			const signedPrevRadius = prevRadius * ( delta >= 0 ? - 1 : 1 );
 			this._camera.getWorldDirection( _v3A );
 			this._targetEnd.add( _v3A.normalize().multiplyScalar( signedPrevRadius ) );
-			this._target.add( _v3A.normalize().multiplyScalar( signedPrevRadius ) );
 
 		}
 
