@@ -29,7 +29,7 @@
 	<button onclick="cameraControls.dolly(  1, true )">dolly  1</button>
 	<button onclick="cameraControls.dolly( -1, true )">dolly -1</button>
 	<br>
-	<label><input oninput="cameraControls.minDistance = this.value" type="number">Min Distance</label>
+	<label><input oninput="cameraControls.minDistance = + this.value" type="number">Min Distance</label>
 	<br>
 	<button onclick="cameraControls.zoom( camera.zoom / 2, true )">zoom `camera.zoom / 2`</button>
 	<button onclick="cameraControls.zoom( -camera.zoom / 2, true )">zoom `- camera.zoom / 2`</button>
