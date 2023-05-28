@@ -3224,7 +3224,6 @@ export class CameraControls extends EventDispatcher {
 	 */
 	get infinityDolly() {
 
-		console.warn( '.infinityDolly will be removed. use .forward() alternatively' );
 		return this._infinityDolly;
 
 	}
