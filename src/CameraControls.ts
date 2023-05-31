@@ -2586,9 +2586,11 @@ export class CameraControls extends EventDispatcher {
 					const cursor = _v3A.copy( this._targetEnd )
 						.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
 						.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
-					this._targetEnd.lerp( cursor, lerpRatio );
+					const newTargetEnd = _v3B.copy( this._targetEnd ).lerp( cursor, lerpRatio );
+					const targetEndDiff = _v3C.subVectors( newTargetEnd, this._targetEnd );
+					this._targetEnd.copy( newTargetEnd );
+					this._target.add( targetEndDiff );
 
-					this._target.copy( this._targetEnd );
 					// target position may be moved beyond boundary.
 					this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
