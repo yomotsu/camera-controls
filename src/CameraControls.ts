@@ -199,24 +199,27 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	minDistance = Number.EPSILON;
+
 	/**
 	 * Maximum distance for dolly. The value must be higher than `minDistance`. Default is `Infinity`.  
 	 * PerspectiveCamera only.
 	 * @category Properties
 	 */
 	maxDistance = Infinity;
+
 	/**
 	 * `true` to enable Infinity Dolly.  
 	 * When the Dolly distance is less than the `minDistance`, radius of the sphere will be set `minDistance` automatically.
 	 * @category Properties
 	 */
-	protected _infinityDolly = false;
+	infinityDolly = false;
 
 	/**
 	 * Minimum camera zoom.
 	 * @category Properties
 	 */
 	minZoom = 0.01;
+
 	/**
 	 * Maximum camera zoom.
 	 * @category Properties
@@ -3041,21 +3044,22 @@ export class CameraControls extends EventDispatcher {
 		const dollyScale = Math.pow( 0.95, - delta * this.dollySpeed );
 		const lastDistance = this._sphericalEnd.radius;
 		const distance = this._sphericalEnd.radius * dollyScale;
+		const clampedDistance = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
 
 		this.dollyTo( distance, true );
 
 		if ( this.dollyToCursor ) {
 
-			this._changedDolly += distance - lastDistance;
+			this._changedDolly += clampedDistance - lastDistance;
 			this._dollyControlCoord.set( x, y );
 
 		}
 
-		if ( this._infinityDolly && ( distance < this.minDistance || this.maxDistance === this.minDistance ) ) {
+		if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance < distance ) ) {
 
-			const signedPrevRadius = lastDistance * ( delta >= 0 ? - 1 : 1 );
+			const overflowedDistance = clampedDistance - distance;
 			this._camera.getWorldDirection( _v3A );
-			this._targetEnd.add( _v3A.normalize().multiplyScalar( signedPrevRadius ) );
+			this._targetEnd.add( _v3A.normalize().multiplyScalar( overflowedDistance ) );
 
 		}
 
@@ -3217,27 +3221,6 @@ export class CameraControls extends EventDispatcher {
 	set draggingDampingFactor( _: number ) {
 
 		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
-
-	}
-
-	/**
-	 * @deprecated infinityDolly will be removed in the next major release. use .forward() alternatively
-	 * @category Properties
-	 */
-	set infinityDolly( infinityDolly: boolean ) {
-
-		console.warn( '.infinityDolly will be removed. use .forward() alternatively' );
-		this._infinityDolly = infinityDolly;
-
-	}
-
-	/**
-	 * @deprecated infinityDolly will be removed in the next major release. use .forward() alternatively
-	 * @category Properties
-	 */
-	get infinityDolly() {
-
-		return this._infinityDolly;
 
 	}
 
