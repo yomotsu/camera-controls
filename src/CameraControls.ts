@@ -1708,6 +1708,13 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	/**
+	 * Dolly in, but does not change the distance between the target and the camera, and moves the target position instead.
+	 * Specify a negative value for dolly out.
+	 * @param distance Distance of dolly.
+	 * @param enableTransition Whether to move smoothly or immediately.
+	 * @category Methods
+	 */
 	dollyInFixed( distance: number ) {
 
 		this._targetEnd.add( this._getCameraDirection( _cameraDirection ).multiplyScalar( distance ) );
