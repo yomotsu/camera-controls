@@ -46,6 +46,7 @@ let _v2: _THREE.Vector2;
 let _v3A: _THREE.Vector3;
 let _v3B: _THREE.Vector3;
 let _v3C: _THREE.Vector3;
+let _v3D: _THREE.Vector3;
 let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
 let _zColumn: _THREE.Vector3;
@@ -113,6 +114,7 @@ export class CameraControls extends EventDispatcher {
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
+		_v3D = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_zColumn = new THREE.Vector3();
@@ -2565,7 +2567,6 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-
 		// update zoom
 		if ( approxZero( deltaZoom ) ) {
 
@@ -2594,10 +2595,21 @@ export class CameraControls extends EventDispatcher {
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
-				const cursor = _v3A.copy( this._targetEnd )
+				const cursor = _v3D.copy( this._targetEnd )
 					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
 				const newTargetEnd = _v3B.copy( this._targetEnd ).lerp( cursor, lerpRatio );
+
+				if ( this.infinityDolly ) {
+
+					// replace dollied distance to target position move.
+					this._sphericalEnd.radius -= dollyControlAmount;
+					this._spherical.radius -= dollyControlAmount;
+					const dollyAmount = _v3C.copy( cameraDirection ).multiplyScalar( - dollyControlAmount );
+					newTargetEnd.add( dollyAmount );
+
+				}
+
 				const targetEndDiff = _v3C.subVectors( newTargetEnd, this._targetEnd );
 				this._targetEnd.copy( newTargetEnd );
 				this._target.add( targetEndDiff );
@@ -3055,7 +3067,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		if ( this.infinityDolly && ( distance < this.minDistance || this.maxDistance < distance ) ) {
+		if ( this.infinityDolly ) {
 
 			const overflowedDistance = clampedDistance - distance;
 			this._camera.getWorldDirection( _v3A );
