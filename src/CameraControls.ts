@@ -2595,7 +2595,6 @@ export class CameraControls extends EventDispatcher {
 			if ( isPerspectiveCamera( this._camera ) && this._changedDolly !== 0 ) {
 
 				const dollyControlAmount = this._spherical.radius - this._lastDistance;
-				this._changedDolly -= dollyControlAmount;
 
 				const camera = this._camera;
 				const cameraDirection = this._getCameraDirection( _cameraDirection );
@@ -2627,12 +2626,12 @@ export class CameraControls extends EventDispatcher {
 				// target position may be moved beyond boundary.
 				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
+				this._changedDolly -= dollyControlAmount;
 				if ( approxZero( this._changedDolly ) ) this._changedDolly = 0;
 
 			} else if ( isOrthographicCamera( this._camera ) && this._changedZoom !== 0 ) {
 
 				const dollyControlAmount = this._zoom - this._lastZoom;
-				this._changedZoom -= dollyControlAmount;
 
 				const camera = this._camera;
 				const worldCursorPosition = _v3A.set(
@@ -2640,10 +2639,10 @@ export class CameraControls extends EventDispatcher {
 					this._dollyControlCoord.y,
 					( camera.near + camera.far ) / ( camera.near - camera.far )
 				).unproject( camera );
-				const quaternion = _v3A.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
-				const cursor = _v3B.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
+				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
+				const cursor = _v3C.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
 				const prevZoom = this._zoom - dollyControlAmount;
-				const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
+				const lerpRatio = - ( prevZoom - this._zoom ) / this._zoom;
 
 				// find the "distance" (aka plane constant in three.js) of Plane
 				// from a given position (this._targetEnd) and normal vector (cameraDirection)
@@ -2662,22 +2661,10 @@ export class CameraControls extends EventDispatcher {
 				// target position may be moved beyond boundary.
 				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
+				this._changedZoom -= dollyControlAmount;
 				if ( approxZero( this._changedZoom ) ) this._changedZoom = 0;
 
 			}
-
-		}
-
-		// update zoom
-		if ( approxZero( deltaZoom ) ) {
-
-			this._zoomVelocity.value = 0;
-			this._zoom = this._zoomEnd;
-
-		} else {
-
-			const smoothTime = this._isUserControllingZoom ? this.draggingSmoothTime : this.smoothTime;
-			this._zoom = smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, smoothTime, Infinity, delta );
 
 		}
 
@@ -3108,7 +3095,7 @@ export class CameraControls extends EventDispatcher {
 		const zoom = this._zoom * zoomScale;
 
 		// for both PerspectiveCamera and OrthographicCamera
-		this.zoomTo( zoom );
+		this.zoomTo( zoom, true );
 
 		if ( this.dollyToCursor ) {
 
