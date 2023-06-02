@@ -177,12 +177,14 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.dollyDragInverted`      | `boolean` | `false`     | `true` to invert direction when dollying or zooming via drag. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ². |
+| `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly for wheel and pinch ³. |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
 
 1. Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.  
   `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.  
   **Tip**: [How to normalize accumulated azimuthAngle?](#tips)
 2. Be aware colliderMeshes may decrease performance. The collision test uses 4 raycasters from the camera since the near plane has 4 corners.
+3. It does't change the distance between the target and camera, but move the target position instead.
 
 ## Events
 
@@ -326,6 +328,18 @@ Dolly in/out camera position.
 #### `dollyTo( distance, enableTransition )`
 
 Dolly in/out camera position to given distance.
+
+| Name               | Type      | Description |
+| ------------------ | --------- | ----------- |
+| `distance`         | `number`  | Distance of dollyIn |
+| `enableTransition` | `boolean` | Whether to move smoothly or immediately |
+
+---
+
+#### `dollyInFixed( distance, enableTransition )`
+
+Dolly in, but does not change the distance between the target and the camera, and moves the target position instead.
+Specify a negative value for dolly out.
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |

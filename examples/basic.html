@@ -12,22 +12,23 @@
 	<label><input type="checkbox" onchange="cameraControls.verticalDragToForward = this.checked">vertical drag to move forward</label>
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked">dolly to cursor</label>
-
+	<br>
+	<label><input type="checkbox" onchange="cameraControls.infinityDolly = this.checked">infinity dolly</label>
 	<br>
 	<label><input type="checkbox" onchange="cameraControls.dollyDragInverted = this.checked">dolly drag inverted</label>
 	<br>
 	<br>
-	<button onclick="cameraControls.rotate(  45 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 45deg</button>
-	<button onclick="cameraControls.rotate( -90 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta -90deg</button>
+	<button onclick="cameraControls.rotate( 45 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 45deg</button>
+	<button onclick="cameraControls.rotate( - 90 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta -90deg</button>
 	<button onclick="cameraControls.rotate( 360 * THREE.MathUtils.DEG2RAD, 0, true )">rotate theta 360deg</button>
 	<button onclick="cameraControls.rotate( 0, 20 * THREE.MathUtils.DEG2RAD, true )">rotate phi 20deg</button>
 	<br>
-	<button onclick="cameraControls.truck(  1,  0, true)">truck( 1, 0 )</button>
-	<button onclick="cameraControls.truck(  0,  1, true)">truck( 0, 1 )</button>
-	<button onclick="cameraControls.truck( -1, -1, true )">truck( -1, -1 )</button>
+	<button onclick="cameraControls.truck(   1,   0, true)">truck( 1, 0 )</button>
+	<button onclick="cameraControls.truck(   0,   1, true)">truck( 0, 1 )</button>
+	<button onclick="cameraControls.truck( - 1, - 1, true )">truck( -1, -1 )</button>
 	<br>
-	<button onclick="cameraControls.dolly(  1, true )">dolly  1</button>
-	<button onclick="cameraControls.dolly( -1, true )">dolly -1</button>
+	<button onclick="cameraControls.dolly(   1, true )">dolly  1</button>
+	<button onclick="cameraControls.dolly( - 1, true )">dolly -1</button>
 	<br>
 	<label><input oninput="cameraControls.minDistance = + this.value" type="number">Min Distance</label>
 	<br>
@@ -37,11 +38,11 @@
 	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
 	<button onclick="cameraControls.fitToBox( mesh, true )">fit to the bounding box of the mesh</button>
 	<br>
-	<button onclick="cameraControls.setPosition( -5, 2, 1, true )">move to ( -5, 2, 1 )</button>
+	<button onclick="cameraControls.setPosition( - 5, 2, 1, true )">move to ( -5, 2, 1 )</button>
 	<button onclick="cameraControls.setTarget( 3, 0, -3, true )">look at ( 3, 0, -3 )</button>
 	<button onclick="cameraControls.setLookAt( 1, 2, 3, 1, 1, 0, true )">move to ( 1, 2, 3 ), look at ( 1, 1, 0 )</button>
 	<br>
-	<button onclick="cameraControls.lerpLookAt( -2, 0, 0, 1, 1, 0, 0, 2, 5, -1, 0, 0, Math.random(), true )">move to somewhere between ( -2, 0, 0 ) -> ( 1, 1, 0 ) and ( 0, 2, 5 ) -> ( -1, 0, 0 )</button>
+	<button onclick="cameraControls.lerpLookAt( - 2, 0, 0, 1, 1, 0, 0, 2, 5, - 1, 0, 0, Math.random(), true )">move to somewhere between ( -2, 0, 0 ) -> ( 1, 1, 0 ) and ( 0, 2, 5 ) -> ( -1, 0, 0 )</button>
 	<br>
 	<button onclick="cameraControls.reset( true )">reset</button>
 	<button onclick="cameraControls.saveState()">saveState</button>
