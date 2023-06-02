@@ -46,7 +46,6 @@ let _v2: _THREE.Vector2;
 let _v3A: _THREE.Vector3;
 let _v3B: _THREE.Vector3;
 let _v3C: _THREE.Vector3;
-let _v3D: _THREE.Vector3;
 let _cameraDirection: _THREE.Vector3;
 let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
@@ -115,7 +114,6 @@ export class CameraControls extends EventDispatcher {
 		_v3A = new THREE.Vector3();
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
-		_v3D = new THREE.Vector3();
 		_cameraDirection = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
@@ -275,15 +273,18 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	truckSpeed = 2.0;
+
 	/**
 	 * `true` to enable Dolly-in to the mouse cursor coords.
 	 * @category Properties
 	 */
 	dollyToCursor = false;
+
 	/**
 	 * @category Properties
 	 */
 	dragToOffset = false;
+
 	/**
 	 * The same as `.screenSpacePanning` in three.js's OrbitControls.
 	 * @category Properties
@@ -329,6 +330,7 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	mouseButtons: MouseButtons;
+
 	/**
 	 * User's touch input config.
 	 *
@@ -2597,28 +2599,28 @@ export class CameraControls extends EventDispatcher {
 
 				const camera = this._camera;
 				const cameraDirection = this._getCameraDirection( _cameraDirection );
-				const planeX = _v3B.copy( cameraDirection ).cross( camera.up ).normalize();
+				const planeX = _v3A.copy( cameraDirection ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
-				const planeY = _v3C.crossVectors( planeX, cameraDirection );
+				const planeY = _v3B.crossVectors( planeX, cameraDirection );
 				const worldToScreen = this._sphericalEnd.radius * Math.tan( camera.getEffectiveFOV() * DEG2RAD * 0.5 );
 				const prevRadius = this._sphericalEnd.radius - dollyControlAmount;
 				const lerpRatio = ( prevRadius - this._sphericalEnd.radius ) / this._sphericalEnd.radius;
-				const cursor = _v3D.copy( this._targetEnd )
+				const cursor = _v3C.copy( this._targetEnd )
 					.add( planeX.multiplyScalar( this._dollyControlCoord.x * worldToScreen * camera.aspect ) )
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
-				const newTargetEnd = _v3B.copy( this._targetEnd ).lerp( cursor, lerpRatio );
+				const newTargetEnd = _v3A.copy( this._targetEnd ).lerp( cursor, lerpRatio );
 
 				if ( this.infinityDolly ) {
 
 					// replace dollied distance to target position move.
 					this._sphericalEnd.radius -= dollyControlAmount;
 					this._spherical.radius -= dollyControlAmount;
-					const dollyAmount = _v3C.copy( cameraDirection ).multiplyScalar( - dollyControlAmount );
+					const dollyAmount = _v3B.copy( cameraDirection ).multiplyScalar( - dollyControlAmount );
 					newTargetEnd.add( dollyAmount );
 
 				}
 
-				const targetEndDiff = _v3C.subVectors( newTargetEnd, this._targetEnd );
+				const targetEndDiff = _v3B.subVectors( newTargetEnd, this._targetEnd );
 				this._targetEnd.copy( newTargetEnd );
 				this._target.add( targetEndDiff );
 
@@ -2637,9 +2639,9 @@ export class CameraControls extends EventDispatcher {
 					this._dollyControlCoord.x,
 					this._dollyControlCoord.y,
 					( camera.near + camera.far ) / ( camera.near - camera.far )
-				).unproject( camera );//.sub( _v3B.set( this._focalOffset.x, this._focalOffset.y, 0 ) );
-				const quaternion = _v3B.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
-				const cursor = _v3C.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
+				).unproject( camera );
+				const quaternion = _v3A.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
+				const cursor = _v3B.copy( worldCursorPosition ).add( quaternion.multiplyScalar( - worldCursorPosition.dot( camera.up ) ) );
 				const prevZoom = this._zoom - dollyControlAmount;
 				const lerpRatio = - ( prevZoom - this._zoomEnd ) / this._zoom;
 
@@ -2903,10 +2905,18 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	protected _getCameraDirection( out: _THREE.Vector3 ): _THREE.Vector3 {
+	// it's okay to expose public though
+	protected _getTargetDirection( out: _THREE.Vector3 ): _THREE.Vector3 {
 
 		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
-		return out.setFromSpherical( this._spherical ).divideScalar( this._spherical.radius ).applyQuaternion( this._yAxisUpSpaceInverse ).negate();
+		return out.setFromSpherical( this._spherical ).divideScalar( this._spherical.radius ).applyQuaternion( this._yAxisUpSpaceInverse );
+
+	}
+
+	// it's okay to expose public though
+	protected _getCameraDirection( out: _THREE.Vector3 ): _THREE.Vector3 {
+
+		return this._getTargetDirection( out ).negate();
 
 	}
 
@@ -3074,7 +3084,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( this.infinityDolly && ! this.dollyToCursor ) {
 
-			this._targetEnd.sub( this._getCameraDirection( _cameraDirection ).multiplyScalar( distance - lastDistance ) );
+			this._targetEnd.add( this._getTargetDirection( _cameraDirection ).multiplyScalar( distance - lastDistance ) );
 
 		} else {
 
@@ -3119,7 +3129,7 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, '_collisionTest' ) ) return distance;
 
-		const rayDirection = this._getCameraDirection( _cameraDirection ).negate();
+		const rayDirection = this._getTargetDirection( _cameraDirection );
 		_rotationMatrix.lookAt( _ORIGIN, rayDirection, this._camera.up );
 
 		for ( let i = 0; i < 4; i ++ ) {
