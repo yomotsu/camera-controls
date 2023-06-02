@@ -47,6 +47,7 @@ let _v3A: _THREE.Vector3;
 let _v3B: _THREE.Vector3;
 let _v3C: _THREE.Vector3;
 let _v3D: _THREE.Vector3;
+let _cameraDirection: _THREE.Vector3;
 let _xColumn: _THREE.Vector3;
 let _yColumn: _THREE.Vector3;
 let _zColumn: _THREE.Vector3;
@@ -115,6 +116,7 @@ export class CameraControls extends EventDispatcher {
 		_v3B = new THREE.Vector3();
 		_v3C = new THREE.Vector3();
 		_v3D = new THREE.Vector3();
+		_cameraDirection = new THREE.Vector3();
 		_xColumn = new THREE.Vector3();
 		_yColumn = new THREE.Vector3();
 		_zColumn = new THREE.Vector3();
@@ -1704,6 +1706,12 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	dollyInFixed( distance: number ) {
+
+		this._targetEnd.add( this._getCameraDirection( _cameraDirection ).multiplyScalar( distance ) );
+
+	}
+
 	/**
 	 * Zoom in/out camera. The value is added to camera zoom.
 	 * Limits set with `.minZoom` and `.maxZoom`
@@ -2469,10 +2477,10 @@ export class CameraControls extends EventDispatcher {
 
 		// So first find the vector off to the side, orthogonal to both this.object.up and
 		// the "view" vector.
-		const side = _v3B.crossVectors( cameraDirection, this._camera.up ).normalize();
+		const side = _v3B.crossVectors( cameraDirection, this._camera.up );
 		// Then find the vector orthogonal to both this "side" vector and the "view" vector.
 		// This vector will be the new "up" vector.
-		this._camera.up.crossVectors( side, cameraDirection ).normalize();
+		this._camera.up.crossVectors( side, cameraDirection );
 		this._camera.updateMatrixWorld();
 
 		const position = this.getPosition( _v3A );
@@ -2588,7 +2596,7 @@ export class CameraControls extends EventDispatcher {
 				this._changedDolly -= dollyControlAmount;
 
 				const camera = this._camera;
-				const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+				const cameraDirection = this._getCameraDirection( _cameraDirection );
 				const planeX = _v3B.copy( cameraDirection ).cross( camera.up ).normalize();
 				if ( planeX.lengthSq() === 0 ) planeX.x = 1.0;
 				const planeY = _v3C.crossVectors( planeX, cameraDirection );
@@ -2638,7 +2646,7 @@ export class CameraControls extends EventDispatcher {
 				// find the "distance" (aka plane constant in three.js) of Plane
 				// from a given position (this._targetEnd) and normal vector (cameraDirection)
 				// https://www.maplesoft.com/support/help/maple/view.aspx?path=MathApps%2FEquationOfAPlaneNormal#bkmrk0
-				const cameraDirection = _v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).normalize().negate();
+				const cameraDirection = this._getCameraDirection( _cameraDirection );
 				const prevPlaneConstant = this._targetEnd.dot( cameraDirection );
 
 				this._targetEnd.lerp( cursor, lerpRatio );
@@ -2895,6 +2903,12 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	protected _getCameraDirection( out: _THREE.Vector3 ): _THREE.Vector3 {
+
+		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
+		return out.setFromSpherical( this._spherical ).divideScalar( this._spherical.radius ).applyQuaternion( this._yAxisUpSpaceInverse ).negate();
+
+	}
 
 	protected _findPointerById( pointerId: number ): PointerInput | undefined {
 
@@ -3058,20 +3072,20 @@ export class CameraControls extends EventDispatcher {
 		const distance = this._sphericalEnd.radius * dollyScale;
 		const clampedDistance = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
 
-		this.dollyTo( distance, true );
+		if ( this.infinityDolly && ! this.dollyToCursor ) {
 
-		if ( this.dollyToCursor ) {
+			this._targetEnd.sub( this._getCameraDirection( _cameraDirection ).multiplyScalar( distance - lastDistance ) );
 
-			this._changedDolly += clampedDistance - lastDistance;
-			this._dollyControlCoord.set( x, y );
+		} else {
+
+			this.dollyTo( distance, true );
 
 		}
 
-		if ( this.infinityDolly ) {
+		if ( this.dollyToCursor ) {
 
-			const overflowedDistance = clampedDistance - distance;
-			this._camera.getWorldDirection( _v3A );
-			this._targetEnd.add( _v3A.normalize().multiplyScalar( overflowedDistance ) );
+			this._changedDolly += ( this.infinityDolly ? distance : clampedDistance ) - lastDistance;
+			this._dollyControlCoord.set( x, y );
 
 		}
 
@@ -3105,10 +3119,8 @@ export class CameraControls extends EventDispatcher {
 
 		if ( notSupportedInOrthographicCamera( this._camera, '_collisionTest' ) ) return distance;
 
-		// divide by distance to normalize, lighter than `Vector3.prototype.normalize()`
-		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( this._spherical.radius );
-
-		_rotationMatrix.lookAt( _ORIGIN, direction, this._camera.up );
+		const rayDirection = this._getCameraDirection( _cameraDirection ).negate();
+		_rotationMatrix.lookAt( _ORIGIN, rayDirection, this._camera.up );
 
 		for ( let i = 0; i < 4; i ++ ) {
 
@@ -3116,7 +3128,7 @@ export class CameraControls extends EventDispatcher {
 			nearPlaneCorner.applyMatrix4( _rotationMatrix );
 
 			const origin = _v3C.addVectors( this._target, nearPlaneCorner );
-			_raycaster.set( origin, direction );
+			_raycaster.set( origin, rayDirection );
 			_raycaster.far = this._spherical.radius + 1;
 
 			const intersects = _raycaster.intersectObjects( this.colliderMeshes );
