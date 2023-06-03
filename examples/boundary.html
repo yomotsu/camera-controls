@@ -18,6 +18,8 @@
 	<label><input type="checkbox" onchange="cameraControls.boundaryEnclosesCamera = this.checked">Enclose also the camera into the boundary</label>
 	<br>
 	<br>
+	<label><input type="checkbox" onchange="cameraControls.infinityDolly = this.checked">infinity dolly</label>
+	<br>
 	<label><input type="checkbox" onchange="cameraControls.verticalDragToForward = this.checked">vertical drag to move forward</label>
 	<br>
 	<button type="button" onclick="cameraControls.truck( -1, 0, true)">truck( -1, 0 )</button>
@@ -68,7 +70,7 @@ scene.add( bbHelper );
 bbHelper.visible = false;
 
 const centerHelper = new THREE.Mesh(
-	new THREE.SphereGeometry( .05, .05, .05 ),
+	new THREE.SphereGeometry( .05 ),
 	new THREE.MeshBasicMaterial( { color: 0xffff00 } )
 )
 scene.add( centerHelper );

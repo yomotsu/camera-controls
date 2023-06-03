@@ -2626,12 +2626,11 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
+				// target position may be moved beyond boundary.
+				this._boundary.clampPoint( newTargetEnd, newTargetEnd );
 				const targetEndDiff = _v3B.subVectors( newTargetEnd, this._targetEnd );
 				this._targetEnd.copy( newTargetEnd );
 				this._target.add( targetEndDiff );
-
-				// target position may be moved beyond boundary.
-				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
 				this._changedDolly -= dollyControlAmount;
 				if ( approxZero( this._changedDolly ) ) this._changedDolly = 0;
@@ -2657,16 +2656,20 @@ export class CameraControls extends EventDispatcher {
 				const cameraDirection = this._getCameraDirection( _cameraDirection );
 				const prevPlaneConstant = this._targetEnd.dot( cameraDirection );
 
-				this._targetEnd.lerp( cursor, lerpRatio );
-				const newPlaneConstant = this._targetEnd.dot( cameraDirection );
+				const newTargetEnd = _v3A.copy( this._targetEnd ).lerp( cursor, lerpRatio );
+				const newPlaneConstant = newTargetEnd.dot( cameraDirection );
 
 				// Pull back the camera depth that has moved, to be the camera stationary as zoom
 				const pullBack = cameraDirection.multiplyScalar( newPlaneConstant - prevPlaneConstant );
-				this._targetEnd.sub( pullBack );
+				newTargetEnd.sub( pullBack );
 
-				this._target.copy( this._targetEnd );
 				// target position may be moved beyond boundary.
-				this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+				this._boundary.clampPoint( newTargetEnd, newTargetEnd );
+				const targetEndDiff = _v3B.subVectors( newTargetEnd, this._targetEnd );
+				this._targetEnd.copy( newTargetEnd );
+				this._target.add( targetEndDiff );
+
+				// this._target.copy( this._targetEnd );
 
 				this._changedZoom -= dollyControlAmount;
 				if ( approxZero( this._changedZoom ) ) this._changedZoom = 0;
@@ -3079,6 +3082,7 @@ export class CameraControls extends EventDispatcher {
 		if ( this.infinityDolly && ! this.dollyToCursor ) {
 
 			this._targetEnd.add( this._getTargetDirection( _cameraDirection ).multiplyScalar( distance - lastDistance ) );
+			this._boundary.clampPoint( this._targetEnd, this._targetEnd );
 
 		} else {
 
