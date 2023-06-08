@@ -2205,7 +2205,7 @@ export class CameraControls extends EventDispatcher {
 		);
 
 		// see https://github.com/yomotsu/camera-controls/issues/335
-		this._sphericalEnd.phi = clamp( this.polarAngle, this.minPolarAngle, this.maxPolarAngle );
+		this._sphericalEnd.phi = clamp( this._sphericalEnd.phi, this.minPolarAngle, this.maxPolarAngle );
 
 		return promise;
 
