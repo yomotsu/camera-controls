@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div class="info">
+	<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
+	<button onclick="fitToBlue()">fitToBlue</button>
+	<button onclick="fitToGreen()">fitToGreen</button>
+	<button onclick="cameraControls.reset( true )">reset</button><br>
+</div>
+
+<script async src="https://unpkg.com/es-module-shims@1.7.1/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.151.2/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.151.2/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+import CameraControls from './dist/camera-controls.module.js';
+
+CameraControls.install( { THREE: THREE } );
+
+const width = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( width, height );
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.physicallyCorrectLights = true;
+renderer.outputEncoding = THREE.sRGBEncoding;
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+const rect1 = new THREE.Mesh(
+	new THREE.PlaneGeometry( 2, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0x0000ff, transparent: true, opacity: .5, side: THREE.DoubleSide } ),
+);
+rect1.position.set( 2, 0, 3 );
+rect1.rotation.set( Math.PI, - Math.PI / 5, 0 );
+scene.add( rect1, new VertexNormalsHelper( rect1, .5 ) );
+
+
+const rect2 = new THREE.Mesh(
+	new THREE.PlaneGeometry( 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0x00ff00, transparent: true, opacity: .5, side: THREE.DoubleSide } ),
+);
+rect2.position.set( - 2, 2, 0 );
+rect2.rotation.set( Math.PI / 2, Math.PI / 5, 0 );
+scene.add( rect2, new VertexNormalsHelper( rect2, .5 ) );
+
+
+const _centerPosition = new THREE.Vector3();
+const _normal = new THREE.Vector3();
+const _cameraPosition = new THREE.Vector3();
+
+const fitToRect = ( rect ) => {
+
+	const rectWidth = rect.geometry.parameters.width;
+	const rectHeight = rect.geometry.parameters.height;
+
+	rect.updateMatrixWorld();
+	const rectCenterPosition = _centerPosition.copy( rect.position );
+	const rectNormal = _normal.set( 0, 0, 1 ).applyQuaternion( rect.quaternion );
+	const distance = cameraControls.getDistanceToFitBox( rectWidth, rectHeight, 0 );
+	const cameraPosition = _cameraPosition.copy( rectNormal ).multiplyScalar( - distance ).add( rectCenterPosition );
+
+	cameraControls.setLookAt(
+		cameraPosition.x, cameraPosition.y, cameraPosition.z,
+		rectCenterPosition.x, rectCenterPosition.y, rectCenterPosition.z,
+		true,
+	);
+
+}
+
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+
+// make variable available to browser console
+globalThis.cameraControls = cameraControls;
+globalThis.fitToBlue = () => fitToRect( rect1 );
+globalThis.fitToGreen = () => fitToRect( rect2 );
+</script>
+
+</body>
+</html>
