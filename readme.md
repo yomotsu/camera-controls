@@ -18,6 +18,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [fit-and-padding](https://yomotsu.github.io/camera-controls/examples/fit-and-padding.html)
 - [fit-to-rect](https://yomotsu.github.io/camera-controls/examples/fit-to-rect.html)
 - [fit-to-bounding-sphere](https://yomotsu.github.io/camera-controls/examples/fit-to-bounding-sphere.html)
+- [infinity dolly](https://yomotsu.github.io/camera-controls/examples/infinity-dolly.html)
 - [boundary](https://yomotsu.github.io/camera-controls/examples/boundary.html)
 - [focal offset](https://yomotsu.github.io/camera-controls/examples/focal-offset.html)
 - [click to set orbit point](https://yomotsu.github.io/camera-controls/examples/click-to-set-orbit-point.html)
