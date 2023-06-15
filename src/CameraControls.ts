@@ -2363,38 +2363,54 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Returns its current gazing target, which is the center position of the orbit.
-	 * @param out current gazing target
+	 * Returns the orbit center position, where the camera looking at.
+	 * @param out The receiving Vector3 instance to copy the result
+	 * @param receiveEndValue Whether receive the transition end coords or current. default is `true`
 	 * @category Methods
 	 */
-	getTarget( out: _THREE.Vector3 ): _THREE.Vector3 {
+	getTarget( out: _THREE.Vector3, receiveEndValue: boolean = true ): _THREE.Vector3 {
 
 		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
-		return _out.copy( this._targetEnd );
+		return _out.copy( receiveEndValue ? this._targetEnd : this._target );
 
 	}
 
 	/**
-	 * Returns its current position.
-	 * @param out current position
+	 * Returns the camera position.
+	 * @param out The receiving Vector3 instance to copy the result
+	 * @param receiveEndValue Whether receive the transition end coords or current. default is `true`
 	 * @category Methods
 	 */
-	getPosition( out: _THREE.Vector3 ): _THREE.Vector3 {
+	getPosition( out: _THREE.Vector3, receiveEndValue: boolean = true ): _THREE.Vector3 {
 
 		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
-		return _out.setFromSpherical( this._sphericalEnd ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._targetEnd );
+		return _out.setFromSpherical( receiveEndValue ? this._sphericalEnd : this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).add( receiveEndValue ? this._targetEnd : this._target );
 
 	}
 
 	/**
-	 * Returns its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
-	 * @param out current focal offset
+	 * Returns the spherical coordinates of the orbit.
+	 * @param out The receiving Spherical instance to copy the result
+	 * @param receiveEndValue Whether receive the transition end coords or current. default is `true`
 	 * @category Methods
 	 */
-	getFocalOffset( out: _THREE.Vector3 ): _THREE.Vector3 {
+	getSpherical( out: _THREE.Spherical, receiveEndValue: boolean = true ): _THREE.Spherical {
+
+		const _out = !! out && out instanceof THREE.Spherical ? out : new THREE.Spherical() as _THREE.Spherical;
+		return _out.copy( receiveEndValue ? this._sphericalEnd : this._spherical );
+
+	}
+
+	/**
+	 * Returns the focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
+	 * @param out The receiving Vector3 instance to copy the result
+	 * @param receiveEndValue Whether receive the transition end coords or current. default is `true`
+	 * @category Methods
+	 */
+	getFocalOffset( out: _THREE.Vector3, receiveEndValue: boolean = true ): _THREE.Vector3 {
 
 		const _out = !! out && out.isVector3 ? out : new THREE.Vector3() as _THREE.Vector3;
-		return _out.copy( this._focalOffsetEnd );
+		return _out.copy( receiveEndValue ? this._focalOffsetEnd : this._focalOffset );
 
 	}
 
