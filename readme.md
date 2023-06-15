@@ -595,33 +595,47 @@ Same as [`setViewport( vector4 )`](#setviewport-vector4-|-null-), but you can gi
 
 ---
 
-#### `getPosition( out )`
+#### `getTarget( out, receiveEndValue )`
 
-Returns its current position.
+Returns the orbit center position, where the camera looking at.
 
-| Name  | Type            | Description |
-| ----- | --------------- | ----------- |
-| `out` | `THREE.Vector3` | The receiving vector |
-
----
-
-#### `getTarget( out )`
-
-Returns its current gazing target, which is the center position of the orbit.
-
-| Name  | Type            | Description |
-| ----- | --------------- | ----------- |
-| `out` | `THREE.Vector3` | The receiving vector |
+| Name              | Type            | Description |
+| ----------------- | --------------- | ----------- |
+| `out`             | `THREE.Vector3` | The receiving Vector3 instance to copy the result |
+| `receiveEndValue` | `boolean`       | Whether receive the transition end coords or current. default is `true` |
 
 ---
 
-#### `getFocalOffset( out )`
+#### `getPosition( out, receiveEndValue )`
 
-Returns its current focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
+Returns the camera position.
 
-| Name  | Type            | Description |
-| ----- | --------------- | ----------- |
-| `out` | `THREE.Vector3` | The receiving vector |
+| Name              | Type            | Description |
+| ----------------- | --------------- | ----------- |
+| `out`             | `THREE.Vector3` | The receiving Vector3 instance to copy the result |
+| `receiveEndValue` | `boolean`       | Whether receive the transition end coords or current. default is `true` |
+
+---
+
+#### `getSpherical( out, receiveEndValue )`
+
+Returns the spherical coordinates of the orbit.
+
+| Name              | Type            | Description |
+| ----------------- | --------------- | ----------- |
+| `out`             | `THREE.Vector3` | The receiving Spherical instance to copy the result |
+| `receiveEndValue` | `boolean`       | Whether receive the transition end coords or current. default is `true` |
+
+---
+
+#### `getFocalOffset( out, receiveEndValue )`
+
+Returns the focal offset, which is how much the camera appears to be translated in screen parallel coordinates.
+
+| Name              | Type            | Description |
+| ----------------- | --------------- | ----------- |
+| `out`             | `THREE.Vector3` | The receiving Vector3 instance to copy the result |
+| `receiveEndValue` | `boolean`       | Whether receive the transition end coords or current. default is `true` |
 
 ---
 
