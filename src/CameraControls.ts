@@ -216,7 +216,6 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	infinityDolly = false;
-	protected _lastDollyDirection: DOLLY_DIRECTION = 0; // 1: dollyIn, - 1: dollyOut
 
 	/**
 	 * Minimum camera zoom.
@@ -431,6 +430,7 @@ export class CameraControls extends EventDispatcher {
 	protected _isUserControllingTruck: boolean = false;
 	protected _isUserControllingOffset: boolean = false;
 	protected _isUserControllingZoom: boolean = false;
+	protected _lastDollyDirection: DOLLY_DIRECTION = DOLLY_DIRECTION.NONE;
 
 	// velocities for smoothDamp
 	protected _thetaVelocity: Ref = { value: 0 };
@@ -1675,14 +1675,14 @@ export class CameraControls extends EventDispatcher {
 	 */
 	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
 
+		this._isUserControllingDolly = false;
+		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
+		this._changedDolly = 0;
 		return this._dollyToNoClamp( clamp( distance, this.minDistance, this.maxDistance ), enableTransition );
 
 	}
 
 	protected _dollyToNoClamp( distance: number, enableTransition: boolean = false ): Promise<void> {
-
-		this._isUserControllingDolly = false;
-		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
 
 		const lastRadius = this._sphericalEnd.radius;
 		const hasCollider = this.colliderMeshes.length >= 1;
@@ -2086,6 +2086,7 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
 		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
+		this._changedDolly = 0;
 
 		const target = _v3B.set( targetX, targetY, targetZ );
 		const position = _v3A.set( positionX, positionY, positionZ );
@@ -2145,6 +2146,7 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
 		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
+		this._changedDolly = 0;
 
 		const targetA = _v3A.set( targetAX, targetAY, targetAZ );
 		const positionA = _v3B.set( positionAX, positionAY, positionAZ );
