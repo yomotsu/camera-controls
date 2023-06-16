@@ -4,6 +4,7 @@ import {
 	Ref,
 	MOUSE_BUTTON,
 	ACTION,
+	DOLLY_DIRECTION,
 	PointerInput,
 	MouseButtons,
 	Touches,
@@ -215,7 +216,7 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	infinityDolly = false;
-	protected _lastDollyDirection = 0; // 1: dollyIn, - 1: dollyOut
+	protected _lastDollyDirection: DOLLY_DIRECTION = 0; // 1: dollyIn, - 1: dollyOut
 
 	/**
 	 * Minimum camera zoom.
@@ -1681,7 +1682,7 @@ export class CameraControls extends EventDispatcher {
 	protected _dollyToNoClamp( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._isUserControllingDolly = false;
-		this._lastDollyDirection = 0;
+		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
 
 		const lastRadius = this._sphericalEnd.radius;
 		const hasCollider = this.colliderMeshes.length >= 1;
@@ -2084,7 +2085,7 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
-		this._lastDollyDirection = 0;
+		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
 
 		const target = _v3B.set( targetX, targetY, targetZ );
 		const position = _v3A.set( positionX, positionY, positionZ );
@@ -2143,7 +2144,7 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
-		this._lastDollyDirection = 0;
+		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
 
 		const targetA = _v3A.set( targetAX, targetAY, targetAZ );
 		const positionA = _v3B.set( positionAX, positionAY, positionAZ );
@@ -2653,8 +2654,8 @@ export class CameraControls extends EventDispatcher {
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
 				const newTargetEnd = _v3A.copy( this._targetEnd ).lerp( cursor, lerpRatio );
 
-				const isMin = this._lastDollyDirection === 1 && this._spherical.radius <= this.minDistance;
-				const isMax = this._lastDollyDirection === - 1 && this.maxDistance <= this._spherical.radius;
+				const isMin = this._lastDollyDirection === DOLLY_DIRECTION.IN && this._spherical.radius <= this.minDistance;
+				const isMax = this._lastDollyDirection === DOLLY_DIRECTION.OUT && this.maxDistance <= this._spherical.radius;
 
 				if ( this.infinityDolly && ( isMin || isMax ) ) {
 
@@ -3141,7 +3142,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		this._lastDollyDirection = Math.sign( - delta );
+		this._lastDollyDirection = Math.sign( - delta ) as DOLLY_DIRECTION;
 
 	};
 
