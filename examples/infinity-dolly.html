@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>=^.^=</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="info">
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<p>If you enable infinityDolly, you must set min and max distance as well.</p>
+	<label><input type="checkbox" onchange="cameraControls.dollyToCursor = this.checked" checked>dolly to cursor</label><br>
+	<label><input type="checkbox" onchange="cameraControls.infinityDolly = this.checked" checked>infinity dolly</label><br>
+	<label><input type="radio" name="range" onchange="setRange( 0 )">distance: min: 5, max: 5</label><br>
+	<label><input type="radio" name="range" onchange="setRange( 1 )" checked>distance: min: 3, max: 7</label><br>
+	<label><input type="radio" name="range" onchange="setRange( 2 )">distance: min: 1, max: 10</label>
+	<br>
+	<button onclick="cameraControls.dolly(   1, true )">dolly  1</button>
+	<button onclick="cameraControls.dolly( - 1, true )">dolly -1</button><br>
+	<button onclick="cameraControls.dollyInFixed(   1, true )">dollyInFixed  1</button>
+	<button onclick="cameraControls.dollyInFixed( - 1, true )">dollyInFixed -1</button>
+	<br>
+	<button onclick="cameraControls.reset( true )">reset</button>
+</div>
+
+<script async src="https://unpkg.com/es-module-shims@1.7.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.153.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.153.0/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import CameraControls from './dist/camera-controls.module.js';
+CameraControls.install( { THREE: THREE } );
+
+const width = window.innerWidth;
+const height = window.innerHeight;
+const clock = new THREE.Clock();
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+camera.position.set( 0, 0, 5 );
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+const cameraControls = new CameraControls( camera, renderer.domElement );
+cameraControls.infinityDolly = true;
+cameraControls.dollyToCursor = true;
+setRange( 1 );
+
+const mesh = new THREE.Mesh(
+	new THREE.BoxGeometry( 1, 1, 1 ),
+	new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
+);
+scene.add( mesh );
+
+const centerHelper = new THREE.Mesh(
+	new THREE.SphereGeometry( .05 ),
+	new THREE.MeshBasicMaterial( { color: 0xffff00 } )
+)
+scene.add( centerHelper );
+
+const gridHelper = new THREE.GridHelper( 50, 50 );
+gridHelper.position.y = - 1;
+scene.add( gridHelper );
+
+renderer.render( scene, camera );
+
+( function anim () {
+
+	const delta = clock.getDelta();
+	const elapsed = clock.getElapsedTime();
+	const updated = cameraControls.update( delta );
+
+	// if ( elapsed > 30 ) { return; }
+
+	requestAnimationFrame( anim );
+
+	if ( updated ) {
+
+		cameraControls.getTarget( centerHelper.position, false );
+		renderer.render( scene, camera );
+		console.log( 'rendered' );
+
+	}
+
+} )();
+
+document.querySelectorAll( '.info input' )[ 1 ].addEventListener( 'change', ( event ) => {
+
+	const enabled = event.target.checked;
+	document.querySelectorAll( '.info input[name="range"]' ).forEach( ( inputEl ) =>{
+
+		inputEl.checked = false;
+		inputEl.disabled = ! enabled;
+		cameraControls.minDistance = 0;
+		cameraControls.maxDistance = Infinity;
+
+	} );
+
+} );
+
+function setRange ( type ) {
+
+	cameraControls.dollyTo( 5, true );
+
+	if ( type === 0 ) {
+
+		cameraControls.minDistance = 5;
+		cameraControls.maxDistance = 5;
+
+	} else if ( type === 1 ) {
+
+		cameraControls.minDistance = 3;
+		cameraControls.maxDistance = 7;
+
+	} else if ( type === 2 ) {
+
+		cameraControls.minDistance = 1;
+		cameraControls.maxDistance = 30;
+
+	}
+
+}
+
+// make variable available to browser console
+globalThis.THREE = THREE;
+globalThis.camera = camera;
+globalThis.cameraControls = cameraControls;
+globalThis.setRange = setRange;
+</script>
+
+</body>
+</html>

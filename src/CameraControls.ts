@@ -4,6 +4,7 @@ import {
 	Ref,
 	MOUSE_BUTTON,
 	ACTION,
+	DOLLY_DIRECTION,
 	PointerInput,
 	MouseButtons,
 	Touches,
@@ -210,8 +211,8 @@ export class CameraControls extends EventDispatcher {
 	maxDistance = Infinity;
 
 	/**
-	 * `true` to enable Infinity Dolly.  
-	 * When the Dolly distance is less than the `minDistance`, radius of the sphere will be set `minDistance` automatically.
+	 * `true` to enable Infinity Dolly for wheel and pinch. Use this with `minDistance` and `maxDistance`  
+	 * If the Dolly distance is less (or over) than the `minDistance` (or `maxDistance`), `infinityDolly` will keep the distance and pushes the target position instead.
 	 * @category Properties
 	 */
 	infinityDolly = false;
@@ -429,6 +430,7 @@ export class CameraControls extends EventDispatcher {
 	protected _isUserControllingTruck: boolean = false;
 	protected _isUserControllingOffset: boolean = false;
 	protected _isUserControllingZoom: boolean = false;
+	protected _lastDollyDirection: DOLLY_DIRECTION = DOLLY_DIRECTION.NONE;
 
 	// velocities for smoothDamp
 	protected _thetaVelocity: Ref = { value: 0 };
@@ -1674,24 +1676,30 @@ export class CameraControls extends EventDispatcher {
 	dollyTo( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._isUserControllingDolly = false;
+		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
+		this._changedDolly = 0;
+		return this._dollyToNoClamp( clamp( distance, this.minDistance, this.maxDistance ), enableTransition );
+
+	}
+
+	protected _dollyToNoClamp( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		const lastRadius = this._sphericalEnd.radius;
-		const newRadius = clamp( distance, this.minDistance, this.maxDistance );
 		const hasCollider = this.colliderMeshes.length >= 1;
 
 		if ( hasCollider ) {
 
 			const maxDistanceByCollisionTest = this._collisionTest();
 			const isCollided = approxEquals( maxDistanceByCollisionTest, this._spherical.radius );
-			const isDollyIn = lastRadius > newRadius;
+			const isDollyIn = lastRadius > distance;
 
 			if ( ! isDollyIn && isCollided ) return Promise.resolve();
 
-			this._sphericalEnd.radius = Math.min( newRadius, maxDistanceByCollisionTest );
+			this._sphericalEnd.radius = Math.min( distance, maxDistanceByCollisionTest );
 
 		} else {
 
-			this._sphericalEnd.radius = newRadius;
+			this._sphericalEnd.radius = distance;
 
 		}
 
@@ -1715,9 +1723,21 @@ export class CameraControls extends EventDispatcher {
 	 * @param enableTransition Whether to move smoothly or immediately.
 	 * @category Methods
 	 */
-	dollyInFixed( distance: number ) {
+	dollyInFixed( distance: number, enableTransition: boolean = false ): Promise<void> {
 
 		this._targetEnd.add( this._getCameraDirection( _cameraDirection ).multiplyScalar( distance ) );
+
+		if ( ! enableTransition ) {
+
+			this._target.copy( this._targetEnd );
+
+		}
+
+		const resolveImmediately = ! enableTransition ||
+			approxEquals( this._target.x, this._targetEnd.x, this.restThreshold ) &&
+			approxEquals( this._target.y, this._targetEnd.y, this.restThreshold ) &&
+			approxEquals( this._target.z, this._targetEnd.z, this.restThreshold );
+		return this._createOnRestPromise( resolveImmediately );
 
 	}
 
@@ -2065,6 +2085,8 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
+		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
+		this._changedDolly = 0;
 
 		const target = _v3B.set( targetX, targetY, targetZ );
 		const position = _v3A.set( positionX, positionY, positionZ );
@@ -2123,6 +2145,8 @@ export class CameraControls extends EventDispatcher {
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
 		this._isUserControllingTruck = false;
+		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
+		this._changedDolly = 0;
 
 		const targetA = _v3A.set( targetAX, targetAY, targetAZ );
 		const positionA = _v3B.set( positionAX, positionAY, positionAZ );
@@ -2632,9 +2656,11 @@ export class CameraControls extends EventDispatcher {
 					.add( planeY.multiplyScalar( this._dollyControlCoord.y * worldToScreen ) );
 				const newTargetEnd = _v3A.copy( this._targetEnd ).lerp( cursor, lerpRatio );
 
-				if ( this.infinityDolly ) {
+				const isMin = this._lastDollyDirection === DOLLY_DIRECTION.IN && this._spherical.radius <= this.minDistance;
+				const isMax = this._lastDollyDirection === DOLLY_DIRECTION.OUT && this.maxDistance <= this._spherical.radius;
 
-					// replace dollied distance to target position move.
+				if ( this.infinityDolly && ( isMin || isMax ) ) {
+
 					this._sphericalEnd.radius -= dollyControlAmount;
 					this._spherical.radius -= dollyControlAmount;
 					const dollyAmount = _v3B.copy( cameraDirection ).multiplyScalar( - dollyControlAmount );
@@ -3094,15 +3120,20 @@ export class CameraControls extends EventDispatcher {
 		const lastDistance = this._sphericalEnd.radius;
 		const distance = this._sphericalEnd.radius * dollyScale;
 		const clampedDistance = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
+		const overflowedDistance = clampedDistance - distance;
 
-		if ( this.infinityDolly && ! this.dollyToCursor ) {
+		if ( this.infinityDolly && this.dollyToCursor ) {
 
-			this._targetEnd.add( this._getTargetDirection( _cameraDirection ).multiplyScalar( distance - lastDistance ) );
-			this._boundary.clampPoint( this._targetEnd, this._targetEnd );
+			this._dollyToNoClamp( distance, true );
+
+		} else if ( this.infinityDolly && ! this.dollyToCursor ) {
+
+			this.dollyInFixed( overflowedDistance, true );
+			this._dollyToNoClamp( clampedDistance, true );
 
 		} else {
 
-			this.dollyTo( distance, true );
+			this._dollyToNoClamp( clampedDistance, true );
 
 		}
 
@@ -3112,6 +3143,8 @@ export class CameraControls extends EventDispatcher {
 			this._dollyControlCoord.set( x, y );
 
 		}
+
+		this._lastDollyDirection = Math.sign( - delta ) as DOLLY_DIRECTION;
 
 	};
 

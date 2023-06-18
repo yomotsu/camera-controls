@@ -88,6 +88,13 @@ export interface Touches {
 	three: multiTouchAction;
 }
 
+export const DOLLY_DIRECTION = {
+	NONE: 0,
+	IN: 1,
+	OUT: - 1,
+} as const;
+export type DOLLY_DIRECTION = typeof DOLLY_DIRECTION[ keyof typeof DOLLY_DIRECTION ];
+
 export interface FitToOptions {
 	cover: boolean;
 	paddingLeft  : number;
