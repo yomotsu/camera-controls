@@ -211,8 +211,8 @@ export class CameraControls extends EventDispatcher {
 	maxDistance = Infinity;
 
 	/**
-	 * `true` to enable Infinity Dolly.  
-	 * When the Dolly distance is less than the `minDistance`, radius of the sphere will be set `minDistance` automatically.
+	 * `true` to enable Infinity Dolly for wheel and pinch. Use this with `minDistance` and `maxDistance`  
+	 * If the Dolly distance is less (or over) than the `minDistance` (or `maxDistance`), `infinityDolly` will keep the distance and pushes the target position instead.
 	 * @category Properties
 	 */
 	infinityDolly = false;

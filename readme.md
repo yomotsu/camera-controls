@@ -186,7 +186,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
   `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.  
   **Tip**: [How to normalize accumulated azimuthAngle?](#tips)
 2. Be aware colliderMeshes may decrease performance. The collision test uses 4 raycasters from the camera since the near plane has 4 corners.
-3. To use `infinityDolly`, you must set `minDistance` and `maxDistance` too. `infinityDolly` will keep the distance and pushes the target position, If the dolly attempts beyond the min/max distance.
+3. If the Dolly distance is less (or over) than the `minDistance` (or `maxDistance`), `infinityDolly` will keep the distance and pushes the target position instead.
 
 ## Events
 
