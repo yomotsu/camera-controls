@@ -1548,7 +1548,7 @@ export class CameraControls extends EventDispatcher {
 	 * e.g. `{ x: 0, y: 0, width: 1, height: 1 }` for entire area.
 	 * @category Properties
 	 */
-	set interactiveArea( interactiveArea: { x: number, y: number, width: number, height: number } ) {
+	set interactiveArea( interactiveArea: DOMRect | { x: number, y: number, width: number, height: number } ) {
 
 		this._interactiveArea.width = clamp( interactiveArea.width, 0, 1 );
 		this._interactiveArea.height = clamp( interactiveArea.height, 0, 1 );
