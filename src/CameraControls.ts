@@ -421,6 +421,7 @@ export class CameraControls extends EventDispatcher {
 	protected _isDragging = false;
 	protected _activePointers: PointerInput[] = [];
 	protected _lockedPointer: PointerInput | null = null;
+	protected _interactiveArea = new DOMRect( 0, 0, 1, 1 );
 
 	// Use draggingSmoothTime over smoothTime while true.
 	// set automatically true on user-dragging start.
@@ -544,6 +545,27 @@ export class CameraControls extends EventDispatcher {
 
 			if ( ! this._enabled || ! this._domElement ) return;
 
+			if (
+				this._interactiveArea.left !== 0 ||
+				this._interactiveArea.top !== 0 ||
+				this._interactiveArea.width !== 1 ||
+				this._interactiveArea.height !== 1
+			) {
+
+				const elRect = this._domElement.getBoundingClientRect();
+				const left = event.clientX / elRect.width;
+				const top = event.clientY / elRect.height;
+
+				// check if the interactiveArea contains the drag start position.
+				if (
+					left < this._interactiveArea.left ||
+					left > this._interactiveArea.right ||
+					top < this._interactiveArea.top ||
+					top > this._interactiveArea.bottom
+				) return;
+
+			}
+
 			// Don't call `event.preventDefault()` on the pointerdown event
 			// to keep receiving pointermove evens outside dragging iframe
 			// https://taye.me/blog/tips/2015/11/16/mouse-drag-outside-iframe/
@@ -589,6 +611,27 @@ export class CameraControls extends EventDispatcher {
 		const onMouseDown = ( event: MouseEvent ) => {
 
 			if ( ! this._enabled || ! this._domElement || this._lockedPointer ) return;
+
+			if (
+				this._interactiveArea.left !== 0 ||
+				this._interactiveArea.top !== 0 ||
+				this._interactiveArea.width !== 1 ||
+				this._interactiveArea.height !== 1
+			) {
+
+				const elRect = this._domElement.getBoundingClientRect();
+				const left = event.clientX / elRect.width;
+				const top = event.clientY / elRect.height;
+
+				// check if the interactiveArea contains the drag start position.
+				if (
+					left < this._interactiveArea.left ||
+					left > this._interactiveArea.right ||
+					top < this._interactiveArea.top ||
+					top > this._interactiveArea.bottom
+				) return;
+
+			}
 
 			const mouseButton =
 				( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ? MOUSE_BUTTON.LEFT :
@@ -796,7 +839,29 @@ export class CameraControls extends EventDispatcher {
 
 		const onMouseWheel = ( event: WheelEvent ): void => {
 
+			if ( ! this._domElement ) return;
 			if ( ! this._enabled || this.mouseButtons.wheel === ACTION.NONE ) return;
+
+			if (
+				this._interactiveArea.left !== 0 ||
+				this._interactiveArea.top !== 0 ||
+				this._interactiveArea.width !== 1 ||
+				this._interactiveArea.height !== 1
+			) {
+
+				const elRect = this._domElement.getBoundingClientRect();
+				const left = event.clientX / elRect.width;
+				const top = event.clientY / elRect.height;
+
+				// check if the interactiveArea contains the drag start position.
+				if (
+					left < this._interactiveArea.left ||
+					left > this._interactiveArea.right ||
+					top < this._interactiveArea.top ||
+					top > this._interactiveArea.bottom
+				) return;
+
+			}
 
 			event.preventDefault();
 
@@ -1474,6 +1539,21 @@ export class CameraControls extends EventDispatcher {
 
 		this._boundaryEnclosesCamera = boundaryEnclosesCamera;
 		this._needsUpdate = true;
+
+	}
+
+	/**
+	 * Set drag-start, touches and wheel enable area in the domElement.  
+	 * each values are between 0 and 1 inclusive, where 0 is left/top and 1 is right/bottom of the screen.  
+	 * e.g. `{ x: 0, y: 0, width: 1, height: 1 }` for entire area.
+	 * @category Properties
+	 */
+	set interactiveArea( interactiveArea: { x: number, y: number, width: number, height: number } ) {
+
+		this._interactiveArea.width = clamp( interactiveArea.width, 0, 1 );
+		this._interactiveArea.height = clamp( interactiveArea.height, 0, 1 );
+		this._interactiveArea.x = clamp( interactiveArea.x, 0, 1 - this._interactiveArea.width );
+		this._interactiveArea.y = clamp( interactiveArea.x, 0, 1 - this._interactiveArea.height );
 
 	}
 
