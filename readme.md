@@ -179,6 +179,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.verticalDragToForward`  | `boolean` | `false`     | The same as `.screenSpacePanning` in three.js's OrbitControls. |
 | `.dollyToCursor`          | `boolean` | `false`     | `true` to enable Dolly-in to the mouse cursor coords. |
 | `.dollyDragInverted`      | `boolean` | `false`     | `true` to invert direction when dollying or zooming via drag. |
+| `.interactiveArea`        | `DOMRect` | N/A         | Set drag-start, touches and wheel enable area in the domElement. each values are between `0` and `1` inclusive, where `0` is left/top and `1` is right/bottom of the screen. |
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ². |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly for wheel and pinch. Use this with `minDistance` and `maxDistance` ³. |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |

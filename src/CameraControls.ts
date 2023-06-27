@@ -1544,7 +1544,7 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * Set drag-start, touches and wheel enable area in the domElement.  
-	 * each values are between 0 and 1 inclusive, where 0 is left/top and 1 is right/bottom of the screen.  
+	 * each values are between `0` and `1` inclusive, where `0` is left/top and `1` is right/bottom of the screen.  
 	 * e.g. `{ x: 0, y: 0, width: 1, height: 1 }` for entire area.
 	 * @category Properties
 	 */
