@@ -46,11 +46,18 @@ const _rotationMatrix = new THREE.Matrix4();
 
 class CustomCameraControls extends CameraControls {
 
+	constructor( camera, domElement ) {
+
+		super( camera, domElement );
+		this.octree = new Octree();
+
+	}
+
 	_collisionTest() {
 
-		if ( ! this.octree ) return;
-
 		let distance = Infinity;
+
+		if ( ! this.octree ) return distance;
 
 		const direction = _v3A.setFromSpherical( this._spherical ).divideScalar( this._spherical.radius );
 		_rotationMatrix.lookAt( _ORIGIN, direction, this._camera.up );
@@ -131,7 +138,6 @@ colliderMesh3.position.set( 0, 0, - 3 );
 scene.add( colliderMesh3 );
 
 // make collider octree for the camera
-cameraControls.octree = new Octree();
 cameraControls.octree.fromGraphNode( scene );
 
 const helper = new OctreeHelper( cameraControls.octree );
