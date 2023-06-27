@@ -24,6 +24,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 - [click to set orbit point](https://yomotsu.github.io/camera-controls/examples/click-to-set-orbit-point.html)
 - [look in the point direction](https://yomotsu.github.io/camera-controls/examples/look-in-direction.html)
 - [viewport within the canvas](https://yomotsu.github.io/camera-controls/examples/viewport.html)
+- [multiple camera-controls and viewport](https://yomotsu.github.io/camera-controls/examples/multiple.html)
 - [z-up camera](https://yomotsu.github.io/camera-controls/examples/camera-up.html)
 - [orthographic](https://yomotsu.github.io/camera-controls/examples/orthographic.html)
 - [event attach / detach](https://yomotsu.github.io/camera-controls/examples/event-attach.html)
