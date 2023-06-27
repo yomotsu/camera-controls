@@ -1775,6 +1775,7 @@ export class CameraControls extends EventDispatcher {
 		}
 
 		const resolveImmediately = ! enableTransition || approxEquals( this._zoom, this._zoomEnd, this.restThreshold );
+		this._changedZoom = 0;
 		return this._createOnRestPromise( resolveImmediately );
 
 	}
