@@ -350,6 +350,13 @@ export class CameraControls extends EventDispatcher {
 	touches: Touches;
 
 	/**
+	 * Disable internal preventDefault if the user's gesture reached the limits of the camera move.
+	 * Currently only works for wheel events.
+	 * @category Properties
+	 */
+	releaseEventOnEdges: boolean = false;
+
+	/**
 	 * Force cancel user dragging.
 	 * @category Methods
 	 */
@@ -863,8 +870,6 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
-			event.preventDefault();
-
 			if (
 				this.dollyToCursor ||
 				this.mouseButtons.wheel === ACTION.ROTATE ||
@@ -884,6 +889,7 @@ export class CameraControls extends EventDispatcher {
 			const delta = ( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor : event.deltaY / ( deltaYFactor * 10 );
 			const x = this.dollyToCursor ? ( event.clientX - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 			const y = this.dollyToCursor ? ( event.clientY - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
+			let preventDefault = true;
 
 			switch ( this.mouseButtons.wheel ) {
 
@@ -915,6 +921,10 @@ export class CameraControls extends EventDispatcher {
 
 					this._dollyInternal( - delta, x, y );
 					this._isUserControllingDolly = true;
+
+					if ( this.releaseEventOnEdges && delta > 0 && approxEquals( this.minDistance, this._sphericalEnd.radius ) ) preventDefault = false;
+					if ( this.releaseEventOnEdges && delta < 0 && approxEquals( this.maxDistance, this._sphericalEnd.radius ) ) preventDefault = false;
+
 					break;
 
 				}
@@ -923,12 +933,17 @@ export class CameraControls extends EventDispatcher {
 
 					this._zoomInternal( - delta, x, y );
 					this._isUserControllingZoom = true;
+
+					if ( this.releaseEventOnEdges && delta > 0 && approxEquals( this.minZoom, this._zoom ) ) preventDefault = false;
+					if ( this.releaseEventOnEdges && delta < 0 && approxEquals( this.maxZoom, this._zoom ) ) preventDefault = false;
+
 					break;
 
 				}
 
 			}
 
+			preventDefault && event.preventDefault();
 			this.dispatchEvent( { type: 'control' } );
 
 		};
