@@ -119,6 +119,7 @@ const subsetOfTHREE = {
 	Box3      : Box3,
 	Sphere    : Sphere,
 	Raycaster : Raycaster,
+	MathUtils : MathUtils,
 };
 
 CameraControls.install( { THREE: subsetOfTHREE } );
