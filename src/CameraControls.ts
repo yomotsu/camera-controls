@@ -3200,7 +3200,7 @@ export class CameraControls extends EventDispatcher {
 		const dollyScale = Math.pow( 0.95, - delta * this.dollySpeed );
 		const lastDistance = this._sphericalEnd.radius;
 		const distance = this._sphericalEnd.radius * dollyScale;
-		const clampedDistance = THREE.MathUtils.clamp( distance, this.minDistance, this.maxDistance );
+		const clampedDistance = clamp( distance, this.minDistance, this.maxDistance );
 		const overflowedDistance = clampedDistance - distance;
 
 		if ( this.infinityDolly && this.dollyToCursor ) {
