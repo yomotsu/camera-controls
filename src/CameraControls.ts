@@ -2610,7 +2610,7 @@ export class CameraControls extends EventDispatcher {
 		const side = _v3B.crossVectors( cameraDirection, this._camera.up );
 		// Then find the vector orthogonal to both this "side" vector and the "view" vector.
 		// This vector will be the new "up" vector.
-		this._camera.up.crossVectors( side, cameraDirection );
+		this._camera.up.crossVectors( side, cameraDirection ).normalize();
 		this._camera.updateMatrixWorld();
 
 		const position = this.getPosition( _v3A );
