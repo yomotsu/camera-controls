@@ -52,7 +52,7 @@ function init() {
 	cameraControls = new CameraControls( camera, renderer.domElement );
 
 	mesh = new THREE.Mesh(
-		new THREE.BoxBufferGeometry( 1, 1, 1 ),
+		new THREE.BoxGeometry( 1, 1, 1 ),
 		new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } )
 	);
 	scene.add( mesh );
