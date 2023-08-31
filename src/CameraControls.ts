@@ -2992,6 +2992,7 @@ export class CameraControls extends EventDispatcher {
 
 		domElement.setAttribute( 'data-camera-controls-version', VERSION );
 		this._addAllEventListeners( domElement );
+		this._getClientRect( this._elementRect );
 
 	}
 
