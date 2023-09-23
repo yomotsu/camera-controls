@@ -41,53 +41,50 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize( width, height );
 document.body.appendChild( renderer.domElement );
 
+const MOUSE_BUTTON = {
+	LEFT: 1,
+	RIGHT: 2,
+	MIDDLE: 4,
+}
+const ACTION = CameraControls.ACTION
+
 const cameraControls = new CameraControls( camera, renderer.domElement );
 
-// switch the behavior by the modifier key press
-const keyState = {
-	shiftRight  : false,
-	shiftLeft   : false,
-	controlRight: false,
-	controlLeft : false,
-};
+const originalFunction = cameraControls.mouseEventToAction
 
-const updateConfig = () => {
+cameraControls.mouseEventToAction = event => {
 
-	if ( keyState.shiftRight || keyState.shiftLeft ) {
+	if ( event instanceof WheelEvent ) {
 
-		cameraControls.mouseButtons.left = CameraControls.ACTION.TRUCK;
-
-	} else if ( keyState.controlRight || keyState.controlLeft ) {
-
-		cameraControls.mouseButtons.left = CameraControls.ACTION.DOLLY;
-
-	} else {
-
-		cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+		return originalFunction(event);
 
 	}
 
-}
+	if ( event instanceof MouseEvent ) {
 
-document.addEventListener( 'keydown', ( event ) => {
+		if ( ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
 
-	if ( event.code === 'ShiftRight'   ) keyState.shiftRight   = true;
-	if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = true;
-	if ( event.code === 'ControlRight' ) keyState.controlRight = true;
-	if ( event.code === 'ControlLeft'  ) keyState.controlLeft  = true;
-	updateConfig();
+			if (event.shiftKey) {
 
-} );
+				return ACTION.TRUCK;
 
-document.addEventListener( 'keyup', ( event ) => {
+			}
 
-	if ( event.code === 'ShiftRight'   ) keyState.shiftRight   = false;
-	if ( event.code === 'ShiftLeft'    ) keyState.shiftLeft    = false;
-	if ( event.code === 'ControlRight' ) keyState.controlRight = false;
-	if ( event.code === 'ControlLeft'  ) keyState.controlLeft  = false;
-	updateConfig();
+			if (event.ctrlKey) {
 
-} );
+				return ACTION.DOLLY;
+
+			}
+
+			return ACTION.ROTATE;
+
+		}
+
+	}
+
+	return originalFunction(event);
+
+};
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),

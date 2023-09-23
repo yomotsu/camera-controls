@@ -314,23 +314,20 @@ export class CameraControls extends EventDispatcher {
 	// button configs
 	/**
 	 * User's mouse input config.
+	 * @param MouseEvent or undefined. Can be a click event, wheel event, or contextmenu event.
+	 * @returns CameraControls.ACTION (ROTATE, TRUCK, OFFSET, DOLLY, ZOOM, NONE)
 	 *
-	 * | button to assign      | behavior |
-	 * | --------------------- | -------- |
-	 * | `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 * | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 * | `mouseButtons.wheel` ¹ | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 * | `mouseButtons.middle` ² | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY`* \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 *
-	 * 1. Mouse wheel event for scroll "up/down" on mac "up/down/left/right"
-	 * 2. Mouse click on wheel event "button"
-	 * - \* is the default.
-	 * - The default of `mouseButtons.wheel` is:
+	 * - The default of `WheelEvent` is:
 	 *   - `DOLLY` for Perspective camera.
 	 *   - `ZOOM` for Orthographic camera, and can't set `DOLLY`.
-	 * @category Properties
+	 * - The default for other `MouseEvent`s is:
+	 *   - `ROTATE` if left button is pressed, otherwise
+	 *   - `ZOOM` if middle button is pressed, otherwise
+	 *   - `TRUCK` if right button is pressed
+	 * - The default is `ROTATE` if event is undefined
+	 * @category Methods
 	 */
-	mouseButtons: MouseButtons;
+	mouseEventToAction: ( e?: Event ) => ACTION;
 
 	/**
 	 * User's touch input config.
@@ -518,14 +515,40 @@ export class CameraControls extends EventDispatcher {
 		this._dollyControlCoord = new THREE.Vector2();
 
 		// configs
-		this.mouseButtons = {
-			left: ACTION.ROTATE,
-			middle: ACTION.DOLLY,
-			right: ACTION.TRUCK,
-			wheel:
-				isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
-				isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
-				ACTION.NONE,
+		this.mouseEventToAction = ( event: Event | undefined ) => {
+
+			if ( event instanceof WheelEvent ) {
+
+				return isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
+					isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
+					ACTION.NONE;
+
+			}
+
+			if ( event instanceof MouseEvent ) {
+
+				if ( ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
+
+					return ACTION.ROTATE;
+
+				}
+
+				if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
+
+					return ACTION.DOLLY;
+
+				}
+
+				if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
+
+					return ACTION.TRUCK;
+
+				}
+
+			}
+
+			return ACTION.ROTATE;
+
 		};
 
 		this.touches = {
@@ -714,22 +737,9 @@ export class CameraControls extends EventDispatcher {
 
 				if (
 					( ! this._isDragging && this._lockedPointer ) ||
-					this._isDragging && ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT
-				) {
+					this._isDragging && ( event.buttons & MOUSE_BUTTON.ALL ) > 0 ) {
 
-					this._state = this._state | this.mouseButtons.left;
-
-				}
-
-				if ( this._isDragging && ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
-
-					this._state = this._state | this.mouseButtons.middle;
-
-				}
-
-				if ( this._isDragging && ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
-
-					this._state = this._state | this.mouseButtons.right;
+					this._state = this._state | this.mouseEventToAction( event );
 
 				}
 
@@ -754,22 +764,10 @@ export class CameraControls extends EventDispatcher {
 
 			if (
 				this._lockedPointer ||
-				( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT
+				( event.buttons & MOUSE_BUTTON.ALL ) > 0
 			) {
 
-				this._state = this._state | this.mouseButtons.left;
-
-			}
-
-			if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
-
-				this._state = this._state | this.mouseButtons.middle;
-
-			}
-
-			if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
-
-				this._state = this._state | this.mouseButtons.right;
+				this._state = this._state | this.mouseEventToAction( event );
 
 			}
 
@@ -839,8 +837,10 @@ export class CameraControls extends EventDispatcher {
 
 		const onMouseWheel = ( event: WheelEvent ): void => {
 
+			const action = this.mouseEventToAction( event );
+
 			if ( ! this._domElement ) return;
-			if ( ! this._enabled || this.mouseButtons.wheel === ACTION.NONE ) return;
+			if ( ! this._enabled || action === ACTION.NONE ) return;
 
 			if (
 				this._interactiveArea.left !== 0 ||
@@ -867,8 +867,8 @@ export class CameraControls extends EventDispatcher {
 
 			if (
 				this.dollyToCursor ||
-				this.mouseButtons.wheel === ACTION.ROTATE ||
-				this.mouseButtons.wheel === ACTION.TRUCK
+				action === ACTION.ROTATE ||
+				action === ACTION.TRUCK
 			) {
 
 				const now = performance.now();
@@ -885,7 +885,7 @@ export class CameraControls extends EventDispatcher {
 			const x = this.dollyToCursor ? ( event.clientX - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 			const y = this.dollyToCursor ? ( event.clientY - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
-			switch ( this.mouseButtons.wheel ) {
+			switch ( action ) {
 
 				case ACTION.ROTATE: {
 
@@ -939,7 +939,7 @@ export class CameraControls extends EventDispatcher {
 
 			// contextmenu event is fired right after pointerdown/mousedown.
 			// remove attached handlers and active pointer, if interrupted by contextmenu.
-			if ( this.mouseButtons.right === CameraControls.ACTION.NONE ) {
+			if ( this.mouseEventToAction( event ) === CameraControls.ACTION.NONE ) {
 
 				const pointerId =
 					event instanceof PointerEvent ? event.pointerId :
@@ -996,7 +996,7 @@ export class CameraControls extends EventDispatcher {
 
 			if ( ! event ) {
 
-				if ( this._lockedPointer ) this._state = this._state | this.mouseButtons.left;
+				if ( this._lockedPointer ) this._state = this._state | this.mouseEventToAction( event );
 
 			} else if ( 'pointerType' in event && event.pointerType === 'touch' ) {
 
@@ -1019,25 +1019,11 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-			} else {
+			} else if ( ! this._lockedPointer && ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ||
+				( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ||
+				( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
 
-				if ( ! this._lockedPointer && ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
-
-					this._state = this._state | this.mouseButtons.left;
-
-				}
-
-				if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
-
-					this._state = this._state | this.mouseButtons.middle;
-
-				}
-
-				if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
-
-					this._state = this._state | this.mouseButtons.right;
-
-				}
+				this._state = this._state | this.mouseEventToAction( event );
 
 			}
 
@@ -1554,6 +1540,48 @@ export class CameraControls extends EventDispatcher {
 		this._interactiveArea.height = clamp( interactiveArea.height, 0, 1 );
 		this._interactiveArea.x = clamp( interactiveArea.x, 0, 1 - this._interactiveArea.width );
 		this._interactiveArea.y = clamp( interactiveArea.x, 0, 1 - this._interactiveArea.height );
+
+	}
+
+	/**
+	 * Convert mouse configuration object into computed configuration function which accepts
+	 * an Event parameter.
+	 */
+	set mouseButtons( config: MouseButtons ) {
+
+		this.mouseEventToAction = ( event: Event | undefined ) => {
+
+			if ( event instanceof WheelEvent ) {
+
+				return config.wheel;
+
+			}
+
+			if ( event instanceof MouseEvent ) {
+
+				if ( ( event.buttons & MOUSE_BUTTON.LEFT ) === MOUSE_BUTTON.LEFT ) {
+
+					return config.left;
+
+				}
+
+				if ( ( event.buttons & MOUSE_BUTTON.MIDDLE ) === MOUSE_BUTTON.MIDDLE ) {
+
+					return config.middle;
+
+				}
+
+				if ( ( event.buttons & MOUSE_BUTTON.RIGHT ) === MOUSE_BUTTON.RIGHT ) {
+
+					return config.right;
+
+				}
+
+			}
+
+			return ACTION.ROTATE;
+
+		};
 
 	}
 
