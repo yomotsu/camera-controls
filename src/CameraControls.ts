@@ -376,6 +376,8 @@ export class CameraControls extends EventDispatcher {
 	protected _yAxisUpSpaceInverse: _THREE.Quaternion;
 	protected _state: ACTION = ACTION.NONE;
 
+	protected _invertYAxis = false;
+
 	protected _domElement?: HTMLElement;
 	protected _viewport: _THREE.Vector4 | null = null;
 
@@ -685,7 +687,7 @@ export class CameraControls extends EventDispatcher {
 			pointer.clientX = event.clientX;
 			pointer.clientY = event.clientY;
 			pointer.deltaX = event.movementX;
-			pointer.deltaY = event.movementY;
+			pointer.deltaY = (this._invertYAxis) ? - event.movementY : event.movementY;
 
 			this._state = 0;
 
@@ -748,7 +750,8 @@ export class CameraControls extends EventDispatcher {
 			pointer.clientX = event.clientX;
 			pointer.clientY = event.clientY;
 			pointer.deltaX = event.movementX;
-			pointer.deltaY = event.movementY;
+			pointer.deltaY = (this._invertYAxis) ? - event.movementY : event.movementY;
+
 
 			this._state = 0;
 
@@ -2146,6 +2149,10 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	invertLookYAxis(value?: boolean) {
+		this._invertYAxis = value || !this._invertYAxis;
+	}
+
 	/**
 	 * Look at the `target` from the `position`.
 	 * @param positionX
@@ -3020,7 +3027,7 @@ export class CameraControls extends EventDispatcher {
 	dispose(): void {
 
 		// remove all user event listeners
-		this.removeAllEventListeners();
+		this._removeAllEventListeners();
 		// remove all internal event listeners
 		this.disconnect();
 
