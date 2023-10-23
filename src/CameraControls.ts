@@ -419,6 +419,7 @@ export class CameraControls extends EventDispatcher {
 	protected _elementRect = new DOMRect();
 
 	protected _isDragging = false;
+	protected _dragNeedsUpdate = true;
 	protected _activePointers: PointerInput[] = [];
 	protected _lockedPointer: PointerInput | null = null;
 	protected _interactiveArea = new DOMRect( 0, 0, 1, 1 );
@@ -1112,7 +1113,8 @@ export class CameraControls extends EventDispatcher {
 
 		const dragging = (): void => {
 
-			if ( ! this._enabled ) return;
+			if ( ! this._enabled || ! this._dragNeedsUpdate ) return;
+			this._dragNeedsUpdate = false;
 
 			extractClientCoordFromEvent( this._activePointers, _v2 );
 
@@ -1231,6 +1233,8 @@ export class CameraControls extends EventDispatcher {
 
 			extractClientCoordFromEvent( this._activePointers, _v2 );
 			lastDragPosition.copy( _v2 );
+
+			this._dragNeedsUpdate = false;
 
 			if (
 				this._activePointers.length === 0 ||
@@ -2809,6 +2813,8 @@ export class CameraControls extends EventDispatcher {
 			this._needsUpdate = true;
 
 		}
+
+		this._dragNeedsUpdate = true;
 
 		// collision detection
 		const maxDistance = this._collisionTest();
