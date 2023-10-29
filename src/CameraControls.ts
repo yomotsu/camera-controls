@@ -1557,7 +1557,7 @@ export class CameraControls extends EventDispatcher {
 		this._interactiveArea.width = clamp( interactiveArea.width, 0, 1 );
 		this._interactiveArea.height = clamp( interactiveArea.height, 0, 1 );
 		this._interactiveArea.x = clamp( interactiveArea.x, 0, 1 - this._interactiveArea.width );
-		this._interactiveArea.y = clamp( interactiveArea.x, 0, 1 - this._interactiveArea.height );
+		this._interactiveArea.y = clamp( interactiveArea.y, 0, 1 - this._interactiveArea.height );
 
 	}
 
