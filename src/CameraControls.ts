@@ -1976,7 +1976,7 @@ export class CameraControls extends EventDispatcher {
 
 		const point = _v3A.set( x, y, z );
 		const direction = point.sub( this._targetEnd ).normalize();
-		const position = direction.multiplyScalar( - this._sphericalEnd.radius );
+		const position = direction.multiplyScalar( - this._sphericalEnd.radius ).add( this._targetEnd );
 		return this.setPosition( position.x, position.y, position.z, enableTransition );
 
 	}
