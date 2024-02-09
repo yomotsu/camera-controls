@@ -23,6 +23,7 @@ export const MOUSE_BUTTON = {
 	LEFT: 1,
 	RIGHT: 2,
 	MIDDLE: 4,
+	ALL: 7,
 } as const;
 export type MOUSE_BUTTON = typeof MOUSE_BUTTON[ keyof typeof MOUSE_BUTTON ];
 
