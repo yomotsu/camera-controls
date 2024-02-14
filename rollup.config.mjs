@@ -14,13 +14,6 @@ export default {
 	input: 'src/index.ts',
 	output: [
 		{
-			format: 'umd',
-			name: 'CameraControls',
-			file: pkg.main,
-			banner: license,
-			indent: '\t',
-		},
-		{
 			format: 'es',
 			file: pkg.module,
 			banner: license,

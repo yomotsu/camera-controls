@@ -42,7 +42,7 @@
     "dev:rollup": "rollup --config --watch",
     "dev:serve": "serve -S -p 3000 ./ && kill $!",
     "dev:open": "open-cli http://localhost:3000/examples/",
-    "build": "rollup --config && terser dist/camera-controls.js -o dist/camera-controls.min.js --comments '/^!/' && downlevel-dts . .",
+    "build": "rollup --config && terser dist/camera-controls.module.js -o dist/camera-controls.module.min.js --comments '/^!/' && downlevel-dts . .",
     "prepack": "npm run build",
     "lint": "eslint src --ext ts",
     "typedoc": "typedoc",
