@@ -65,12 +65,19 @@ self.onmessage = ( { data } ) => {
 
 		}
 
-		case 'pointerdown':
+		case 'pointerdown': {
+
+			const { event } = payload;
+			pseudoElement.dispatchEvent( { type: action, ...event } );
+			break;
+
+		}
+
 		case 'pointermove':
 		case 'pointerup': {
 
 			const { event } = payload;
-			pseudoElement.dispatchEvent( { type: action, ...event } );
+			pseudoElement.ownerDocument.dispatchEvent( { type: action, ...event } );
 			break;
 
 		}
