@@ -995,7 +995,7 @@ export class CameraControls extends EventDispatcher {
 
 			// When pointer lock is enabled clientX, clientY, screenX, and screenY remain 0.
 			// If pointer lock is enabled, use the Delta directory, and assume active-pointer is not multiple.
-			const isPointerLockActive = this._domElement && document.pointerLockElement === this._domElement;
+			const isPointerLockActive = this._domElement && this._domElement.ownerDocument.pointerLockElement === this._domElement;
 			const lockedPointer = isPointerLockActive ? this._lockedPointer || this._activePointers[ 0 ] : null;
 			const deltaX = lockedPointer ? - lockedPointer.deltaX : lastDragPosition.x - _v2.x;
 			const deltaY = lockedPointer ? - lockedPointer.deltaY : lastDragPosition.y - _v2.y;
@@ -1173,13 +1173,11 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
-			document.exitPointerLock();
+			this._domElement?.ownerDocument.exitPointerLock();
+			this._domElement?.ownerDocument.removeEventListener( 'pointerlockchange', onPointerLockChange );
+			this._domElement?.ownerDocument.removeEventListener( 'pointerlockerror', onPointerLockError );
 
 			this.cancel();
-
-			if ( ! this._domElement ) return;
-			this._domElement.ownerDocument.removeEventListener( 'pointerlockchange', onPointerLockChange );
-			this._domElement.ownerDocument.removeEventListener( 'pointerlockerror', onPointerLockError );
 
 		};
 
