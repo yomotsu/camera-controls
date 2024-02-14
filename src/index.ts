@@ -1,2 +1,2 @@
-import { CameraControls } from './CameraControls';
-export default CameraControls;
+export { CameraControls as default } from './CameraControls';
+export { EventDispatcher } from './EventDispatcher';
