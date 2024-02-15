@@ -3,7 +3,7 @@
   "version": "0.0.0-semantic-release",
   "author": "Yomotsu",
   "license": "MIT",
-  "main": "dist/camera-controls.js",
+  "main": "dist/camera-controls.module.js",
   "jsnext:main": "dist/camera-controls.module.js",
   "module": "dist/camera-controls.module.js",
   "types": "dist/index.d.ts",
