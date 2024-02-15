@@ -6,6 +6,9 @@ CameraControls.install( { THREE } );
 
 // DOM element doesn't exist in WebWorker. use a virtual element in CameraControls instead.
 const pseudoElement = new PseudoElement();
+let scene;
+let camera;
+let renderer;
 let cameraControls;
 
 self.onmessage = ( { data } ) => {
@@ -16,17 +19,17 @@ self.onmessage = ( { data } ) => {
 
 		case 'init': {
 
-			const { canvas, left, top, width, height } = payload;
+			const { canvas, x, y, width, height } = payload;
 			canvas.style = { width: '', height: '' };
 
 			const clock = new THREE.Clock();
-			const scene = new THREE.Scene();
-			const camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera( 60, width / height, 0.01, 100 );
 			camera.position.set( 0, 0, 5 );
-			const renderer = new THREE.WebGLRenderer( { canvas } );
+			renderer = new THREE.WebGLRenderer( { canvas } );
 			renderer.setSize( width, height );
 
-			pseudoElement.update( { left, top, width, height } );
+			pseudoElement.update( x, y, width, height );
 			cameraControls = new CameraControls( camera, pseudoElement, self );
 			cameraControls.addEventListener( 'controlend', () => self.postMessage( { action: 'controlend' } ) );
 
@@ -61,6 +64,18 @@ self.onmessage = ( { data } ) => {
 
 			} )();
 
+			break;
+
+		}
+
+		case 'resize': {
+
+			const { x, y, width, height } = payload;
+			pseudoElement.update( x, y, width, height );
+			renderer.setSize( width, height );
+			camera.aspect = width / height;
+			camera.updateProjectionMatrix();
+			renderer.render( scene, camera );
 			break;
 
 		}

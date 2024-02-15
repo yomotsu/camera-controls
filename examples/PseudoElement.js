@@ -47,14 +47,17 @@ export class PseudoElement extends EventDispatcher {
 
 	/**
 	 * Updates the PseudoElement size based on a given bound.
-	 * @param {DOMRect} bound The new bound.
+	 * @param {number} x The new bound x.
+	 * @param {number} y The new bound y.
+	 * @param {number} width The new bound width.
+	 * @param {number} height The new bound height.
 	 */
-	update( bound ) {
+	update( x, y, width, height ) {
 
-		this._domRect.x = bound.x;
-		this._domRect.y = bound.y;
-		this._domRect.width = bound.width;
-		this._domRect.height = bound.height;
+		this._domRect.x = x;
+		this._domRect.y = y;
+		this._domRect.width = width;
+		this._domRect.height = height;
 
 	}
 

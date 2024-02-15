@@ -8,91 +8,106 @@
 </head>
 <body>
 <div class="info">
-  <p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
-  <button id="resetButton">reset</button>
+	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
+	<button id="resetButton">reset</button>
 </div>
 
 <canvas></canvas>
 
 <script type="module">
 const canvas = document.querySelector( 'canvas' );
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const canvasBounds = canvas.getBoundingClientRect();
 const offscreenCanvas = canvas.transferControlToOffscreen();
-
 const worker = new Worker( './worker.js', { type: 'module' } );
+
+const { x, y } = canvas.getBoundingClientRect();
 worker.postMessage( {
-  action: 'init',
-  payload: {
-    canvas: offscreenCanvas,
-    left: canvasBounds.left,
-    top: canvasBounds.top,
-    width: canvasBounds.width,
-    height: canvasBounds.height,
-  } },
-  [ offscreenCanvas ]
+	action: 'init',
+	payload: {
+		canvas: offscreenCanvas,
+		x,
+		y,
+		width: window.innerWidth,
+		height: window.innerHeight,
+	} },
+	[ offscreenCanvas ]
 );
+
+const onResize = () => {
+
+	const { x, y } = canvas.getBoundingClientRect();
+
+	worker.postMessage( {
+		action: 'resize',
+		payload: {
+			x,
+			y,
+			width: window.innerWidth,
+			height: window.innerHeight,
+		}
+	} );
+
+};
+
+window.addEventListener( 'resize', onResize );
 
 const onPointerDown = ( event ) => {
 
-  const pseudoPointerEvent = {
-    pointerId: event.pointerId,
-    pointerType: event.pointerType,
-    clientX: event.clientX,
-    clientY: event.clientY,
-    buttons: event.buttons,
-  };
+	const pseudoPointerEvent = {
+		pointerId: event.pointerId,
+		pointerType: event.pointerType,
+		clientX: event.clientX,
+		clientY: event.clientY,
+		buttons: event.buttons,
+	};
 
-  canvas.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } );
-  canvas.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+	canvas.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } );
+	canvas.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
 
-  canvas.ownerDocument.addEventListener( 'pointermove', onPointerMove, { passive: false } );
-  canvas.ownerDocument.addEventListener( 'pointerup', onPointerUp );
+	canvas.ownerDocument.addEventListener( 'pointermove', onPointerMove, { passive: false } );
+	canvas.ownerDocument.addEventListener( 'pointerup', onPointerUp );
 
-  worker.postMessage( { action: 'pointerdown', payload: { event: pseudoPointerEvent } } );
+	worker.postMessage( { action: 'pointerdown', payload: { event: pseudoPointerEvent } } );
 
 };
 
 const onPointerMove = ( event ) => {
 
-  if ( event.cancelable ) event.preventDefault();
+	if ( event.cancelable ) event.preventDefault();
 
-  const pseudoPointerEvent = {
-    pointerId: event.pointerId,
-    pointerType: event.pointerType,
-    clientX: event.clientX,
-    clientY: event.clientY,
-    movementX: event.movementX,
-    movementY: event.movementY,
-    buttons: event.buttons,
-  }
+	const pseudoPointerEvent = {
+		pointerId: event.pointerId,
+		pointerType: event.pointerType,
+		clientX: event.clientX,
+		clientY: event.clientY,
+		movementX: event.movementX,
+		movementY: event.movementY,
+		buttons: event.buttons,
+	}
 
-  worker.postMessage( { action: 'pointermove', payload: { event: pseudoPointerEvent } } );
+	worker.postMessage( { action: 'pointermove', payload: { event: pseudoPointerEvent } } );
 
 };
 
 const onPointerUp = ( event ) => {
 
-  const pseudoPointerEvent = {
-    pointerId: event.pointerId,
-    pointerType: event.pointerType,
-  };
+	const pseudoPointerEvent = {
+		pointerId: event.pointerId,
+		pointerType: event.pointerType,
+	};
 
-  worker.postMessage( { action: 'pointerup', payload: { event: pseudoPointerEvent } } );
+	worker.postMessage( { action: 'pointerup', payload: { event: pseudoPointerEvent } } );
 
 }
 
 const endDragging = () => {
 
-  canvas.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } );
-  canvas.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+	canvas.ownerDocument.removeEventListener( 'pointermove', onPointerMove, { passive: false } );
+	canvas.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
 
 };
 
 worker.addEventListener( 'message', ( { data } ) => data?.action === 'controlend' && endDragging() );
 canvas.addEventListener( 'pointerdown', onPointerDown );
-
 
 resetButton.addEventListener( 'click', () => worker.postMessage( { action: 'reset' } ) );
 
