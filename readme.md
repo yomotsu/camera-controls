@@ -540,7 +540,7 @@ Similar to `setLookAt`, but it interpolates between two states.
 #### `setPosition( positionX, positionY, positionZ, enableTransition )`
 
 Set angle and distance by given position.
-An alias of 1setLookAt()1, without target change. Thus keep gazing at the current target
+An alias of `setLookAt()`, without target change. Thus keep gazing at the current target
 
 | Name               | Type      | Description |
 | ------------------ | --------- | ----------- |
