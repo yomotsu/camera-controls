@@ -3222,7 +3222,7 @@ export class CameraControls extends EventDispatcher {
 
 	// Applies and resets focal offsets to play nice with lookAt and zoom-to-cursor
 	// https://github.com/yomotsu/camera-controls/issues/491
-	_resetFocalOffsets() {
+	protected _resetFocalOffsets() {
 
 			_v3A.set( 0, 0, -1 ).applyQuaternion( this._camera.quaternion );
 			_v3A.multiplyScalar( this._spherical.radius );
