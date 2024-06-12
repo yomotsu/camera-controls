@@ -1984,10 +1984,10 @@ export class CameraControls extends EventDispatcher {
 	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): Promise<void[]> {
 
 		const promises: Promise<void>[] = [];
-		const isSphere = 'isSphere' in sphereOrMesh;
-		const boundingSphere = isSphere ?
-			_sphere.copy( sphereOrMesh as _THREE.Sphere ) :
-			CameraControls.createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere );
+		const isObject3D = 'isObject3D' in sphereOrMesh;
+		const boundingSphere = isObject3D ?
+			CameraControls.createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere ) :
+			_sphere.copy( sphereOrMesh as _THREE.Sphere );
 
 		promises.push( this.moveTo(
 			boundingSphere.center.x,
