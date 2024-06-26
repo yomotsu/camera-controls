@@ -53,7 +53,7 @@ A camera control for three.js, similar to THREE.OrbitControls yet supports smoot
 
 ## Usage
 
-(The below code is for three.js users. If you use react-three-fiber (aka R3F), r3f-ready camera-controls is available on [@react-three/drei](https://www.npmjs.com/package/@react-three/drei)
+(The below code is for three.js users. If you use react-three-fiber (aka R3F), r3f-ready camera-controls is available on [@react-three/drei](https://github.com/pmndrs/drei#cameracontrols)
 
 ```javascript
 import * as THREE from 'three';
