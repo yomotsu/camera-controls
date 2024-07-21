@@ -8,10 +8,11 @@ import {
 	PointerInput,
 	MouseButtons,
 	Touches,
-	FitToOptions,
 	CameraControlsEventMap,
 	isPerspectiveCamera,
 	isOrthographicCamera,
+	FitToSphereOptions,
+	FitToBoxOptions,
 } from './types';
 import {
 	PI_2,
@@ -1867,7 +1868,7 @@ export class CameraControls extends EventDispatcher {
 		paddingRight = 0,
 		paddingBottom = 0,
 		paddingTop = 0
-	}: Partial<FitToOptions> = {} ): Promise<void[]> {
+	}: Partial<FitToBoxOptions> = {} ): Promise<void[]> {
 
 		const promises: Promise<void>[] = [];
 		const aabb = ( box3OrObject as _THREE.Box3 ).isBox3
@@ -1979,15 +1980,20 @@ export class CameraControls extends EventDispatcher {
 	 * Fit the viewport to the sphere or the bounding sphere of the object.
 	 * @param sphereOrMesh
 	 * @param enableTransition
+	 * @param options | `<object>` { scale: number }
 	 * @category Methods
 	 */
-	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean ): Promise<void[]> {
+	fitToSphere( sphereOrMesh: _THREE.Sphere | _THREE.Object3D, enableTransition: boolean, {
+		scale = 1
+	}: Partial<FitToSphereOptions> = {} ): Promise<void[]> {
 
 		const promises: Promise<void>[] = [];
 		const isObject3D = 'isObject3D' in sphereOrMesh;
 		const boundingSphere = isObject3D ?
 			CameraControls.createBoundingSphere( sphereOrMesh as _THREE.Object3D, _sphere ) :
 			_sphere.copy( sphereOrMesh as _THREE.Sphere );
+
+		boundingSphere.radius /= scale;
 
 		promises.push( this.moveTo(
 			boundingSphere.center.x,

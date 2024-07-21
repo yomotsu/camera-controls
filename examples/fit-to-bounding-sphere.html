@@ -12,6 +12,8 @@
 <div class="info">
 	<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
 	<button onclick="fit()">fit</button>
+	<button onclick="fit(0.5)">fit with scale 0.5</button>
+	<button onclick="fit(1.2)">fit with scale 1.2</button>
 	<button onclick="cameraControls.reset( true )">reset</button><br>
 </div>
 
@@ -74,9 +76,17 @@ new GLTFLoader().load( './rubber-duck.glb', function ( gltf ) {
 	scene.add( gltf.scene );
 	scene.add( sphereHelper );
 
-	window.fit = function() {
+	window.fit = function( scale ) {
 
-		cameraControls.fitToSphere( gltf.scene, true );
+		if( typeof scale === 'number' ) {
+
+			cameraControls.fitToSphere( gltf.scene, true, { scale } );
+
+		} else {
+
+			cameraControls.fitToSphere( gltf.scene, true );
+
+		}
 
 	}
 

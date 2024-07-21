@@ -487,7 +487,7 @@ set `cover: true` to fill enter screen.
 
 ---
 
-#### `fitToSphere( sphereOrMesh, enableTransition )`
+#### `fitToSphere( sphereOrMesh, enableTransition, { scale } )`
 
 Fit the viewport to the sphere or the bounding sphere of the object.
 
@@ -495,6 +495,8 @@ Fit the viewport to the sphere or the bounding sphere of the object.
 | ------------------ | ------------------------------ | ----------- |
 | `sphereOrMesh`     | `THREE.Sphere` \| `THREE.Mesh` | bounding sphere to fit the view. |
 | `enableTransition` | `boolean`                      | Whether to move smoothly or immediately |
+| `options`          | `object`                       | Options |
+| `options.scale`    | `number`                       | View scale. Default is `1` |
 
 ---
 

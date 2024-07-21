@@ -95,12 +95,16 @@ export const DOLLY_DIRECTION = {
 } as const;
 export type DOLLY_DIRECTION = typeof DOLLY_DIRECTION[ keyof typeof DOLLY_DIRECTION ];
 
-export interface FitToOptions {
+export interface FitToBoxOptions {
 	cover: boolean;
 	paddingLeft  : number;
 	paddingRight : number;
 	paddingBottom: number;
 	paddingTop   : number;
+}
+
+export interface FitToSphereOptions {
+	scale: number;
 }
 
 export interface CameraControlsEventMap {
