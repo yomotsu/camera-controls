@@ -655,6 +655,10 @@ Normalize camera azimuth angle rotation between 0 and 360 degrees.
 
 ---
 
+#### `stop()`
+
+Cancel and stop all transitions.
+
 #### `reset( enableTransition )`
 
 Reset all rotation and position to default.

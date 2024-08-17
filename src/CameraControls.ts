@@ -2402,6 +2402,15 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	stop() {
+
+		this._focalOffset.copy( this._focalOffsetEnd );
+		this._target.copy( this._targetEnd );
+		this._spherical.copy( this._sphericalEnd );
+		this._zoom = this._zoomEnd;
+
+	}
+
 	/**
 	 * Reset all rotation and position to defaults.
 	 * @param enableTransition
