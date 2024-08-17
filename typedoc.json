@@ -1,6 +1,6 @@
 {
 	"includeVersion": true,
-	"markedOptions": {
+	"markdownItOptions": {
 		"breaks": true
 	},
 	"entryPoints": ["./src/CameraControls.ts"],
