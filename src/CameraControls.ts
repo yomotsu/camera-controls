@@ -2402,6 +2402,9 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+	/**
+	 * stop all transitions.
+	 */
 	stop() {
 
 		this._focalOffset.copy( this._focalOffsetEnd );

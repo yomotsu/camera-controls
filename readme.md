@@ -643,6 +643,12 @@ Returns the focal offset, which is how much the camera appears to be translated 
 
 ---
 
+#### `stop()`
+
+stop all transitions.
+
+---
+
 #### `saveState()`
 
 Set current camera position as the default position
@@ -652,12 +658,6 @@ Set current camera position as the default position
 #### `normalizeRotations()`
 
 Normalize camera azimuth angle rotation between 0 and 360 degrees.
-
----
-
-#### `stop()`
-
-Cancel and stop all transitions.
 
 #### `reset( enableTransition )`
 
