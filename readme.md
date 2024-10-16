@@ -627,7 +627,7 @@ Returns the spherical coordinates of the orbit.
 
 | Name              | Type            | Description |
 | ----------------- | --------------- | ----------- |
-| `out`             | `THREE.Vector3` | The receiving Spherical instance to copy the result |
+| `out`             | `THREE.Spherical` | The receiving Spherical instance to copy the result |
 | `receiveEndValue` | `boolean`       | Whether receive the transition end coords or current. default is `true` |
 
 ---
