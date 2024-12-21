@@ -27,23 +27,27 @@ export const MOUSE_BUTTON = {
 export type MOUSE_BUTTON = typeof MOUSE_BUTTON[ keyof typeof MOUSE_BUTTON ];
 
 export const ACTION = Object.freeze( {
-	NONE: 0,
-	ROTATE: 1,
-	TRUCK: 2,
-	OFFSET: 4,
-	DOLLY: 8,
-	ZOOM: 16,
-	TOUCH_ROTATE: 32,
-	TOUCH_TRUCK: 64,
-	TOUCH_OFFSET: 128,
-	TOUCH_DOLLY: 256,
-	TOUCH_ZOOM: 512,
-	TOUCH_DOLLY_TRUCK: 1024,
-	TOUCH_DOLLY_OFFSET: 2048,
-	TOUCH_DOLLY_ROTATE: 4096,
-	TOUCH_ZOOM_TRUCK: 8192,
-	TOUCH_ZOOM_OFFSET: 16384,
-	TOUCH_ZOOM_ROTATE: 32768,
+	NONE:                   0b0,
+	ROTATE:                 0b1,
+	TRUCK:                  0b10,
+	SCREEN_PAN:             0b100,
+	OFFSET:                 0b1000,
+	DOLLY:                  0b10000,
+	ZOOM:                   0b100000,
+	TOUCH_ROTATE:           0b1000000,
+	TOUCH_TRUCK:            0b10000000,
+	TOUCH_SCREEN_PAN:       0b100000000,
+	TOUCH_OFFSET:           0b1000000000,
+	TOUCH_DOLLY:            0b10000000000,
+	TOUCH_ZOOM:             0b100000000000,
+	TOUCH_DOLLY_TRUCK:      0b1000000000000,
+	TOUCH_DOLLY_SCREEN_PAN: 0b10000000000000,
+	TOUCH_DOLLY_OFFSET:     0b100000000000000,
+	TOUCH_DOLLY_ROTATE:     0b1000000000000000,
+	TOUCH_ZOOM_TRUCK:       0b10000000000000000,
+	TOUCH_ZOOM_OFFSET:      0b100000000000000000,
+	TOUCH_ZOOM_SCREEN_PAN:  0b1000000000000000000,
+	TOUCH_ZOOM_ROTATE:      0b10000000000000000000,
 } as const );
 
 // Bit OR of Action
@@ -58,9 +62,16 @@ export interface PointerInput {
 	mouseButton: MOUSE_BUTTON | null;
 }
 
-type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
-type mouseWheelAction  = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
-type singleTouchAction = typeof ACTION.TOUCH_ROTATE | typeof ACTION.TOUCH_TRUCK | typeof ACTION.TOUCH_OFFSET | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
+type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.SCREEN_PAN | typeof ACTION.OFFSET  | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
+type mouseWheelAction  = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.SCREEN_PAN | typeof ACTION.OFFSET  | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
+type singleTouchAction =
+	typeof ACTION.TOUCH_ROTATE |
+	typeof ACTION.TOUCH_TRUCK |
+	typeof ACTION.TOUCH_SCREEN_PAN |
+	typeof ACTION.TOUCH_OFFSET |
+	typeof ACTION.DOLLY |
+	typeof ACTION.ZOOM |
+	typeof ACTION.NONE;
 type multiTouchAction =
 	typeof ACTION.TOUCH_DOLLY_ROTATE |
 	typeof ACTION.TOUCH_DOLLY_TRUCK |
@@ -72,6 +83,7 @@ type multiTouchAction =
 	typeof ACTION.TOUCH_ZOOM |
 	typeof ACTION.TOUCH_ROTATE |
 	typeof ACTION.TOUCH_TRUCK |
+	typeof ACTION.TOUCH_SCREEN_PAN |
 	typeof ACTION.TOUCH_OFFSET |
 	typeof ACTION.NONE;
 
