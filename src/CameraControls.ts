@@ -2745,7 +2745,6 @@ export class CameraControls extends EventDispatcher {
 			! approxZero( this._focalOffset.z );
 		if ( affectOffset ) {
 
-			this._camera.updateMatrixWorld();
 			_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
 			_yColumn.setFromMatrixColumn( this._camera.matrix, 1 );
 			_zColumn.setFromMatrixColumn( this._camera.matrix, 2 );
@@ -2756,6 +2755,7 @@ export class CameraControls extends EventDispatcher {
 			_v3A.copy( _xColumn ).add( _yColumn ).add( _zColumn );
 			this._camera.position.add( _v3A );
 
+			this._camera.updateMatrixWorld();
 		}
 
 		if ( this._boundaryEnclosesCamera ) {
