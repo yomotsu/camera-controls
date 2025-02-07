@@ -3068,8 +3068,8 @@ export class CameraControls extends EventDispatcher {
 
 			const camera = this._camera;
 
-			truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / this._elementRect.width;
-			pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / this._elementRect.height;
+			truckX    = this.truckSpeed * deltaX * ( camera.right - camera.left   ) / camera.zoom / this._elementRect.width;
+			pedestalY = this.truckSpeed * deltaY * ( camera.top   - camera.bottom ) / camera.zoom / this._elementRect.height;
 
 		} else {
 
