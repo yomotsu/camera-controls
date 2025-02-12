@@ -29,6 +29,12 @@ jobs:
               echo "released=true" >> "$GITHUB_OUTPUT"
 
               npm run typedoc
+
+              # Remove any unnecessary files or directories that might contain symlinks or large files
+              # For example, remove node_modules from 'examples' to avoid copying symlinks
+              rm -rf examples/node_modules
+
+              # Copy only the required content to the docs folder
               cp -rf dist examples docs
           fi
         env:
