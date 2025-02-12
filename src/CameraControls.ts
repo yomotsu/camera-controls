@@ -284,12 +284,6 @@ export class CameraControls extends EventDispatcher {
 	dragToOffset = false;
 
 	/**
-	 * The same as `.screenSpacePanning` in three.js's OrbitControls.
-	 * @category Properties
-	 */
-	verticalDragToForward = false;
-
-	/**
 	 * Friction ratio of the boundary.
 	 * @category Properties
 	 */
@@ -778,7 +772,15 @@ export class CameraControls extends EventDispatcher {
 
 				case ACTION.TRUCK: {
 
-					this._truckInternal( event.deltaX, event.deltaY, false );
+					this._truckInternal( event.deltaX, event.deltaY, false, false );
+					this._isUserControllingTruck = true;
+					break;
+
+				}
+
+				case ACTION.SCREEN_PAN: {
+
+					this._truckInternal( event.deltaX, event.deltaY, false, true );
 					this._isUserControllingTruck = true;
 					break;
 
@@ -786,7 +788,7 @@ export class CameraControls extends EventDispatcher {
 
 				case ACTION.OFFSET: {
 
-					this._truckInternal( event.deltaX, event.deltaY, true );
+					this._truckInternal( event.deltaX, event.deltaY, true, false );
 					this._isUserControllingOffset = true;
 					break;
 
@@ -918,6 +920,7 @@ export class CameraControls extends EventDispatcher {
 			}
 
 			// stop current movement on drag start
+			// - rotate
 			if (
 				( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
 				( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
@@ -932,11 +935,16 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// - truck and screen-pan
 			if (
 				( this._state & ACTION.TRUCK ) === ACTION.TRUCK ||
+				( this._state & ACTION.SCREEN_PAN ) === ACTION.SCREEN_PAN ||
 				( this._state & ACTION.TOUCH_TRUCK ) === ACTION.TOUCH_TRUCK ||
+				( this._state & ACTION.TOUCH_SCREEN_PAN ) === ACTION.TOUCH_SCREEN_PAN ||
 				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
-				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK
+				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
+				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
+				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN
 			) {
 
 				this._targetEnd.copy( this._target );
@@ -944,10 +952,12 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// - dolly
 			if (
 				( this._state & ACTION.DOLLY ) === ACTION.DOLLY ||
 				( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
 				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
+				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
 				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
 				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE
 			) {
@@ -957,10 +967,12 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// - zoom
 			if (
 				( this._state & ACTION.ZOOM ) === ACTION.ZOOM ||
 				( this._state & ACTION.TOUCH_ZOOM ) === ACTION.TOUCH_ZOOM ||
 				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
+				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_ZOOM_SCREEN_PAN ||
 				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET ||
 				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
 			) {
@@ -970,6 +982,7 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// - offset
 			if (
 				( this._state & ACTION.OFFSET ) === ACTION.OFFSET ||
 				( this._state & ACTION.TOUCH_OFFSET ) === ACTION.TOUCH_OFFSET ||
@@ -1002,6 +1015,7 @@ export class CameraControls extends EventDispatcher {
 
 			lastDragPosition.copy( _v2 );
 
+			// rotate
 			if (
 				( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
 				( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
@@ -1014,6 +1028,7 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// mouse dolly or zoom
 			if (
 				( this._state & ACTION.DOLLY ) === ACTION.DOLLY ||
 				( this._state & ACTION.ZOOM ) === ACTION.ZOOM
@@ -1037,11 +1052,14 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// touch dolly or zoom
 			if (
 				( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
 				( this._state & ACTION.TOUCH_ZOOM ) === ACTION.TOUCH_ZOOM ||
 				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
 				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
+				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
+				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_ZOOM_SCREEN_PAN ||
 				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
 				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET ||
 				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
@@ -1061,6 +1079,7 @@ export class CameraControls extends EventDispatcher {
 					( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
 					( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
 					( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
+					( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
 					( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET
 				) {
 
@@ -1076,6 +1095,7 @@ export class CameraControls extends EventDispatcher {
 
 			}
 
+			// truck
 			if (
 				( this._state & ACTION.TRUCK ) === ACTION.TRUCK ||
 				( this._state & ACTION.TOUCH_TRUCK ) === ACTION.TOUCH_TRUCK ||
@@ -1083,11 +1103,25 @@ export class CameraControls extends EventDispatcher {
 				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK
 			) {
 
-				this._truckInternal( deltaX, deltaY, false );
+				this._truckInternal( deltaX, deltaY, false, false );
 				this._isUserControllingTruck = true;
 
 			}
 
+			// screen-pan
+			if (
+				( this._state & ACTION.SCREEN_PAN ) === ACTION.SCREEN_PAN ||
+				( this._state & ACTION.TOUCH_SCREEN_PAN ) === ACTION.TOUCH_SCREEN_PAN ||
+				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
+				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_ZOOM_SCREEN_PAN
+			) {
+
+				this._truckInternal( deltaX, deltaY, false, true );
+				this._isUserControllingTruck = true;
+
+			}
+
+			// offset
 			if (
 				( this._state & ACTION.OFFSET ) === ACTION.OFFSET ||
 				( this._state & ACTION.TOUCH_OFFSET ) === ACTION.TOUCH_OFFSET ||
@@ -1095,7 +1129,7 @@ export class CameraControls extends EventDispatcher {
 				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET
 			) {
 
-				this._truckInternal( deltaX, deltaY, true );
+				this._truckInternal( deltaX, deltaY, true, false );
 				this._isUserControllingOffset = true;
 
 			}
@@ -2711,7 +2745,6 @@ export class CameraControls extends EventDispatcher {
 			! approxZero( this._focalOffset.z );
 		if ( affectOffset ) {
 
-			this._camera.updateMatrixWorld();
 			_xColumn.setFromMatrixColumn( this._camera.matrix, 0 );
 			_yColumn.setFromMatrixColumn( this._camera.matrix, 1 );
 			_zColumn.setFromMatrixColumn( this._camera.matrix, 2 );
@@ -2722,6 +2755,7 @@ export class CameraControls extends EventDispatcher {
 			_v3A.copy( _xColumn ).add( _yColumn ).add( _zColumn );
 			this._camera.position.add( _v3A );
 
+			this._camera.updateMatrixWorld();
 		}
 
 		if ( this._boundaryEnclosesCamera ) {
@@ -2803,7 +2837,6 @@ export class CameraControls extends EventDispatcher {
 			dollySpeed           : this.dollySpeed,
 			truckSpeed           : this.truckSpeed,
 			dollyToCursor        : this.dollyToCursor,
-			verticalDragToForward: this.verticalDragToForward,
 
 			target               : this._targetEnd.toArray(),
 			position             : _v3A.setFromSpherical( this._sphericalEnd ).add( this._targetEnd ).toArray(),
@@ -2844,7 +2877,6 @@ export class CameraControls extends EventDispatcher {
 		this.dollySpeed            = obj.dollySpeed;
 		this.truckSpeed            = obj.truckSpeed;
 		this.dollyToCursor         = obj.dollyToCursor;
-		this.verticalDragToForward = obj.verticalDragToForward;
 
 		this._target0.fromArray( obj.target0 );
 		this._position0.fromArray( obj.position0 );
@@ -3017,7 +3049,7 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
-	protected _truckInternal = ( deltaX: number, deltaY: number, dragToOffset: boolean ): void => {
+	protected _truckInternal = ( deltaX: number, deltaY: number, dragToOffset: boolean, screenSpacePanning: boolean ): void => {
 
 		let truckX: number;
 		let pedestalY: number;
@@ -3036,8 +3068,8 @@ export class CameraControls extends EventDispatcher {
 
 			const camera = this._camera;
 
-			truckX    = deltaX * ( camera.right - camera.left   ) / camera.zoom / this._elementRect.width;
-			pedestalY = deltaY * ( camera.top   - camera.bottom ) / camera.zoom / this._elementRect.height;
+			truckX    = this.truckSpeed * deltaX * ( camera.right - camera.left   ) / camera.zoom / this._elementRect.width;
+			pedestalY = this.truckSpeed * deltaY * ( camera.top   - camera.bottom ) / camera.zoom / this._elementRect.height;
 
 		} else {
 
@@ -3045,7 +3077,7 @@ export class CameraControls extends EventDispatcher {
 
 		}
 
-		if ( this.verticalDragToForward ) {
+		if ( screenSpacePanning ) {
 
 			dragToOffset ?
 				this.setFocalOffset(
@@ -3295,6 +3327,9 @@ export class CameraControls extends EventDispatcher {
 			if ( ! ( object as _THREE.Mesh ).isMesh ) return;
 
 			const mesh = ( object as _THREE.Mesh );
+
+			if ( ! mesh.geometry ) return;
+
 			const geometry = mesh.geometry.clone();
 			geometry.applyMatrix4( mesh.matrixWorld );
 
