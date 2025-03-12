@@ -18,12 +18,14 @@ export default {
 			file: pkg.module,
 			banner: license,
 			indent: '\t',
+			exports: 'named',
 		},
 		{
 			format: 'cjs',
 			file: pkg.main,
 			banner: license,
 			indent: '\t',
+			exports: 'named',
 		}
 	],
 	plugins: [
