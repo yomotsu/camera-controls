@@ -36,6 +36,9 @@ jobs:
 
               # Copy only the required content to the docs folder
               cp -rf dist examples docs
+
+              # Delete symbolic links under the docs directory.
+              find docs -type l -exec rm {} \;
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
