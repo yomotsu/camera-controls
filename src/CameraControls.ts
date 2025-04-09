@@ -434,6 +434,15 @@ export class CameraControls extends EventDispatcher {
 	protected _zoomVelocity: Ref = { value: 0 };
 
 	/**
+	 * @deprecated Use `cameraControls.mouseButtons.left = CameraControls.ACTION.SCREEN_PAN` instead.
+	 */
+	set verticalDragToForward( _: boolean ) {
+
+		console.warn( 'camera-controls: `verticalDragToForward` was removed. Use `mouseButtons.left = CameraControls.ACTION.SCREEN_PAN` instead.' );
+
+	}
+
+	/**
 	 * Creates a `CameraControls` instance.
 	 *
 	 * Note:
@@ -2754,8 +2763,8 @@ export class CameraControls extends EventDispatcher {
 
 			_v3A.copy( _xColumn ).add( _yColumn ).add( _zColumn );
 			this._camera.position.add( _v3A );
-
 			this._camera.updateMatrixWorld();
+
 		}
 
 		if ( this._boundaryEnclosesCamera ) {
