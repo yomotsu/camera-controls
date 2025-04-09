@@ -765,7 +765,8 @@ export class CameraControls extends EventDispatcher {
 
 			// Ref: https://github.com/cedricpinson/osgjs/blob/00e5a7e9d9206c06fdde0436e1d62ab7cb5ce853/sources/osgViewer/input/source/InputSourceMouse.js#L89-L103
 			const deltaYFactor = isMac ? - 1 : - 3;
-			const delta = ( event.deltaMode === 1 ) ? event.deltaY / deltaYFactor : event.deltaY / ( deltaYFactor * 10 );
+			// Checks event.ctrlKey to detect multi-touch gestures on a trackpad.
+			const delta = ( event.deltaMode === 1 || event.ctrlKey ) ? event.deltaY / deltaYFactor : event.deltaY / ( deltaYFactor * 10 );
 			const x = this.dollyToCursor ? ( event.clientX - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 			const y = this.dollyToCursor ? ( event.clientY - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
