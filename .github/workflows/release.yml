@@ -35,7 +35,9 @@ jobs:
               rm -rf examples/node_modules
 
               # Copy only the required content to the docs folder
-              cp -rf dist examples docs
+              mkdir -p docs
+              cp -r dist/* docs/
+              cp -r examples docs/
 
               # Delete symbolic links under the docs directory.
               find docs -type l -exec rm {} \;
