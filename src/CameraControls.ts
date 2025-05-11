@@ -2775,7 +2775,8 @@ export class CameraControls extends EventDispatcher {
 				_v3A.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ),
 				1.0,
 			);
-
+		        const looktarget=this._camera.position.clone().sub(_v3A)
+			this._camera.lookAt(looktarget);
 		}
 
 		const updated = this._needsUpdate;
