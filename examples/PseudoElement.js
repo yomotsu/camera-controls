@@ -71,8 +71,10 @@ class PseudoDocument extends EventDispatcher {
 
 	/**
 	 * Creates an instance of PseudoDocument.
+  	 * @param {PseudoElement} pseudoElement
 	 */
-	constructor() {
+	constructor(pseudoElement) {
+		this.pseudoElement = pseudoElement;
 
 		super();
 
@@ -85,11 +87,11 @@ class PseudoDocument extends EventDispatcher {
 
 	/**
 	 * Just for compatibility. do nothing.
-	 * @returns {PseudoElement|null} The element locking the pointer.
+	 * @returns {PseudoElement} The element locking the pointer.
 	 */
 	get pointerLockElement() {
 
-		return null;
+		return this.pseudoElement;
 
 	}
 
