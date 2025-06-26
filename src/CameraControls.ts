@@ -2127,6 +2127,7 @@ export class CameraControls extends EventDispatcher {
 	 * @param targetBZ
 	 * @param t
 	 * @param enableTransition
+	 * @param normalizeRotations
 	 * @category Methods
 	 */
 	lerpLookAt(
@@ -2136,6 +2137,7 @@ export class CameraControls extends EventDispatcher {
 		targetBX: number, targetBY: number, targetBZ: number,
 		t: number,
 		enableTransition: boolean = false,
+		normalizeRotations: boolean = true,
 	): Promise<void> {
 
 		this._isUserControllingRotate = false;
@@ -2164,7 +2166,9 @@ export class CameraControls extends EventDispatcher {
 			_sphericalA.theta  + deltaTheta  * t,
 		);
 
-		this.normalizeRotations();
+		if ( normalizeRotations ) {
+			this.normalizeRotations();
+		}
 
 		this._needsUpdate = true;
 
