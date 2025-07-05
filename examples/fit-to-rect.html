@@ -90,7 +90,7 @@ const fitToRect = ( rect ) => {
 	const distance = cameraControls.getDistanceToFitBox( rectWidth, rectHeight, 0 );
 	const cameraPosition = _cameraPosition.copy( rectNormal ).multiplyScalar( - distance ).add( rectCenterPosition );
 
-	cameraControls.setLookAt(
+	cameraControls.normalizeRotations().setLookAt(
 		cameraPosition.x, cameraPosition.y, cameraPosition.z,
 		rectCenterPosition.x, rectCenterPosition.y, rectCenterPosition.z,
 		true,

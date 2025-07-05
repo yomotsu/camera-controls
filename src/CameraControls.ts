@@ -2089,7 +2089,6 @@ export class CameraControls extends EventDispatcher {
 
 		this._targetEnd.copy( target );
 		this._sphericalEnd.setFromVector3( position.sub( target ).applyQuaternion( this._yAxisUpSpace ) );
-		this.normalizeRotations();
 
 		this._needsUpdate = true;
 
@@ -2137,7 +2136,6 @@ export class CameraControls extends EventDispatcher {
 		targetBX: number, targetBY: number, targetBZ: number,
 		t: number,
 		enableTransition: boolean = false,
-		normalizeRotations: boolean = true,
 	): Promise<void> {
 
 		this._isUserControllingRotate = false;
@@ -2165,10 +2163,6 @@ export class CameraControls extends EventDispatcher {
 			_sphericalA.phi    + deltaPhi    * t,
 			_sphericalA.theta  + deltaTheta  * t,
 		);
-
-		if ( normalizeRotations ) {
-			this.normalizeRotations();
-		}
 
 		this._needsUpdate = true;
 
@@ -2442,11 +2436,13 @@ export class CameraControls extends EventDispatcher {
 	 * Normalize camera azimuth angle rotation between 0 and 360 degrees.
 	 * @category Methods
 	 */
-	normalizeRotations(): void {
+	normalizeRotations(): CameraControls {
 
 		this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
 		if ( this._sphericalEnd.theta < 0 ) this._sphericalEnd.theta += PI_2;
 		this._spherical.theta += PI_2 * Math.round( ( this._sphericalEnd.theta - this._spherical.theta ) / PI_2 );
+
+		return this;
 
 	}
 
