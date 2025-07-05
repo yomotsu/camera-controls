@@ -140,7 +140,7 @@ CameraControls uses Spherical Coordinates for orbit rotations.
 
 If your camera is Y-up, the Azimuthal angle will be the angle for y-axis rotation and the Polar angle will be the angle for vertical position.
 
-![](https://raw.githubusercontent.com/yomotsu/camera-controls/dev/examples/fig1.svg)
+![shapes at 25-07-06 01 07 21](https://github.com/user-attachments/assets/0a2282cd-036c-4c41-bb22-21c7856ac226)
 
 
 ### Dolly vs Zoom
