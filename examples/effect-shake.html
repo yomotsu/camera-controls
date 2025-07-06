@@ -108,14 +108,14 @@ class CameraShake {
 
 			if ( progress >= 1 ) {
 
-				// this._cameraControls.setPosition(
+				// this._cameraControls.normalizeRotations().setPosition(
 				// 	_vec3a.x - this._lastOffsetX,
 				// 	_vec3a.y - this._lastOffsetY,
 				// 	_vec3a.z - this._lastOffsetZ,
 				// 	false
 				// );
 
-				this._cameraControls.setTarget(
+				this._cameraControls.normalizeRotations().setTarget(
 					_vec3b.x - this._lastOffsetX,
 					_vec3b.y - this._lastOffsetY,
 					_vec3b.z - this._lastOffsetZ,
@@ -138,14 +138,14 @@ class CameraShake {
 			const offsetY = this._noiseY[ frameNumber ] * this.strength * ease;
 			const offsetZ = this._noiseZ[ frameNumber ] * this.strength * ease;
 
-			// this._cameraControls.setPosition(
+			// this._cameraControls.normalizeRotations().setPosition(
 			// 	_vec3a.x + offsetX - this._lastOffsetX,
 			// 	_vec3a.y + offsetY - this._lastOffsetY,
 			// 	_vec3a.z + offsetZ - this._lastOffsetZ,
 			// 	false
 			// );
 
-			this._cameraControls.setTarget(
+			this._cameraControls.normalizeRotations().setTarget(
 				_vec3b.x + offsetX - this._lastOffsetX,
 				_vec3b.y + offsetY - this._lastOffsetY,
 				_vec3b.z + offsetZ - this._lastOffsetZ,

@@ -181,7 +181,7 @@ async function transitionSequenceB() {
 async function reset() {
 
 	console.log( "Resetting..." );
-	await cameraControls.reset( true );
+	await cameraControls.normalizeRotations().reset( true );
 	console.log( "Reset complete" );
 	enableUI( true );
 
