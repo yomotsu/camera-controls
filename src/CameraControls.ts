@@ -2432,7 +2432,8 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Normalize camera azimuth angle rotation between 0 and 360 degrees.
+	 * Normalize camera azimuth angle (horizontal rotation) between 0 and 360 degrees.
+	 * @returns This CameraControls instance.
 	 * @category Methods
 	 */
 	normalizeRotations(): CameraControls {
