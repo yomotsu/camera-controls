@@ -11,7 +11,7 @@
 
 <div class="info">
 	<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
-	<button onclick="rotateTo( 'front' ), cameraControls.reset( true )">reset</button><br>
+	<button onclick="rotateTo( 'front' ), cameraControls.normalizeRotations().reset( true )">reset</button><br>
 	<button onclick="rotateTo( 'front' ), cameraControls.fitToBox( mesh, true )">fit front side of the mesh</button><br>
 	<button onclick="rotateTo( 'front' ), cameraControls.fitToBox( mesh, true, { cover: true } )">fill (cover) front side of the mesh</button><br>
 	<button onclick="rotateTo( 'back' ), cameraControls.fitToBox( mesh, true, { paddingLeft: 0, paddingRight: 0, paddingBottom: 1, paddingTop: 2 } )">fit back side with padding(top: 2unit, bottom: 1unit )</button>

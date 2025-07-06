@@ -99,7 +99,7 @@ self.onmessage = ( { data } ) => {
 
 		case 'reset': {
 
-			cameraControls.reset( true );
+			cameraControls.normalizeRotations().reset( true );
 			break;
 
 		}

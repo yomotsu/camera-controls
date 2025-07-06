@@ -12,7 +12,7 @@
 		<a href="https://github.com/yomotsu/camera-controls">GitHub repo</a><br>
 		see also <a href="./mouse-drag-with-modifier-keys.html">mouse-drag-with-modifier-keys</a>
 	</p>
-	<button type="button" onclick="cameraControls.reset( true )">reset</button>
+	<button type="button" onclick="cameraControls.normalizeRotations().reset( true )">reset</button>
 	<br>
 	cameraControls.mouseButtons.left =
 	<select onchange="cameraControls.mouseButtons.left = CameraControls.ACTION[ this.value ]">
