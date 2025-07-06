@@ -11,7 +11,7 @@
 	<p><a href="https://github.com/yomotsu/camera-controls">GitHub repo</a></p>
 	<button type="button" onclick="cameraControls.reset( true )">Reset</button>
 	<button type="button" onclick="cameraControls.rotateTo( THREE.MathUtils.randFloat( 0, 2 * Math.PI ), THREE.MathUtils.randFloat( 0, Math.PI ), true )">Rotate</button>
-	<button onclick="cameraControls.lerpLookAt( -2, 0, 0, 1, 1, 0, 0, 2, 5, -1, 0, 0, Math.random(), true )">Move</button>
+	<button onclick="cameraControls.normalizeRotations().lerpLookAt( -2, 0, 0, 1, 1, 0, 0, 2, 5, -1, 0, 0, Math.random(), true )">Move</button>
 	<p>These buttons will be disabled whenever a transition is occuring and then re-enabled when the transition is complete.</p>
 	<button id="restEventBtn">Enable on Rest</button><br>
 	<button id="sleepEventBtn">Enable on Sleep</button>
