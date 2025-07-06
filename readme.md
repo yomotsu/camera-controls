@@ -656,7 +656,10 @@ Set current camera position as the default position
 
 #### `normalizeRotations()`
 
-Normalize camera azimuth angle rotation between 0 and 360 degrees.
+Normalize camera azimuth angle (horizontal rotation) between 0 and 360 degrees.
+This is useful when you want to keep the azimuth angle normalized before calling methods like `.setLookAt()`, `.lerpLookAt()`, `.setTarget()`, `.setPosition()`, and `.reset()`.
+
+This method returns the CameraControls instance itself, so you can chain it with other methods.
 
 #### `reset( enableTransition )`
 
@@ -800,6 +803,24 @@ await cameraControls.dollyTo( 3, false );
 ```
 
 ---
+
+## V3 Migration Guide
+
+In v3, CameraControls lets users choose whether to normalize the azimuth angle (horizontal rotation).
+In v2, the azimuth angle was normalized automatically in the following methods, but in v3 it isn't by default. Therefore, you may need to normalize the azimuth angle manually.
+
+- `.setLookAt()`
+- `.lerpLookAt()`
+- `.setTarget()`
+- `.setPosition()`
+- `.reset()`
+
+So, if you want to keep the azimuth angle normalized, you need to call `.normalizeRotations()` before the above methods. (`normalizeRotations()` is chainable.)
+
+```js
+cameraControls.setLookAt( 0, 0, 5, 0, 0, 0, true ); // v2
+cameraControls.normalizeRotations().setLookAt( 0, 0, 5, 0, 0, 0, true ); // v3
+```
 
 ## V2 Migration Guide
 
