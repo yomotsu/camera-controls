@@ -29,7 +29,7 @@
 	<br>
 	<button onclick="cameraControls.moveTo( 3, 5, 2, true )">move to( 3, 5, 2 )</button>
 	<button onclick="customFitTo()">fit to the bounding box of the mesh</button>
-	<button onclick="cameraControls.reset( true )">reset</button>
+	<button onclick="cameraControls.normalizeRotations().reset( true )">reset</button>
 	<br>
 	cameraControls.mouseButtons.wheel =
 	<select onchange="cameraControls.mouseButtons.wheel = CameraControls.ACTION[ this.value ]">
