@@ -125,7 +125,7 @@ function randomDolly() {
 
 function lookAt() {
 
-	return cameraControls.setLookAt(
+	return cameraControls.normalizeRotations().setLookAt(
 		THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ), THREE.MathUtils.randFloat( 0, 5 ),
 			0, 0, 0,
 			true,

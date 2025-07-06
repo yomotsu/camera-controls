@@ -69,7 +69,7 @@ scene.add( pathMesh );
 const moveToStartPoint = () => {
 
 	curve.getPoint ( 0, _tmp );
-	cameraControls.setLookAt( _tmp.x, _tmp.y, _tmp.z, 0, 0, 0, true );
+	cameraControls.normalizeRotations().setLookAt( _tmp.x, _tmp.y, _tmp.z, 0, 0, 0, true );
 
 };
 
@@ -98,7 +98,7 @@ const pathAnimation = gsap.fromTo(
 			const lookAtY = 0;
 			const lookAtZ = 0;
 
-			cameraControls.setLookAt(
+			cameraControls.normalizeRotations().setLookAt(
 				cameraX,
 				cameraY,
 				cameraZ,
