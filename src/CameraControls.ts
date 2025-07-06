@@ -2126,7 +2126,6 @@ export class CameraControls extends EventDispatcher {
 	 * @param targetBZ
 	 * @param t
 	 * @param enableTransition
-	 * @param normalizeRotations
 	 * @category Methods
 	 */
 	lerpLookAt(
