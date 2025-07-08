@@ -33,16 +33,21 @@ jobs:
               npm run typedoc
 
               # Remove any unnecessary files or directories that might contain symlinks or large files
-              # For example, remove node_modules from 'examples' to avoid copying symlinks
               rm -rf examples/node_modules
+
+              # Replace symbolic link with actual files
+              # Remove the symbolic link to dist
+              rm -f examples/dist
+              # Copy the actual dist content to examples/dist
+              cp -r dist examples/dist
 
               # Copy only the required content to the docs folder
               mkdir -p docs
               cp -r dist/* docs/
               cp -r examples docs/
 
-              # Delete symbolic links under the docs directory.
-              find docs -type l -exec rm {} \;
+              # Delete any remaining symbolic links under the docs directory
+              find docs -type l -delete
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
