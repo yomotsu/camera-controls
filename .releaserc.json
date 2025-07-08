@@ -2,14 +2,6 @@
   "branches": ["master"],
   "plugins": [
     ["@semantic-release/commit-analyzer",  { "preset": "conventionalcommits" }],
-    ["@semantic-release/release-notes-generator", {
-      "preset": "conventionalcommits",
-      "writerOpts": {
-        "transform": {
-          "date": false
-        }
-      }
-    }],
     "@semantic-release/npm",
     "@semantic-release/github"
   ]
