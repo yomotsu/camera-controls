@@ -16,12 +16,12 @@
 	</ul>
 </div>
 
-<script async src="https://unpkg.com/es-module-shims@1.8.2/dist/es-module-shims.js"></script>
+<script async src="https://unpkg.com/es-module-shims@2.6.1/dist/es-module-shims.js"></script>
 <script type="importmap">
 {
 	"imports": {
-		"three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-		"three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+		"three": "https://unpkg.com/three@0.178.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.178.0/examples/jsm/"
 	}
 }
 </script>
@@ -44,7 +44,7 @@ document.body.appendChild( renderer.domElement );
 let lastTapTime = performance.now();
 const doubleTapTimeout = 250;
 const customPointerEvent = new THREE.EventDispatcher();
-const detectDoubleTap = function() {
+const detectDoubleTap = () => {
 
 	const now = performance.now();
 	const isDoubleTap = now - lastTapTime < doubleTapTimeout;
@@ -58,13 +58,13 @@ renderer.domElement.addEventListener( 'touchstart', detectDoubleTap );
 const cameraControls = new CameraControls( camera, renderer.domElement );
 
 // switch the behavior with the pointer condition
-customPointerEvent.addEventListener( 'doubletap', function() {
+customPointerEvent.addEventListener( 'doubletap', () => {
 
 	cameraControls.mouseButtons.left = CameraControls.ACTION.ZOOM;
 	cameraControls.touches.one = CameraControls.ACTION.ZOOM;
 
 } );
-customPointerEvent.addEventListener( 'tap', function() {
+customPointerEvent.addEventListener( 'tap', () => {
 
 	cameraControls.mouseButtons.left = CameraControls.ACTION.ROTATE;
 	cameraControls.touches.one = CameraControls.ACTION.TOUCH_ROTATE;
