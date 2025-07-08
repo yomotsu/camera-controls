@@ -16,18 +16,18 @@
 	<button onclick="cameraControls.normalizeRotations().reset( true )">reset</button>
 </div>
 
-<script async src="https://unpkg.com/es-module-shims@1.8.2/dist/es-module-shims.js"></script>
+<script async src="https://unpkg.com/es-module-shims@2.6.1/dist/es-module-shims.js"></script>
 <script type="importmap">
 {
 	"imports": {
-		"three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-		"three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+		"three": "https://unpkg.com/three@0.178.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.178.0/examples/jsm/"
 	}
 }
 </script>
 <script type="module">
 import * as THREE from 'three';
-import * as holdEvent from "https://unpkg.com/hold-event@0.2.0/dist/hold-event.module.js";
+import * as holdEvent from "https://unpkg.com/hold-event@1.1.2/dist/hold-event.module.js";
 import CameraControls from './dist/camera-controls.module.js';
 CameraControls.install( { THREE: THREE } );
 
@@ -43,34 +43,47 @@ document.body.appendChild( renderer.domElement );
 
 const cameraControls = new CameraControls( camera, renderer.domElement );
 
-const KEYCODE = {
-	W: 87,
-	A: 65,
-	S: 83,
-	D: 68,
-	ARROW_LEFT : 37,
-	ARROW_UP   : 38,
-	ARROW_RIGHT: 39,
-	ARROW_DOWN : 40,
-};
+const wKey = new holdEvent.KeyboardKeyHold( 'KeyW', 16.666 );
+const aKey = new holdEvent.KeyboardKeyHold( 'KeyA', 16.666 );
+const sKey = new holdEvent.KeyboardKeyHold( 'KeyS', 16.666 );
+const dKey = new holdEvent.KeyboardKeyHold( 'KeyD', 16.666 );
+aKey.addEventListener(
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.truck( - 0.01 * event.deltaTime, 0, false )
+);
+dKey.addEventListener(
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.truck(   0.01 * event.deltaTime, 0, false )
+);
+wKey.addEventListener(
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.forward(   0.01 * event.deltaTime, false )
+);
+sKey.addEventListener(
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.forward( - 0.01 * event.deltaTime, false )
+);
 
-const wKey = new holdEvent.KeyboardKeyHold( KEYCODE.W, 16.666 );
-const aKey = new holdEvent.KeyboardKeyHold( KEYCODE.A, 16.666 );
-const sKey = new holdEvent.KeyboardKeyHold( KEYCODE.S, 16.666 );
-const dKey = new holdEvent.KeyboardKeyHold( KEYCODE.D, 16.666 );
-aKey.addEventListener( 'holding', function( event ) { cameraControls.truck( - 0.01 * event.deltaTime, 0, false ) } );
-dKey.addEventListener( 'holding', function( event ) { cameraControls.truck(   0.01 * event.deltaTime, 0, false ) } );
-wKey.addEventListener( 'holding', function( event ) { cameraControls.forward(   0.01 * event.deltaTime, false ) } );
-sKey.addEventListener( 'holding', function( event ) { cameraControls.forward( - 0.01 * event.deltaTime, false ) } );
-
-const leftKey  = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_LEFT,  100 );
-const rightKey = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_RIGHT, 100 );
-const upKey    = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_UP,    100 );
-const downKey  = new holdEvent.KeyboardKeyHold( KEYCODE.ARROW_DOWN,  100 );
-leftKey.addEventListener ( 'holding', function( event ) { cameraControls.rotate( - 0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 0, true ) } );
-rightKey.addEventListener( 'holding', function( event ) { cameraControls.rotate(   0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 0, true ) } );
-upKey.addEventListener   ( 'holding', function( event ) { cameraControls.rotate( 0, - 0.05 * THREE.MathUtils.DEG2RAD * event.deltaTime, true ) } );
-downKey.addEventListener ( 'holding', function( event ) { cameraControls.rotate( 0,   0.05 * THREE.MathUtils.DEG2RAD * event.deltaTime, true ) } );
+const leftKey  = new holdEvent.KeyboardKeyHold( 'ArrowLeft',  100 );
+const rightKey = new holdEvent.KeyboardKeyHold( 'ArrowRight', 100 );
+const upKey    = new holdEvent.KeyboardKeyHold( 'ArrowUp',    100 );
+const downKey  = new holdEvent.KeyboardKeyHold( 'ArrowDown',  100 );
+leftKey.addEventListener (
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.rotate( - 0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 0, true )
+);
+rightKey.addEventListener(
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.rotate(   0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 0, true )
+);
+upKey.addEventListener   (
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.rotate( 0, - 0.05 * THREE.MathUtils.DEG2RAD * event.deltaTime, true )
+);
+downKey.addEventListener (
+	holdEvent.HOLD_EVENT_TYPE.HOLDING,
+	( event ) => cameraControls.rotate( 0,   0.05 * THREE.MathUtils.DEG2RAD * event.deltaTime, true )
+);
 
 const mesh = new THREE.Mesh(
 	new THREE.BoxGeometry( 1, 1, 1 ),

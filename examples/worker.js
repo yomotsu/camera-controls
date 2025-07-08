@@ -1,4 +1,4 @@
-import * as THREE from 'https://unpkg.com/three@0.161.0/build/three.module.js';
+import * as THREE from 'https://unpkg.com/three@0.178.0/build/three.module.js';
 import CameraControls from '../dist/camera-controls.module.js';
 import { PseudoElement } from './PseudoElement.js';
 
