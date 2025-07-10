@@ -137,3 +137,11 @@ export function isOrthographicCamera( camera: _THREE.Camera ): camera is _THREE.
 	return ( camera as _THREE.OrthographicCamera  ).isOrthographicCamera;
 
 }
+
+export type CameraControlsLerpState = {
+	target: [number, number, number]
+} & ( {
+	spherical: Parameters<_THREE.Spherical["set"]>
+} | {
+	position: [number, number, number]
+} );

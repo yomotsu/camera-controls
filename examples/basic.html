@@ -38,7 +38,8 @@
 	<button onclick="cameraControls.normalizeRotations().setTarget( 3, 0, -3, true )">look at ( 3, 0, -3 )</button>
 	<button onclick="cameraControls.normalizeRotations().setLookAt( 1, 2, 3, 1, 1, 0, true )">move to ( 1, 2, 3 ), look at ( 1, 1, 0 )</button>
 	<br>
-	<button onclick="cameraControls.normalizeRotations().lerpLookAt( - 2, 0, 0, 1, 1, 0, 0, 2, 5, - 1, 0, 0, Math.random(), true )">move to somewhere between ( -2, 0, 0 ) -> ( 1, 1, 0 ) and ( 0, 2, 5 ) -> ( -1, 0, 0 )</button>
+	<button onclick="cameraControls.normalizeRotations().lerp( { target: [1, 1, 0], position: [ - 2, 0, 0 ] }, { target: [ -1, 0, 0 ], position: [ 0, 2, 5]}, Math.random(), true )">move to somewhere between position/target: ( -2, 0, 0 ) -> ( 1, 1, 0 ) and ( 0, 2, 5 ) -> ( -1, 0, 0 )</button>
+	<button onclick="cameraControls.lerp( { target: [ 1, 1, 0 ], spherical: [ 2, 0, -Math.PI/2 ]}, { target: [ -1, 0, 0 ], spherical: [ 7, Math.PI, Math.PI/2 ]}, Math.random(), true )">move to somewhere inside a hemisphere of a radius ∈ [2..7] centered at a point located between ( 1, 1, 0 ) and ( -1, 0, 0 )</button>
 	<br>
 	<button onclick="cameraControls.normalizeRotations().reset( true )">reset</button>
 	<button onclick="cameraControls.saveState()">saveState</button>

@@ -12,6 +12,7 @@ import {
 	CameraControlsEventMap,
 	isPerspectiveCamera,
 	isOrthographicCamera,
+	CameraControlsLerpState,
 } from './types';
 import {
 	PI_2,
@@ -2111,31 +2112,19 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Similar to setLookAt, but it interpolates between two states.
-	 * @param positionAX
-	 * @param positionAY
-	 * @param positionAZ
-	 * @param targetAX
-	 * @param targetAY
-	 * @param targetAZ
-	 * @param positionBX
-	 * @param positionBY
-	 * @param positionBZ
-	 * @param targetBX
-	 * @param targetBY
-	 * @param targetBZ
+	 * Interpolates between two states.
+	 * @param stateA
+	 * @param stateB
 	 * @param t
 	 * @param enableTransition
 	 * @category Methods
 	 */
-	lerpLookAt(
-		positionAX: number, positionAY: number, positionAZ: number,
-		targetAX: number, targetAY: number, targetAZ: number,
-		positionBX: number, positionBY: number, positionBZ: number,
-		targetBX: number, targetBY: number, targetBZ: number,
+	lerp(
+		stateA: CameraControlsLerpState,
+		stateB: CameraControlsLerpState,
 		t: number,
 		enableTransition: boolean = false,
-	): Promise<void> {
+	) {
 
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
@@ -2143,13 +2132,29 @@ export class CameraControls extends EventDispatcher {
 		this._lastDollyDirection = DOLLY_DIRECTION.NONE;
 		this._changedDolly = 0;
 
-		const targetA = _v3A.set( targetAX, targetAY, targetAZ );
-		const positionA = _v3B.set( positionAX, positionAY, positionAZ );
-		_sphericalA.setFromVector3( positionA.sub( targetA ).applyQuaternion( this._yAxisUpSpace ) );
+		const targetA = _v3A.set( ...stateA.target );
+		if ( 'spherical' in stateA ) {
 
-		const targetB = _v3C.set( targetBX, targetBY, targetBZ );
-		const positionB = _v3B.set( positionBX, positionBY, positionBZ );
-		_sphericalB.setFromVector3( positionB.sub( targetB ).applyQuaternion( this._yAxisUpSpace ) );
+			_sphericalA.set( ...stateA.spherical );
+
+		} else {
+
+			const positionA = _v3B.set( ...stateA.position );
+			_sphericalA.setFromVector3( positionA.sub( targetA ).applyQuaternion( this._yAxisUpSpace ) );
+
+		}
+
+		const targetB = _v3C.set( ...stateB.target );
+		if ( 'spherical' in stateB ) {
+
+			_sphericalB.set( ...stateB.spherical );
+
+		} else {
+
+			const positionB = _v3B.set( ...stateB.position );
+			_sphericalB.setFromVector3( positionB.sub( targetB ).applyQuaternion( this._yAxisUpSpace ) );
+
+		}
 
 		this._targetEnd.copy( targetA.lerp( targetB, t ) ); // tricky
 
@@ -2180,6 +2185,50 @@ export class CameraControls extends EventDispatcher {
 			approxEquals( this._spherical.phi, this._sphericalEnd.phi, this.restThreshold ) &&
 			approxEquals( this._spherical.radius, this._sphericalEnd.radius, this.restThreshold );
 		return this._createOnRestPromise( resolveImmediately );
+
+	}
+
+	/**
+	 * @deprecated Use `lerp` instead
+	 * Similar to setLookAt, but it interpolates between two states.
+	 * @param positionAX
+	 * @param positionAY
+	 * @param positionAZ
+	 * @param targetAX
+	 * @param targetAY
+	 * @param targetAZ
+	 * @param positionBX
+	 * @param positionBY
+	 * @param positionBZ
+	 * @param targetBX
+	 * @param targetBY
+	 * @param targetBZ
+	 * @param t
+	 * @param enableTransition
+	 * @category Methods
+	 */
+	lerpLookAt(
+		positionAX: number, positionAY: number, positionAZ: number,
+		targetAX: number, targetAY: number, targetAZ: number,
+		positionBX: number, positionBY: number, positionBZ: number,
+		targetBX: number, targetBY: number, targetBZ: number,
+		t: number,
+		enableTransition: boolean = false,
+	): Promise<void> {
+
+		return this.lerp(
+			{
+				position: [ positionAX, positionAY, positionAZ ],
+				target: [ targetAX, targetAY, targetAZ ],
+			},
+			{
+				position: [ positionBX, positionBY, positionBZ ],
+				target: [ targetBX, targetBY, targetBZ ],
+			},
+			t,
+			enableTransition,
+
+		);
 
 	}
 
