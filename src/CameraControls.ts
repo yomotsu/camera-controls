@@ -2124,7 +2124,7 @@ export class CameraControls extends EventDispatcher {
 		stateB: CameraControlsLerpState,
 		t: number,
 		enableTransition: boolean = false,
-	) {
+	): Promise<void> {
 
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
