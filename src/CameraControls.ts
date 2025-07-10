@@ -2189,7 +2189,6 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * @deprecated Use `lerp` instead
 	 * Similar to setLookAt, but it interpolates between two states.
 	 * @param positionAX
 	 * @param positionAY
