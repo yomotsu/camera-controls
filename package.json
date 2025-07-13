@@ -12,33 +12,33 @@
   "repository": "yomotsu/camera-controls",
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
-    "@rollup/plugin-typescript": "^12.1.2",
-    "@stylistic/eslint-plugin": "^4.2.0",
-    "@types/three": "^0.174.0",
-    "@typescript-eslint/eslint-plugin": "^8.26.1",
-    "@typescript-eslint/parser": "^8.26.1",
-    "conventional-changelog-conventionalcommits": "^9.0.0",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@stylistic/eslint-plugin": "^5.1.0",
+    "@types/three": "^0.178.1",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
+    "@typescript-eslint/parser": "^8.36.0",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
     "downlevel-dts": "^0.11.0",
-    "eslint": "^9.22.0",
-    "globals": "^16.0.0",
+    "eslint": "^9.31.0",
+    "globals": "^16.3.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.4.3",
+    "lint-staged": "^16.1.2",
     "npm-run-all": "^4.1.5",
     "open-cli": "^8.0.0",
-    "rollup": "^4.35.0",
-    "semantic-release": "^24.2.6",
+    "rollup": "^4.45.0",
+    "semantic-release": "^24.2.7",
     "serve": "^14.2.4",
-    "terser": "^5.39.0",
-    "three": "^0.174.0",
+    "terser": "^5.43.1",
+    "three": "^0.178.0",
     "tslib": "^2.8.1",
-    "typedoc": "^0.27.9",
-    "typescript": "^5.8.2"
+    "typedoc": "^0.28.7",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "three": ">=0.126.1"
   },
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "husky",
     "dev": "npm-run-all -p dev:*",
     "dev:rollup": "rollup --config --watch",
     "dev:serve": "serve -S -p 3000 ./ && kill $!",
@@ -69,9 +69,9 @@
     "OrbitControls",
     "camera"
   ],
-  "packageManager": "npm@10.8.2+sha256.c8c61ba0fa0ab3b5120efd5ba97fdaf0e0b495eef647a97c4413919eda0a878b",
+  "packageManager": "npm@11.4.2+sha512-+QweyLIHtiXW7bZpOu8j2ss5w45CF/6MRqlz8RnKs5KsDeI/4/B+WDGI2un9kQizhFrW9SW1mHQr0GDrrWC/8w==",
   "engines": {
-    "node": ">=20.11.0",
-    "npm": ">=10.8.2"
+    "node": ">=24.4.0",
+    "npm": ">=11.4.2"
   }
 }

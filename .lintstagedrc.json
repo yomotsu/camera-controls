@@ -1,3 +1,3 @@
 {
-  "src/**/*": "npx eslint src --fix"
+  "src/**/*.{ts,js}": "npx eslint --fix"
 }
