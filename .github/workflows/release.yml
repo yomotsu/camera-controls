@@ -2,7 +2,7 @@ name: Build and Release to npm
 on:
   push:
     branches:
-      - 'master'
+      - 'main'
 
 # Cancel any previous run (see: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency)
 concurrency:
