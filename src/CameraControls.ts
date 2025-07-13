@@ -2432,14 +2432,14 @@ export class CameraControls extends EventDispatcher {
 	}
 
 	/**
-	 * Normalize camera azimuth angle (horizontal rotation) between 0 and 360 degrees.
+	 * Normalize camera azimuth angle (horizontal rotation) between -180 and 180 degrees.
 	 * @returns This CameraControls instance.
 	 * @category Methods
 	 */
 	normalizeRotations(): CameraControls {
 
-		this._sphericalEnd.theta = this._sphericalEnd.theta % PI_2;
-		if ( this._sphericalEnd.theta < 0 ) this._sphericalEnd.theta += PI_2;
+		this._sphericalEnd.theta = ( ( this._sphericalEnd.theta % PI_2 ) + PI_2 ) % PI_2;
+		if ( this._sphericalEnd.theta > Math.PI ) this._sphericalEnd.theta -= PI_2;
 		this._spherical.theta += PI_2 * Math.round( ( this._sphericalEnd.theta - this._spherical.theta ) / PI_2 );
 
 		return this;

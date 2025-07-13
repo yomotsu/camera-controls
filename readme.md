@@ -656,7 +656,7 @@ Set current camera position as the default position
 
 #### `normalizeRotations()`
 
-Normalize camera azimuth angle (horizontal rotation) between 0 and 360 degrees.
+Normalize camera azimuth angle (horizontal rotation) between -180 and 180 degrees.
 This is useful when you want to keep the azimuth angle normalized before calling methods like `.setLookAt()`, `.lerpLookAt()`, `.setTarget()`, `.setPosition()`, and `.reset()`.
 
 This method returns the CameraControls instance itself, so you can chain it with other methods.
