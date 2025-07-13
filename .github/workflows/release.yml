@@ -13,93 +13,105 @@ jobs:
 
   release-job:
     runs-on: ubuntu-latest
-    outputs:
-      released: ${{ steps.main.outputs.released }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
-      - id: main
+
+      - name: Install Dependencies and Release
+        id: main
         run: |
           npm ci
           npm run release
-          if [ -d "dist/" ]; then
-              echo "released=true" >> "$GITHUB_OUTPUT"
 
-              npm run typedoc
-
-              # Remove any unnecessary files or directories that might contain symlinks or large files
-              rm -rf examples/node_modules
-              find examples -name "* alias" -delete
-
-              # Replace symbolic link with actual files
-              # Remove the symbolic link to dist
-              rm -rf examples/dist
-              # Copy the actual dist content to examples/dist
-              cp -r dist examples/dist
-
-              # Copy only the required content to the docs folder
-              mkdir -p docs
-              cp -r dist/* docs/
-              cp -r examples docs/
-
-              # Delete any remaining symbolic links and macOS aliases under the docs directory
-              find docs -type l -delete
-              find docs -name "* alias" -delete
+          # Check if release was successful (dist directory exists)
+          if [ ! -d "dist/" ]; then
+              echo "Release did not create dist directory, running build..."
+              npm run build
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - if: steps.main.outputs.released == 'true'
-        name: Validate docs directory before upload
-        run: |
-          echo "Checking for symbolic links..."
-          if find docs -type l | grep -q .; then
-            echo "Error: Symbolic links found in docs directory"
-            find docs -type l
-            exit 1
-          fi
 
-          echo "Checking directory size..."
-          DOCS_SIZE=$(du -sb docs | cut -f1 2>/dev/null || echo "0")
-          if [ "$DOCS_SIZE" = "0" ]; then
-            # Fallback for systems without -b option (like macOS)
-            DOCS_SIZE_KB=$(du -sk docs | cut -f1)
-            DOCS_SIZE=$((DOCS_SIZE_KB * 1024))
-          fi
-          MAX_SIZE=$((1024*1024*1024*8))  # 8GB limit to be safe
-          if [ "$DOCS_SIZE" -gt "$MAX_SIZE" ]; then
-            echo "Error: docs directory is too large (${DOCS_SIZE} bytes)"
-            exit 1
-          fi
+      - name: Generate documentation
+        run: npm run typedoc
 
-          echo "docs directory size: $(du -sh docs)"
-          echo "docs directory is ready for upload"
-
-      - if: steps.main.outputs.released == 'true'
+      - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
-          path: ./docs
+          name: dist
+          path: dist/
 
-  # See: https://github.com/actions/deploy-pages
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: typedoc-docs
+          path: docs/
+
   deploy-job:
     needs: release-job
-    if: needs.release-job.outputs.released == 'true'
+    runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Download typedoc docs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: typedoc-docs
+          path: docs/
+
+      - name: Prepare examples directory
+        run: |
+          # Remove the alias to dist (if it exists)
+          find examples -name "* alias" -delete
+          find examples -name "dist" -type l -delete
+          rm -rf examples/dist
+
+          # Copy the actual dist content to examples/dist
+          cp -r dist examples/dist
+
+      - name: Prepare docs directory
+        run: |
+          # Copy examples to docs directory
+          cp -r examples docs/
+
+          # Delete any remaining symbolic links and macOS aliases under the docs directory
+          find docs -type l -delete
+          find docs -name "* alias" -delete
+          find docs -type l -delete
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          name: github-pages
+          path: ./docs
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
