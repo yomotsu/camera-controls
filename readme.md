@@ -822,6 +822,8 @@ cameraControls.setLookAt( 0, 0, 5, 0, 0, 0, true ); // v2
 cameraControls.normalizeRotations().setLookAt( 0, 0, 5, 0, 0, 0, true ); // v3
 ```
 
+The angle range for `normalizeRotations()` has been changed from 0deg to 360deg to -180deg to 180deg.
+
 ## V2 Migration Guide
 
 camera-controls used to use simple damping for its smooth transition. camera-controls v2 now uses [SmoothDamp](https://docs.unity3d.com/ScriptReference/Mathf.SmoothDamp.html).
