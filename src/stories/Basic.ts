@@ -9,6 +9,8 @@ export interface BasicProps {}
 
 export const createBasic = ( {}: BasicProps ) => {
 
+	console.log( 'createBasic' );
+
 	const width = window.innerWidth;
 	const height = window.innerHeight;
 	const clock = new THREE.Clock();

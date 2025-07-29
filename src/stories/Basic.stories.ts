@@ -22,4 +22,21 @@ const meta = {
 export default meta;
 type Story = StoryObj<BasicProps>;
 
-export const Default: Story = {};
+export const St1: Story = {
+	args: {},
+	play: async ( { canvas, userEvent } ) => {
+
+		const btn = canvas.getByText( "rotate theta 45deg" );
+		await userEvent.click( btn );
+
+	},
+};
+export const St2: Story = {
+	args: {},
+	play: async ( { canvas, userEvent } ) => {
+
+		const btn = canvas.getByText( "rotate phi 20deg" );
+		await userEvent.click( btn );
+
+	},
+};
