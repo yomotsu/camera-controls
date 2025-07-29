@@ -18,6 +18,7 @@
     "@types/three": "^0.178.1",
     "@typescript-eslint/eslint-plugin": "^8.36.0",
     "@typescript-eslint/parser": "^8.36.0",
+    "chromatic": "^13.1.2",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "downlevel-dts": "^0.11.0",
     "eslint": "^9.31.0",
@@ -52,7 +53,8 @@
     "typedoc": "typedoc",
     "release": "semantic-release",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "chromatic": "chromatic --onlyChanged --zip --project-token=$CHROMATIC_PROJECT_TOKEN"
   },
   "browserslist": [
     "> 1%",
