@@ -14,6 +14,7 @@
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.4",
     "@storybook/html-vite": "^9.0.18",
+    "@storybook/testing-library": "^0.2.1",
     "@stylistic/eslint-plugin": "^5.1.0",
     "@types/three": "^0.178.1",
     "@typescript-eslint/eslint-plugin": "^8.36.0",
