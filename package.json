@@ -50,6 +50,7 @@
     "build": "rollup --config && terser dist/camera-controls.module.js -o dist/camera-controls.module.min.js --comments '/^!/' && downlevel-dts . .",
     "prepack": "npm run build",
     "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
     "typedoc": "typedoc",
     "release": "semantic-release",
     "storybook": "storybook dev -p 6006",
