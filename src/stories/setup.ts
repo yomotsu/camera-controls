@@ -28,6 +28,9 @@ export const setup = ( container: HTMLElement = document.createElement( 'div' ) 
 	gridHelper.position.y = - 1;
 	scene.add( gridHelper );
 
+	const axesHelper = new THREE.AxesHelper();
+	scene.add( axesHelper );
+
 	renderer.render( scene, camera );
 
 
