@@ -6,6 +6,8 @@ import type { BasicProps } from './Basic';
 
 import { setup } from './setup';
 
+const { DEG2RAD } = THREE.MathUtils;
+
 const meta = {
 	title: 'Examples/Basic',
 	render: ( args ) => createBasic( args ),
@@ -23,22 +25,22 @@ const meta = {
 			controlsDiv.classList.add( 'info' );
 			container.appendChild( controlsDiv );
 
-			const buttons = [
+			[
 				{
 					text: 'rotate theta 45deg',
-					action: () => cameraControls.rotate( 45 * THREE.MathUtils.DEG2RAD, 0, true )
+					action: () => cameraControls.rotate( 45 * DEG2RAD, 0, true )
 				},
 				{
 					text: 'rotate theta -90deg',
-					action: () => cameraControls.rotate( - 90 * THREE.MathUtils.DEG2RAD, 0, true )
+					action: () => cameraControls.rotate( - 90 * DEG2RAD, 0, true )
 				},
 				{
 					text: 'rotate theta 360deg',
-					action: () => cameraControls.rotate( 360 * THREE.MathUtils.DEG2RAD, 0, true )
+					action: () => cameraControls.rotate( 360 * DEG2RAD, 0, true )
 				},
 				{
 					text: 'rotate phi 20deg',
-					action: () => cameraControls.rotate( 0, 20 * THREE.MathUtils.DEG2RAD, true )
+					action: () => cameraControls.rotate( 0, 20 * DEG2RAD, true )
 				},
 				{
 					text: 'truck(1, 0)',
@@ -92,13 +94,12 @@ const meta = {
 					text: 'enable mouse/touch controls',
 					action: () => cameraControls.enabled = true
 				}
-			];
-			buttons.forEach( ( button ) => {
+			].forEach( ( { text, action } ) => {
 
-				const btn = document.createElement( 'button' );
-				btn.innerText = button.text;
-				btn.addEventListener( 'click', button.action );
-				controlsDiv.appendChild( btn );
+				const button = document.createElement( 'button' );
+				button.innerText = text;
+				button.addEventListener( 'click', action );
+				controlsDiv.appendChild( button );
 
 			} );
 
