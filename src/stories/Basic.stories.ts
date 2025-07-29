@@ -118,3 +118,55 @@ export const St2: Story = {
 
 	},
 };
+
+export const St3: Story = {
+	args: {},
+	play: async ( { canvas, userEvent } ) => {
+
+		const btn = canvas.getByText( "truck(1, 0)" );
+		await userEvent.click( btn );
+
+	},
+};
+
+export const St4: Story = {
+	args: {},
+	play: async ( { canvas, userEvent } ) => {
+
+		const btn = canvas.getByText( "dolly 1" );
+		await userEvent.click( btn );
+
+	},
+};
+
+
+export const St5: Story = {
+	args: {},
+	play: async ( { canvas, userEvent } ) => {
+
+		const btn = canvas.getByText( "zoom camera.zoom / 2" );
+		await userEvent.click( btn );
+
+	},
+};
+
+
+export const St6: Story = {
+	args: {},
+	play: async ( { canvas, userEvent } ) => {
+
+		const btn = canvas.getByText( "move to(3, 5, 2)" );
+		await userEvent.click( btn );
+
+	},
+};
+
+export const St7: Story = {
+	args: {},
+	play: async ( { canvas, userEvent } ) => {
+
+		const btn = canvas.getByText( "fit to the bounding box of the mesh" );
+		await userEvent.click( btn );
+
+	},
+};
