@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import { within } from '@storybook/testing-library';
+import { userEvent, within } from '@storybook/testing-library';
 import { createBasic } from './Basic';
 import type { BasicProps } from './Basic';
 
@@ -113,7 +113,7 @@ type Story = StoryObj<BasicProps>;
 
 export const St1: Story = {
 	args: {},
-	play: async ( { canvasElement, userEvent } ) => {
+	play: async ( { canvasElement } ) => {
 
 		const canvas = within( canvasElement );
 
@@ -124,7 +124,7 @@ export const St1: Story = {
 };
 export const St2: Story = {
 	args: {},
-	play: async ( { canvasElement, userEvent } ) => {
+	play: async ( { canvasElement } ) => {
 
 		const canvas = within( canvasElement );
 
@@ -136,7 +136,7 @@ export const St2: Story = {
 
 export const St3: Story = {
 	args: {},
-	play: async ( { canvasElement, userEvent } ) => {
+	play: async ( { canvasElement } ) => {
 
 		const canvas = within( canvasElement );
 
@@ -148,7 +148,7 @@ export const St3: Story = {
 
 export const St4: Story = {
 	args: {},
-	play: async ( { canvasElement, userEvent } ) => {
+	play: async ( { canvasElement } ) => {
 
 		const canvas = within( canvasElement );
 
@@ -161,7 +161,7 @@ export const St4: Story = {
 
 export const St5: Story = {
 	args: {},
-	play: async ( { canvasElement, userEvent } ) => {
+	play: async ( { canvasElement } ) => {
 
 		const canvas = within( canvasElement );
 
@@ -174,7 +174,7 @@ export const St5: Story = {
 
 export const St6: Story = {
 	args: {},
-	play: async ( { canvasElement, userEvent } ) => {
+	play: async ( { canvasElement } ) => {
 
 		const canvas = within( canvasElement );
 
@@ -186,7 +186,7 @@ export const St6: Story = {
 
 export const St7: Story = {
 	args: {},
-	play: async ( { canvasElement, userEvent } ) => {
+	play: async ( { canvasElement } ) => {
 
 		const canvas = within( canvasElement );
 
