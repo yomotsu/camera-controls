@@ -1,5 +1,5 @@
 {
-  "name": "camera-controls",
+  "name": "@abernier/camera-controls",
   "version": "0.0.0-semantic-release",
   "author": "Yomotsu",
   "license": "MIT",
@@ -9,7 +9,7 @@
   "files": [
     "dist"
   ],
-  "repository": "yomotsu/camera-controls",
+  "repository": "abernier/camera-controls",
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.4",
