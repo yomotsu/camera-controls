@@ -1,4 +1,6 @@
-this is my fork of original yomotsu/camera-controls
+this is my fork of original [yomotsu/camera-controls](https://github.com/yomotsu/camera-controls)
+
+<details>
 
 # camera-controls
 
@@ -875,3 +877,5 @@ Pre-requisites:
 ```sh
 $ npm run release -- --dry-run
 ```
+
+</details>
