@@ -1,3 +1,6 @@
+[![](https://img.shields.io/badge/dev-f7f9fc.svg?logo=storybook)](https://dev--68888af2a4f99a664aba1eb5.chromatic.com)
+[![](https://img.shields.io/badge/dev-171c23.svg?logo=chromatic)](https://www.chromatic.com/library?appId=68888af2a4f99a664aba1eb5&branch=dev)
+
 this is my fork of original [yomotsu/camera-controls](https://github.com/yomotsu/camera-controls)
 
 <details>
