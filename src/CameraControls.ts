@@ -63,7 +63,7 @@ export class CameraControls extends EventDispatcher {
 	protected static _rotationMatrix: _THREE.Matrix4;
 	protected static _raycaster: _THREE.Raycaster;
 
-	private get ctor() {
+	get ctor() {
 
 		return this.constructor as typeof CameraControls;
 
