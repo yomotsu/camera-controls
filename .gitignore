@@ -12,3 +12,5 @@ yarn.lock
 docs
 
 /dist
+*storybook.log
+storybook-static
