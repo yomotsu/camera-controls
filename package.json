@@ -1,6 +1,9 @@
 {
   "name": "@abernier/camera-controls",
   "version": "0.0.0-semantic-release",
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "Yomotsu",
   "license": "MIT",
   "main": "dist/camera-controls.cjs",
