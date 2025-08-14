@@ -83,7 +83,6 @@
   ],
   "packageManager": "npm@11.4.2+sha512-+QweyLIHtiXW7bZpOu8j2ss5w45CF/6MRqlz8RnKs5KsDeI/4/B+WDGI2un9kQizhFrW9SW1mHQr0GDrrWC/8w==",
   "engines": {
-    "node": ">=24.4.0",
-    "npm": ">=11.4.2"
+    "node": ">=20"
   }
 }
