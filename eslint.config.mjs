@@ -1,3 +1,5 @@
+import storybook from "eslint-plugin-storybook";
+
 import globals from "globals";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
@@ -80,7 +82,7 @@ const mdcs = {
 
 export default [
 	{
-		files: [ "src/**/*.ts" ],
+		files: [ "**/*.ts", "**/*.mjs" ],
 		// ignores: [],
 		languageOptions: {
 			parser: tsParser,
@@ -118,5 +120,4 @@ export default [
 			],
 			"key-spacing": [ 0 ],
 		},
-	},
-];
+	}, ...storybook.configs[ "flat/recommended" ] ];
