@@ -58,6 +58,7 @@ jobs:
   deploy-job:
     needs: release-job
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       pages: write
