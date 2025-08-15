@@ -1,0 +1,19 @@
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [dev]
+
+jobs:
+  lgtm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - run: |
+          npm ci
+          npm test
+          npm run build
