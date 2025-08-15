@@ -145,3 +145,32 @@ export type CameraControlsLerpState = {
 } | {
 	position: [number, number, number]
 } );
+
+export type CameraControlsState = {
+	enabled: boolean;
+
+	minDistance: number;
+	maxDistance: number;
+	minZoom: number;
+	maxZoom: number;
+	minPolarAngle: number;
+	maxPolarAngle: number;
+	minAzimuthAngle: number;
+	maxAzimuthAngle: number;
+	smoothTime: number;
+	draggingSmoothTime: number;
+	dollySpeed: number;
+	truckSpeed: number;
+	dollyToCursor: boolean;
+
+	target: _THREE.Vector3Tuple;
+	position: _THREE.Vector3Tuple;
+	spherical: _THREE.Vector3Tuple;
+	zoom: number;
+	focalOffset: _THREE.Vector3Tuple;
+
+	target0: _THREE.Vector3Tuple;
+	position0: _THREE.Vector3Tuple;
+	zoom0: number;
+	focalOffset0: _THREE.Vector3Tuple;
+};

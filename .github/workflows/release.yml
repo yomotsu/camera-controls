@@ -30,6 +30,7 @@ jobs:
         id: main
         run: |
           npm ci
+          npm test
           npm run release
 
           # Check if release was successful (dist directory exists)
