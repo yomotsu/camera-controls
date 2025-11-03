@@ -14,10 +14,11 @@ const license = `/*!
 
 export default {
 	input: 'src/index.ts',
+	external: [ 'three' ],
 	output: [
 		{
 			format: 'es',
-			file: pkg.module,
+			file: 'dist/camera-controls.mjs',
 			banner: license,
 			indent: '\t',
 			exports: 'named',

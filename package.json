@@ -3,9 +3,22 @@
   "version": "0.0.0-semantic-release",
   "author": "Yomotsu",
   "license": "MIT",
+  "type": "module",
   "main": "dist/camera-controls.cjs",
-  "module": "dist/camera-controls.module.js",
+  "module": "dist/camera-controls.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/camera-controls.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/camera-controls.cjs"
+      }
+    }
+  },
   "files": [
     "dist"
   ],
@@ -43,7 +56,7 @@
     "dev:rollup": "rollup --config --watch",
     "dev:serve": "serve -S -p 3000 ./ && kill $!",
     "dev:open": "open-cli http://localhost:3000/examples/",
-    "build": "rollup --config && terser dist/camera-controls.module.js -o dist/camera-controls.module.min.js --comments '/^!/' && downlevel-dts . .",
+    "build": "rollup --config && terser dist/camera-controls.mjs -o dist/camera-controls.min.mjs --comments '/^!/' && downlevel-dts . .",
     "prepack": "npm run build",
     "lint": "eslint src",
     "typedoc": "typedoc",

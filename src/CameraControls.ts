@@ -13,11 +13,11 @@ import {
 	isPerspectiveCamera,
 	isOrthographicCamera,
 	CameraControlsLerpState,
-} from './types';
+} from './types.js';
 import {
 	PI_2,
 	PI_HALF,
-} from './constants';
+} from './constants.js';
 import {
 	DEG2RAD,
 	clamp,
@@ -28,10 +28,10 @@ import {
 	maxNumberToInfinity,
 	smoothDamp,
 	smoothDampVec3,
-} from './utils/math-utils';
-import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent';
-import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera';
-import { EventDispatcher, Listener } from './EventDispatcher';
+} from './utils/math-utils.js';
+import { extractClientCoordFromEvent } from './utils/extractClientCoordFromEvent.js';
+import { notSupportedInOrthographicCamera } from './utils/notSupportedInOrthographicCamera.js';
+import { EventDispatcher, Listener } from './EventDispatcher.js';
 
 const VERSION = '__VERSION'; // will be replaced with `version` in package.json during the build process.
 const TOUCH_DOLLY_FACTOR = 1 / 8;

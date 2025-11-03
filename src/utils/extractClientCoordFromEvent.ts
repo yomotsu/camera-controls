@@ -1,5 +1,5 @@
 import type * as _THREE  from 'three';
-import type { PointerInput } from '../types';
+import type { PointerInput } from '../types.js';
 
 export function extractClientCoordFromEvent( pointers: PointerInput[], out: _THREE.Vector2 ) {
 

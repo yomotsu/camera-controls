@@ -1,5 +1,5 @@
 import type * as _THREE from 'three';
-import type { Ref } from '../types';
+import type { Ref } from '../types.js';
 
 const EPSILON = 1e-5;
 export const DEG2RAD = Math.PI / 180;
