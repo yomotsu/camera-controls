@@ -1,5 +1,6 @@
 import rollupReplace from '@rollup/plugin-replace';
 import rollupTypescript from '@rollup/plugin-typescript';
+import dts from 'rollup-plugin-dts';
 import typescript from 'typescript';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -12,26 +13,38 @@ const license = `/*!
  * Released under the MIT License.
  */`;
 
-export default {
-	input: 'src/index.ts',
-	output: [
-		{
+export default [
+	{
+		input: 'src/index.ts',
+		output: [
+			{
+				format: 'es',
+				file: pkg.module,
+				banner: license,
+				indent: '\t',
+				exports: 'named',
+			},
+			{
+				format: 'cjs',
+				file: pkg.main,
+				banner: license,
+				indent: '\t',
+				exports: 'named',
+			}
+		],
+		plugins: [
+			rollupReplace( { preventAssignment: true, __VERSION: pkg.version } ),
+			rollupTypescript( { typescript, declaration: false } ),
+		],
+	},
+	{
+		input: 'src/index.ts',
+		output: {
+			file: pkg.types,
 			format: 'es',
-			file: pkg.module,
-			banner: license,
-			indent: '\t',
-			exports: 'named',
 		},
-		{
-			format: 'cjs',
-			file: pkg.main,
-			banner: license,
-			indent: '\t',
-			exports: 'named',
-		}
-	],
-	plugins: [
-		rollupReplace( { preventAssignment: true, __VERSION: pkg.version } ),
-		rollupTypescript( { typescript } ),
-	],
-};
+		plugins: [
+			dts( { compilerOptions: { preserveSymlinks: false } } ),
+		],
+	}
+];
