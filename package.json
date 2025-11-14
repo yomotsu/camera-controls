@@ -78,9 +78,9 @@
     "OrbitControls",
     "camera"
   ],
-  "packageManager": "npm@11.4.2+sha512-+QweyLIHtiXW7bZpOu8j2ss5w45CF/6MRqlz8RnKs5KsDeI/4/B+WDGI2un9kQizhFrW9SW1mHQr0GDrrWC/8w==",
+  "packageManager": "npm@10.5.1+sha512-RozZuGuWbbhDM2sRhOSLIRb3DLyof6TREi0TW5b3xUEBropDhDqEHv0iAjA1zsIwXKgfIkR8GvQMd4oeKKg9eQ==",
   "engines": {
-    "node": ">=24.4.0",
-    "npm": ">=11.4.2"
+    "node": ">=22.0.0",
+    "npm": ">=10.5.1"
   }
 }
