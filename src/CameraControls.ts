@@ -297,6 +297,13 @@ export class CameraControls extends EventDispatcher {
 	restThreshold = 0.01;
 
 	/**
+	 * `true` to enable smooth rotation interpolation along the shortest path for azimuth (theta).
+	 * When enabled, rotating between angles like -179° and 179° will take the short 2° path instead of rotating 358°.
+	 * @category Properties
+	 */
+	smoothRotationTheta = true;
+
+	/**
 	 * An array of Meshes to collide with camera.  
 	 * Be aware colliderMeshes may decrease performance. The collision test uses 4 raycasters from the camera since the near plane has 4 corners.
 	 * @category Properties
@@ -2621,7 +2628,7 @@ export class CameraControls extends EventDispatcher {
 		} else {
 
 			const smoothTime = this._isUserControllingRotate ? this.draggingSmoothTime : this.smoothTime;
-			this._spherical.theta = smoothDamp( this._spherical.theta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta );
+			this._spherical.theta = smoothDamp( this._spherical.theta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta, this.smoothRotationTheta ? 'shortestAngle' : 'none' );
 			this._needsUpdate = true;
 
 		}

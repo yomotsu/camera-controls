@@ -183,6 +183,7 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.colliderMeshes`         | `array`   | `[]`        | An array of Meshes to collide with camera ². |
 | `.infinityDolly`          | `boolean` | `false`     | `true` to enable Infinity Dolly for wheel and pinch. Use this with `minDistance` and `maxDistance` ³. |
 | `.restThreshold`          | `number`  | `0.0025`    | Controls how soon the `rest` event fires as the camera slows |
+| `.smoothRotationTheta`    | `boolean` | `true`      | `true` to smooth azimuth (`theta`) transitions along the shortest path (wraps angles such as -179° ↔ 179°). |
 
 1. Every 360 degrees turn is added to `.azimuthAngle` value, which is accumulative.  
   `360º = 360 * THREE.MathUtils.DEG2RAD = Math.PI * 2`, `720º = Math.PI * 4`.  
@@ -658,6 +659,8 @@ Set current camera position as the default position
 
 Normalize camera azimuth angle (horizontal rotation) between -180 and 180 degrees.
 This is useful when you want to keep the azimuth angle normalized before calling methods like `.setLookAt()`, `.lerpLookAt()`, `.setTarget()`, `.setPosition()`, and `.reset()`.
+
+When combined with the `.smoothRotationTheta` property (enabled by default), theta transitions always follow the shortest rotational path during smoothing.
 
 This method returns the CameraControls instance itself, so you can chain it with other methods.
 
