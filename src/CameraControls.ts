@@ -727,6 +727,8 @@ export class CameraControls extends EventDispatcher {
 			if ( ! this._domElement ) return;
 			if ( ! this._enabled || this.mouseButtons.wheel === ACTION.NONE ) return;
 
+			this._resetFocalOffsets();
+
 			if (
 				this._interactiveArea.left !== 0 ||
 				this._interactiveArea.top !== 0 ||
@@ -857,6 +859,8 @@ export class CameraControls extends EventDispatcher {
 		const startDragging = ( event?: PointerEvent ): void => {
 
 			if ( ! this._enabled ) return;
+
+			this._resetFocalOffsets();
 
 			extractClientCoordFromEvent( this._activePointers, _v2 );
 
@@ -2080,6 +2084,8 @@ export class CameraControls extends EventDispatcher {
 		targetX: number, targetY: number, targetZ: number,
 		enableTransition: boolean = false,
 	): Promise<void> {
+
+		this._resetFocalOffsets();
 
 		this._isUserControllingRotate = false;
 		this._isUserControllingDolly = false;
@@ -3319,6 +3325,19 @@ export class CameraControls extends EventDispatcher {
 	protected _addAllEventListeners( _domElement: HTMLElement ): void {}
 
 	protected _removeAllEventListeners(): void {}
+
+	// Applies and resets focal offsets to play nice with lookAt and zoom-to-cursor
+	// https://github.com/yomotsu/camera-controls/issues/491
+	protected _resetFocalOffsets() {
+
+			_v3A.set( 0, 0, -1 ).applyQuaternion( this._camera.quaternion );
+			_v3A.multiplyScalar( this._spherical.radius );
+			_v3A.add( this._camera.position );
+
+			this.setFocalOffset( 0, 0, 0, false );
+			this.moveTo( _v3A.x, _v3A.y, _v3A.z, false );
+
+	}
 
 	/**
 	 * backward compatible
