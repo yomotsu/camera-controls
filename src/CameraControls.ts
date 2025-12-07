@@ -2624,7 +2624,7 @@ export class CameraControls extends EventDispatcher {
 
 			const TAU = Math.PI * 2;
 			diff = ( ( diff % TAU ) + TAU ) % TAU; // normalise to [0, TAU)
-			if ( diff > Math.PI ) diff -= TAU;   // shift to [-PI, PI)
+			if ( diff > Math.PI ) diff -= TAU;     // shift to [-PI, PI)
 
 			const shortestArcTheta = this._sphericalEnd.theta - diff;
 
