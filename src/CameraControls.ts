@@ -2620,9 +2620,20 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
+			let diff = this._sphericalEnd.theta - this._spherical.theta;
+
+			const TAU = Math.PI * 2;
+			diff = ( ( diff % TAU ) + TAU ) % TAU; // normalise to [0, TAU)
+			if ( diff > Math.PI ) diff -= TAU;   // shift to [-PI, PI)
+
+			const shortestArcTheta = this._sphericalEnd.theta - diff;
+
 			const smoothTime = this._isUserControllingRotate ? this.draggingSmoothTime : this.smoothTime;
-			this._spherical.theta = smoothDamp( this._spherical.theta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta );
+			this._spherical.theta = smoothDamp( shortestArcTheta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta );
 			this._needsUpdate = true;
+
+			// normalize theta to prevent overflow
+			this._spherical.theta = this._spherical.theta % ( Math.PI * 2 );
 
 		}
 
