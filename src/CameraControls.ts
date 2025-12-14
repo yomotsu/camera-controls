@@ -771,8 +771,8 @@ export class CameraControls extends EventDispatcher {
 			const x = this.dollyToCursor ? ( event.clientX - this._elementRect.x ) / this._elementRect.width  *   2 - 1 : 0;
 			const y = this.dollyToCursor ? ( event.clientY - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
-			// event.ctrlKey is set to true on macOS trackpad pinch gesture. In this case, always zoom.
-			const controlMode = event.ctrlKey ? ACTION.ZOOM : this.mouseButtons.wheel;
+			// event.ctrlKey is set to true on macOS during a trackpad pinch gesture. In this case, treat it as a two-finger pinch gesture, but not a two-finger move.
+			const controlMode = ! event.ctrlKey ? this.mouseButtons.wheel : this.touches.two;
 			switch ( controlMode ) {
 
 				case ACTION.ROTATE: {
@@ -807,7 +807,11 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				case ACTION.DOLLY: {
+				case ACTION.DOLLY:
+				case ACTION.TOUCH_DOLLY:
+				case ACTION.TOUCH_DOLLY_ROTATE:
+				case ACTION.TOUCH_DOLLY_TRUCK:
+				case ACTION.TOUCH_DOLLY_OFFSET: {
 
 					this._dollyInternal( - delta, x, y );
 					this._isUserControllingDolly = true;
@@ -815,7 +819,11 @@ export class CameraControls extends EventDispatcher {
 
 				}
 
-				case ACTION.ZOOM: {
+				case ACTION.ZOOM:
+				case ACTION.TOUCH_ZOOM:
+				case ACTION.TOUCH_ZOOM_ROTATE:
+				case ACTION.TOUCH_ZOOM_TRUCK:
+				case ACTION.TOUCH_ZOOM_OFFSET: {
 
 					this._zoomInternal( - delta, x, y );
 					this._isUserControllingZoom = true;
@@ -2091,16 +2099,25 @@ export class CameraControls extends EventDispatcher {
 		const position = _v3A.set( positionX, positionY, positionZ );
 
 		this._targetEnd.copy( target );
-		position.sub(target)
-		if(approxZero(position.x)) {
+		position.sub( target );
+		if ( approxZero( position.x ) ) {
+
 			position.x = 0;
+
 		}
-		if(approxZero(position.y)) {
+
+		if ( approxZero( position.y ) ) {
+
 			position.y = 0;
+
 		}
-		if(approxZero(position.z)) {
+
+		if ( approxZero( position.z ) ) {
+
 			position.z = 0;
+
 		}
+
 		this._sphericalEnd.setFromVector3( position.applyQuaternion( this._yAxisUpSpace ) );
 
 		this._needsUpdate = true;
