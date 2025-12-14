@@ -2806,7 +2806,15 @@ export class CameraControls extends EventDispatcher {
 		// decompose spherical to the camera position
 		this._spherical.makeSafe();
 		this._camera.position.setFromSpherical( this._spherical ).applyQuaternion( this._yAxisUpSpaceInverse ).add( this._target );
-		this._camera.lookAt( this._target );
+
+		_v3A.copy( this._target );
+		if ( this._camera.parent ) {
+
+			this._camera.parent.localToWorld( _v3A );
+
+		}
+
+		this._camera.lookAt( _v3A );
 
 		// set offset after the orbit movement
 		const affectOffset =
