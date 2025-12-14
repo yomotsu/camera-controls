@@ -2091,16 +2091,25 @@ export class CameraControls extends EventDispatcher {
 		const position = _v3A.set( positionX, positionY, positionZ );
 
 		this._targetEnd.copy( target );
-		position.sub(target)
-		if(approxZero(position.x)) {
+		position.sub( target );
+		if ( approxZero( position.x ) ) {
+
 			position.x = 0;
+
 		}
-		if(approxZero(position.y)) {
+
+		if ( approxZero( position.y ) ) {
+
 			position.y = 0;
+
 		}
-		if(approxZero(position.z)) {
+
+		if ( approxZero( position.z ) ) {
+
 			position.z = 0;
+
 		}
+
 		this._sphericalEnd.setFromVector3( position.applyQuaternion( this._yAxisUpSpace ) );
 
 		this._needsUpdate = true;
