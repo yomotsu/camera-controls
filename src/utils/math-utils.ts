@@ -1,8 +1,18 @@
 import type * as _THREE from 'three';
+import { MathUtils } from 'three';
 import type { Ref } from '../types';
 
 const EPSILON = 1e-5;
 export const DEG2RAD = Math.PI / 180;
+export const TAU = Math.PI * 2;
+
+export type SmoothDampWrapMode = 'none' | 'shortestAngle';
+
+export function absoluteAngle( targetAngle: number, sourceAngle: number ): number {
+	const angle = targetAngle - sourceAngle
+	return MathUtils.euclideanModulo( angle + Math.PI, TAU ) - Math.PI;
+}
+
 
 export function clamp( value: number, min: number, max: number ) {
 
@@ -55,6 +65,7 @@ export function smoothDamp(
 	smoothTime: number,
 	maxSpeed: number = Infinity,
 	deltaTime: number,
+	smoothMode?: SmoothDampWrapMode,
 ): number {
 
 	// Based on Game Programming Gems 4 Chapter 1.10
@@ -63,17 +74,27 @@ export function smoothDamp(
 
 	const x = omega * deltaTime;
 	const exp = 1 / ( 1 + x + 0.48 * x * x + 0.235 * x * x * x );
-	let change = current - target;
-	const originalTo = target;
+
+	let targetPosition = target;
+
+	if ( smoothMode === 'shortestAngle' ) {
+
+		const delta = absoluteAngle( target, current );
+		targetPosition = current + delta;
+
+	}
+
+	let change = current - targetPosition;
+	const originalTo = targetPosition;
 
 	// Clamp maximum speed
 	const maxChange = maxSpeed * smoothTime;
 	change = clamp( change, - maxChange, maxChange );
-	target = current - change;
+	targetPosition = current - change;
 
 	const temp = ( currentVelocityRef.value + omega * change ) * deltaTime;
 	currentVelocityRef.value = ( currentVelocityRef.value - omega * temp ) * exp;
-	let output = target + ( change + temp ) * exp;
+	let output = targetPosition + ( change + temp ) * exp;
 
 	// Prevent overshooting
 	if ( originalTo - current > 0.0 === output > originalTo ) {
