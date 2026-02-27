@@ -520,6 +520,9 @@ export class CameraControls extends EventDispatcher {
 		this._dollyControlCoord = new THREE.Vector2();
 
 		// configs
+        this._configureMouseAndTouchActions();
+        
+        /*
 		this.mouseButtons = {
 			left: ACTION.ROTATE,
 			middle: ACTION.DOLLY,
@@ -538,6 +541,7 @@ export class CameraControls extends EventDispatcher {
 				ACTION.NONE,
 			three: ACTION.TOUCH_TRUCK,
 		};
+        */
 
 		const dragStartPosition = new THREE.Vector2() as _THREE.Vector2;
 		const lastDragPosition = new THREE.Vector2() as _THREE.Vector2;
@@ -1304,6 +1308,33 @@ export class CameraControls extends EventDispatcher {
 
 	}
 
+    /**
+	 * Configure actions.
+	 * @category Methods
+	 */
+    _configureMouseAndTouchActions() {
+
+		this.mouseButtons = {
+			left: ACTION.ROTATE,
+			middle: ACTION.DOLLY,
+			right: ACTION.TRUCK,
+			wheel:
+				isPerspectiveCamera( this._camera )  ? ACTION.DOLLY :
+				isOrthographicCamera( this._camera ) ? ACTION.ZOOM :
+				ACTION.NONE,
+		};
+
+		this.touches = {
+			one: ACTION.TOUCH_ROTATE,
+			two:
+				isPerspectiveCamera( this._camera )  ? ACTION.TOUCH_DOLLY_TRUCK :
+				isOrthographicCamera( this._camera ) ? ACTION.TOUCH_ZOOM_TRUCK :
+				ACTION.NONE,
+			three: ACTION.TOUCH_TRUCK,
+		};
+        
+    }
+
 	/**
 	 * The camera to be controlled
 	 * @category Properties
@@ -1321,6 +1352,8 @@ export class CameraControls extends EventDispatcher {
 		this._camera.updateProjectionMatrix();
 		this._updateNearPlaneCorners();
 		this._needsUpdate = true;
+
+        this._configureMouseAndTouchActions();
 
 	}
 
