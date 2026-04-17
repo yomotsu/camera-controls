@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # Keep GitHub-owned actions pinned by SHA in .github/workflows/release.yml
+  # up to date with weekly patch bumps. Dependabot opens a PR when an action
+  # releases a new tag within the currently-used major version.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
