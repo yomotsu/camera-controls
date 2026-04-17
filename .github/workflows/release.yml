@@ -9,10 +9,20 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Default token scopes: read-only. Jobs that need to write (release, pages) opt in explicitly.
+permissions:
+  contents: read
+
 jobs:
 
   release-job:
     runs-on: ubuntu-latest
+    permissions:
+      # semantic-release needs these to create the GitHub release, push tags,
+      # and post release-note comments on referenced issues/PRs.
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
