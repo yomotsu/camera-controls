@@ -775,9 +775,11 @@ export class CameraControls extends EventDispatcher {
 			const controlMode = ! event.ctrlKey ? this.mouseButtons.wheel : this.touches.two;
 			switch ( controlMode ) {
 
-				case ACTION.ROTATE: {
+				case ACTION.ROTATE:
+				case ACTION.ROTATE_AZIMUTH:
+				case ACTION.ROTATE_POLAR: {
 
-					this._rotateInternal( event.deltaX, event.deltaY );
+					this._rotateInternal( event.deltaX, event.deltaY, controlMode );
 					this._isUserControllingRotate = true;
 					break;
 
@@ -1044,7 +1046,7 @@ export class CameraControls extends EventDispatcher {
 				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
 			) {
 
-				this._rotateInternal( deltaX, deltaY );
+				this._rotateInternal( deltaX, deltaY, this._state );
 				this._isUserControllingRotate = true;
 
 			}
@@ -3202,10 +3204,14 @@ export class CameraControls extends EventDispatcher {
 
 	};
 
-	protected _rotateInternal = ( deltaX: number, deltaY: number ): void => {
+	protected _rotateInternal = ( deltaX: number, deltaY: number, state: ACTION ): void => {
 
-		const theta = PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.height; // divide by *height* to refer the resolution
-		const phi   = PI_2 * this.polarRotateSpeed   * deltaY / this._elementRect.height;
+		// gate each axis by whichever rotate bits (mouse or touch) are present in the state
+		const enableAzimuth = ( state & ( ACTION.ROTATE_AZIMUTH | ACTION.TOUCH_ROTATE_AZIMUTH ) ) !== 0;
+		const enablePolar   = ( state & ( ACTION.ROTATE_POLAR   | ACTION.TOUCH_ROTATE_POLAR ) )   !== 0;
+
+		const theta = enableAzimuth ? PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.height : 0; // divide by *height* to refer the resolution
+		const phi   = enablePolar   ? PI_2 * this.polarRotateSpeed   * deltaY / this._elementRect.height : 0;
 		this.rotate( theta, phi, true );
 
 	};
