@@ -26,28 +26,58 @@ export const MOUSE_BUTTON = {
 } as const;
 export type MOUSE_BUTTON = typeof MOUSE_BUTTON[ keyof typeof MOUSE_BUTTON ];
 
+// primitive action bits — one capability per bit
+const ROTATE_AZIMUTH       = 0b1;
+const ROTATE_POLAR         = 0b10;
+const TRUCK                = 0b100;
+const SCREEN_PAN           = 0b1000;
+const OFFSET               = 0b10000;
+const DOLLY                = 0b100000;
+const ZOOM                 = 0b1000000;
+const TOUCH_ROTATE_AZIMUTH = 0b10000000;
+const TOUCH_ROTATE_POLAR   = 0b100000000;
+const TOUCH_TRUCK          = 0b1000000000;
+const TOUCH_SCREEN_PAN     = 0b10000000000;
+const TOUCH_OFFSET         = 0b100000000000;
+const TOUCH_DOLLY          = 0b1000000000000;
+const TOUCH_ZOOM           = 0b10000000000000;
+
+// composite shorthands
+const ROTATE       = ROTATE_AZIMUTH | ROTATE_POLAR;
+const TOUCH_ROTATE = TOUCH_ROTATE_AZIMUTH | TOUCH_ROTATE_POLAR;
+
 export const ACTION = Object.freeze( {
 	NONE:                   0b0,
-	ROTATE:                 0b1,
-	TRUCK:                  0b10,
-	SCREEN_PAN:             0b100,
-	OFFSET:                 0b1000,
-	DOLLY:                  0b10000,
-	ZOOM:                   0b100000,
-	TOUCH_ROTATE:           0b1000000,
-	TOUCH_TRUCK:            0b10000000,
-	TOUCH_SCREEN_PAN:       0b100000000,
-	TOUCH_OFFSET:           0b1000000000,
-	TOUCH_DOLLY:            0b10000000000,
-	TOUCH_ZOOM:             0b100000000000,
-	TOUCH_DOLLY_TRUCK:      0b1000000000000,
-	TOUCH_DOLLY_SCREEN_PAN: 0b10000000000000,
-	TOUCH_DOLLY_OFFSET:     0b100000000000000,
-	TOUCH_DOLLY_ROTATE:     0b1000000000000000,
-	TOUCH_ZOOM_TRUCK:       0b10000000000000000,
-	TOUCH_ZOOM_OFFSET:      0b100000000000000000,
-	TOUCH_ZOOM_SCREEN_PAN:  0b1000000000000000000,
-	TOUCH_ZOOM_ROTATE:      0b10000000000000000000,
+
+	// mouse primitives
+	ROTATE_AZIMUTH,
+	ROTATE_POLAR,
+	ROTATE, // = ROTATE_AZIMUTH | ROTATE_POLAR
+	TRUCK,
+	SCREEN_PAN,
+	OFFSET,
+	DOLLY,
+	ZOOM,
+
+	// touch primitives
+	TOUCH_ROTATE_AZIMUTH,
+	TOUCH_ROTATE_POLAR,
+	TOUCH_ROTATE, // = TOUCH_ROTATE_AZIMUTH | TOUCH_ROTATE_POLAR
+	TOUCH_TRUCK,
+	TOUCH_SCREEN_PAN,
+	TOUCH_OFFSET,
+	TOUCH_DOLLY,
+	TOUCH_ZOOM,
+
+	// touch composites
+	TOUCH_DOLLY_TRUCK:      TOUCH_DOLLY | TOUCH_TRUCK,
+	TOUCH_DOLLY_SCREEN_PAN: TOUCH_DOLLY | TOUCH_SCREEN_PAN,
+	TOUCH_DOLLY_OFFSET:     TOUCH_DOLLY | TOUCH_OFFSET,
+	TOUCH_DOLLY_ROTATE:     TOUCH_DOLLY | TOUCH_ROTATE,
+	TOUCH_ZOOM_TRUCK:       TOUCH_ZOOM | TOUCH_TRUCK,
+	TOUCH_ZOOM_OFFSET:      TOUCH_ZOOM | TOUCH_OFFSET,
+	TOUCH_ZOOM_SCREEN_PAN:  TOUCH_ZOOM | TOUCH_SCREEN_PAN,
+	TOUCH_ZOOM_ROTATE:      TOUCH_ZOOM | TOUCH_ROTATE,
 } as const );
 
 // Bit OR of Action
@@ -62,10 +92,12 @@ export interface PointerInput {
 	mouseButton: MOUSE_BUTTON | null;
 }
 
-type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.SCREEN_PAN | typeof ACTION.OFFSET  | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
-type mouseWheelAction  = typeof ACTION.ROTATE | typeof ACTION.TRUCK | typeof ACTION.SCREEN_PAN | typeof ACTION.OFFSET  | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
+type mouseButtonAction = typeof ACTION.ROTATE | typeof ACTION.ROTATE_AZIMUTH | typeof ACTION.ROTATE_POLAR | typeof ACTION.TRUCK | typeof ACTION.SCREEN_PAN | typeof ACTION.OFFSET  | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
+type mouseWheelAction  = typeof ACTION.ROTATE | typeof ACTION.ROTATE_AZIMUTH | typeof ACTION.ROTATE_POLAR | typeof ACTION.TRUCK | typeof ACTION.SCREEN_PAN | typeof ACTION.OFFSET  | typeof ACTION.DOLLY | typeof ACTION.ZOOM | typeof ACTION.NONE;
 type singleTouchAction =
 	typeof ACTION.TOUCH_ROTATE |
+	typeof ACTION.TOUCH_ROTATE_AZIMUTH |
+	typeof ACTION.TOUCH_ROTATE_POLAR |
 	typeof ACTION.TOUCH_TRUCK |
 	typeof ACTION.TOUCH_SCREEN_PAN |
 	typeof ACTION.TOUCH_OFFSET |
@@ -82,6 +114,8 @@ type multiTouchAction =
 	typeof ACTION.TOUCH_DOLLY |
 	typeof ACTION.TOUCH_ZOOM |
 	typeof ACTION.TOUCH_ROTATE |
+	typeof ACTION.TOUCH_ROTATE_AZIMUTH |
+	typeof ACTION.TOUCH_ROTATE_POLAR |
 	typeof ACTION.TOUCH_TRUCK |
 	typeof ACTION.TOUCH_SCREEN_PAN |
 	typeof ACTION.TOUCH_OFFSET |
