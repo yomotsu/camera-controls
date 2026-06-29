@@ -18,6 +18,16 @@ export type Ref = {
 	value: number;
 }
 
+export interface SmoothTimes {
+	rotate: number;
+	truck: number;
+	dolly: number;
+	zoom: number;
+	offset: number;
+}
+
+export type SmoothTimeOption = number | Partial<SmoothTimes>;
+
 // see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
 export const MOUSE_BUTTON = {
 	LEFT: 1,

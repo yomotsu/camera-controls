@@ -2,6 +2,8 @@ import type * as _THREE from 'three';
 import {
 	THREESubset,
 	Ref,
+	SmoothTimes,
+	SmoothTimeOption,
 	MOUSE_BUTTON,
 	ACTION,
 	DOLLY_DIRECTION,
@@ -35,6 +37,7 @@ import { EventDispatcher, Listener } from './EventDispatcher';
 
 const VERSION = '__VERSION'; // will be replaced with `version` in package.json during the build process.
 const TOUCH_DOLLY_FACTOR = 1 / 8;
+const SMOOTH_TIME_KEYS: ( keyof SmoothTimes )[] = [ 'rotate', 'truck', 'dolly', 'zoom', 'offset' ];
 const isMac = /Mac/.test( globalThis?.navigator?.platform );
 
 let THREE: THREESubset;
@@ -226,18 +229,6 @@ export class CameraControls extends EventDispatcher {
 	 * @category Properties
 	 */
 	maxZoom = Infinity;
-
-	/**
-	 * Approximate time in seconds to reach the target. A smaller value will reach the target faster.
-	 * @category Properties
-	 */
-	smoothTime = 0.25;
-
-	/**
-	 * the smoothTime while dragging
-	 * @category Properties
-	 */
-	draggingSmoothTime = 0.125;
 
 	/**
 	 * Max transition speed in unit-per-seconds
@@ -434,6 +425,10 @@ export class CameraControls extends EventDispatcher {
 	protected _focalOffsetVelocity: _THREE.Vector3 = new THREE.Vector3();
 	protected _zoomVelocity: Ref = { value: 0 };
 
+	// per-operation smooth times; populated via the setters in the constructor.
+	protected _smoothTime = {} as SmoothTimes;
+	protected _controlSmoothTime = {} as SmoothTimes;
+
 	/**
 	 * @deprecated Use `cameraControls.mouseButtons.left = CameraControls.ACTION.SCREEN_PAN` instead.
 	 */
@@ -478,6 +473,10 @@ export class CameraControls extends EventDispatcher {
 		this._yAxisUpSpace = new THREE.Quaternion().setFromUnitVectors( this._camera.up, _AXIS_Y );
 		this._yAxisUpSpaceInverse = this._yAxisUpSpace.clone().invert();
 		this._state = ACTION.NONE;
+
+		// fills every per-operation key via the setters' number branch
+		this.smoothTime = 0.25;
+		this.controlSmoothTime = 0.125;
 
 		// the location
 		this._target = new THREE.Vector3();
@@ -2647,7 +2646,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
-			const smoothTime = this._isUserControllingRotate ? this.draggingSmoothTime : this.smoothTime;
+			const smoothTime = this._isUserControllingRotate ? this._controlSmoothTime.rotate : this._smoothTime.rotate;
 			this._spherical.theta = smoothDamp( this._spherical.theta, this._sphericalEnd.theta, this._thetaVelocity, smoothTime, Infinity, delta );
 			this._needsUpdate = true;
 
@@ -2661,7 +2660,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
-			const smoothTime = this._isUserControllingRotate ? this.draggingSmoothTime : this.smoothTime;
+			const smoothTime = this._isUserControllingRotate ? this._controlSmoothTime.rotate : this._smoothTime.rotate;
 			this._spherical.phi = smoothDamp( this._spherical.phi, this._sphericalEnd.phi, this._phiVelocity, smoothTime, Infinity, delta );
 			this._needsUpdate = true;
 
@@ -2675,7 +2674,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
-			const smoothTime = this._isUserControllingDolly ? this.draggingSmoothTime : this.smoothTime;
+			const smoothTime = this._isUserControllingDolly ? this._controlSmoothTime.dolly : this._smoothTime.dolly;
 			this._spherical.radius = smoothDamp( this._spherical.radius, this._sphericalEnd.radius, this._radiusVelocity, smoothTime, this.maxSpeed, delta );
 			this._needsUpdate = true;
 
@@ -2689,7 +2688,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
-			const smoothTime = this._isUserControllingTruck ? this.draggingSmoothTime : this.smoothTime;
+			const smoothTime = this._isUserControllingTruck ? this._controlSmoothTime.truck : this._smoothTime.truck;
 			smoothDampVec3( this._target, this._targetEnd, this._targetVelocity, smoothTime, this.maxSpeed, delta, this._target );
 			this._needsUpdate = true;
 
@@ -2703,7 +2702,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
-			const smoothTime = this._isUserControllingOffset ? this.draggingSmoothTime : this.smoothTime;
+			const smoothTime = this._isUserControllingOffset ? this._controlSmoothTime.offset : this._smoothTime.offset;
 			smoothDampVec3( this._focalOffset, this._focalOffsetEnd, this._focalOffsetVelocity, smoothTime, this.maxSpeed, delta, this._focalOffset );
 			this._needsUpdate = true;
 
@@ -2717,7 +2716,7 @@ export class CameraControls extends EventDispatcher {
 
 		} else {
 
-			const smoothTime = this._isUserControllingZoom ? this.draggingSmoothTime : this.smoothTime;
+			const smoothTime = this._isUserControllingZoom ? this._controlSmoothTime.zoom : this._smoothTime.zoom;
 			this._zoom = smoothDamp( this._zoom, this._zoomEnd, this._zoomVelocity, smoothTime, Infinity, delta );
 
 		}
@@ -2929,8 +2928,8 @@ export class CameraControls extends EventDispatcher {
 			maxPolarAngle        : infinityToMaxNumber( this.maxPolarAngle ),
 			minAzimuthAngle      : infinityToMaxNumber( this.minAzimuthAngle ),
 			maxAzimuthAngle      : infinityToMaxNumber( this.maxAzimuthAngle ),
-			smoothTime           : this.smoothTime,
-			draggingSmoothTime   : this.draggingSmoothTime,
+			smoothTime           : this._smoothTime,
+			controlSmoothTime    : this._controlSmoothTime,
 			dollySpeed           : this.dollySpeed,
 			truckSpeed           : this.truckSpeed,
 			dollyToCursor        : this.dollyToCursor,
@@ -2970,7 +2969,7 @@ export class CameraControls extends EventDispatcher {
 		this.minAzimuthAngle       = maxNumberToInfinity( obj.minAzimuthAngle );
 		this.maxAzimuthAngle       = maxNumberToInfinity( obj.maxAzimuthAngle );
 		this.smoothTime            = obj.smoothTime;
-		this.draggingSmoothTime    = obj.draggingSmoothTime;
+		this.controlSmoothTime     = obj.controlSmoothTime;
 		this.dollySpeed            = obj.dollySpeed;
 		this.truckSpeed            = obj.truckSpeed;
 		this.dollyToCursor         = obj.dollyToCursor;
@@ -3356,6 +3355,77 @@ export class CameraControls extends EventDispatcher {
 	protected _removeAllEventListeners(): void {}
 
 	/**
+	 * Approximate time in seconds to reach the target. A smaller value will reach the target faster.
+	 * Accepts a number (applied to every operation) or an object keyed by operation
+	 * (`rotate`, `truck`, `dolly`, `zoom`, `offset`); an object merges the given keys.
+	 * @category Properties
+	 */
+	get smoothTime(): SmoothTimes {
+
+		return this._smoothTime;
+
+	}
+	set smoothTime( value: SmoothTimeOption ) {
+
+		this._applySmoothTime( this._smoothTime, value );
+
+	}
+
+	/**
+	 * The smoothTime used while the user is actively controlling the camera (overrides
+	 * `smoothTime` per operation). Accepts a number or an object keyed by operation.
+	 * @category Properties
+	 */
+	get controlSmoothTime(): SmoothTimes {
+
+		return this._controlSmoothTime;
+
+	}
+	set controlSmoothTime( value: SmoothTimeOption ) {
+
+		this._applySmoothTime( this._controlSmoothTime, value );
+
+	}
+
+	/**
+	 * backward compatible
+	 * @deprecated use controlSmoothTime instead
+	 * @category Properties
+	 */
+	get draggingSmoothTime(): SmoothTimes {
+
+		console.warn( '.draggingSmoothTime has been deprecated. use controlSmoothTime instead.' );
+		return this._controlSmoothTime;
+
+	}
+	set draggingSmoothTime( value: SmoothTimeOption ) {
+
+		console.warn( '.draggingSmoothTime has been deprecated. use controlSmoothTime instead.' );
+		this._applySmoothTime( this._controlSmoothTime, value );
+
+	}
+
+	protected _applySmoothTime( target: SmoothTimes, value: SmoothTimeOption ): void {
+
+		if ( value == null ) return;
+
+		if ( typeof value === 'number' ) {
+
+			target.rotate = target.truck = target.dolly = target.zoom = target.offset = value;
+
+		} else {
+
+			for ( const key of SMOOTH_TIME_KEYS ) {
+
+				if ( value[ key ] !== undefined ) target[ key ] = value[ key ]!;
+
+			}
+
+		}
+
+	}
+
+	/**
 	 * backward compatible
 	 * @deprecated use smoothTime (in seconds) instead
 	 * @category Properties
@@ -3380,24 +3450,24 @@ export class CameraControls extends EventDispatcher {
 
 	/**
 	 * backward compatible
-	 * @deprecated use draggingSmoothTime (in seconds) instead
+	 * @deprecated use controlSmoothTime (in seconds) instead
 	 * @category Properties
 	 */
 	get draggingDampingFactor() {
 
-		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
+		console.warn( '.draggingDampingFactor has been deprecated. use controlSmoothTime (in seconds) instead.' );
 		return 0;
 
 	}
 
 	/**
 	 * backward compatible
-	 * @deprecated use draggingSmoothTime (in seconds) instead
+	 * @deprecated use controlSmoothTime (in seconds) instead
 	 * @category Properties
 	 */
 	set draggingDampingFactor( _: number ) {
 
-		console.warn( '.draggingDampingFactor has been deprecated. use draggingSmoothTime (in seconds) instead.' );
+		console.warn( '.draggingDampingFactor has been deprecated. use controlSmoothTime (in seconds) instead.' );
 
 	}
 
