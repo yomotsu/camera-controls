@@ -309,10 +309,10 @@ export class CameraControls extends EventDispatcher {
 	 *
 	 * | button to assign      | behavior |
 	 * | --------------------- | -------- |
-	 * | `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 * | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 * | `mouseButtons.wheel` ¹ | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
-	 * | `mouseButtons.middle` ² | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY`* \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+	 * | `mouseButtons.left`   | `CameraControls.ACTION.ROTATE`* \| `CameraControls.ACTION.ROTATE_AZIMUTH` \| `CameraControls.ACTION.ROTATE_POLAR` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+	 * | `mouseButtons.right`  | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.ROTATE_AZIMUTH` \| `CameraControls.ACTION.ROTATE_POLAR` \| `CameraControls.ACTION.TRUCK`* \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+	 * | `mouseButtons.wheel` ¹ | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.ROTATE_AZIMUTH` \| `CameraControls.ACTION.ROTATE_POLAR` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
+	 * | `mouseButtons.middle` ² | `CameraControls.ACTION.ROTATE` \| `CameraControls.ACTION.ROTATE_AZIMUTH` \| `CameraControls.ACTION.ROTATE_POLAR` \| `CameraControls.ACTION.TRUCK` \| `CameraControls.ACTION.OFFSET` \| `CameraControls.ACTION.DOLLY`* \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 	 *
 	 * 1. Mouse wheel event for scroll "up/down" on mac "up/down/left/right"
 	 * 2. Mouse click on wheel event "button"
@@ -329,7 +329,7 @@ export class CameraControls extends EventDispatcher {
 	 *
 	 * | fingers to assign     | behavior |
 	 * | --------------------- | -------- |
-	 * | `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.DOLLY` | `CameraControls.ACTION.ZOOM` | `CameraControls.ACTION.NONE` |
+	 * | `touches.one` | `CameraControls.ACTION.TOUCH_ROTATE`* \| `CameraControls.ACTION.TOUCH_ROTATE_AZIMUTH` \| `CameraControls.ACTION.TOUCH_ROTATE_POLAR` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.DOLLY` \| `CameraControls.ACTION.ZOOM` \| `CameraControls.ACTION.NONE` |
 	 * | `touches.two` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_DOLLY_ROTATE` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `ACTION.TOUCH_ZOOM_ROTATE` \| `ACTION.TOUCH_DOLLY` \| `ACTION.TOUCH_ZOOM` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE` |
 	 * | `touches.three` | `ACTION.TOUCH_DOLLY_TRUCK` \| `ACTION.TOUCH_DOLLY_OFFSET` \| `ACTION.TOUCH_DOLLY_ROTATE` \| `ACTION.TOUCH_ZOOM_TRUCK` \| `ACTION.TOUCH_ZOOM_OFFSET` \| `ACTION.TOUCH_ZOOM_ROTATE` \| `CameraControls.ACTION.TOUCH_ROTATE` \| `CameraControls.ACTION.TOUCH_TRUCK` \| `CameraControls.ACTION.TOUCH_OFFSET` \| `CameraControls.ACTION.NONE` |
 	 *
@@ -752,7 +752,7 @@ export class CameraControls extends EventDispatcher {
 
 			if (
 				this.dollyToCursor ||
-				this.mouseButtons.wheel === ACTION.ROTATE ||
+				( this.mouseButtons.wheel & ACTION.ROTATE ) !== 0 ||
 				this.mouseButtons.wheel === ACTION.TRUCK
 			) {
 
@@ -775,9 +775,11 @@ export class CameraControls extends EventDispatcher {
 			const controlMode = ! event.ctrlKey ? this.mouseButtons.wheel : this.touches.two;
 			switch ( controlMode ) {
 
-				case ACTION.ROTATE: {
+				case ACTION.ROTATE:
+				case ACTION.ROTATE_AZIMUTH:
+				case ACTION.ROTATE_POLAR: {
 
-					this._rotateInternal( event.deltaX, event.deltaY );
+					this._rotateInternal( event.deltaX, event.deltaY, controlMode );
 					this._isUserControllingRotate = true;
 					break;
 
@@ -943,10 +945,7 @@ export class CameraControls extends EventDispatcher {
 			// stop current movement on drag start
 			// - rotate
 			if (
-				( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
-				( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
-				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
-				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+				( this._state & ( ACTION.ROTATE | ACTION.TOUCH_ROTATE ) ) !== 0
 			) {
 
 				this._sphericalEnd.theta = this._spherical.theta;
@@ -958,14 +957,7 @@ export class CameraControls extends EventDispatcher {
 
 			// - truck and screen-pan
 			if (
-				( this._state & ACTION.TRUCK ) === ACTION.TRUCK ||
-				( this._state & ACTION.SCREEN_PAN ) === ACTION.SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_TRUCK ) === ACTION.TOUCH_TRUCK ||
-				( this._state & ACTION.TOUCH_SCREEN_PAN ) === ACTION.TOUCH_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
-				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
-				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN
+				( this._state & ( ACTION.TRUCK | ACTION.SCREEN_PAN | ACTION.TOUCH_TRUCK | ACTION.TOUCH_SCREEN_PAN ) ) !== 0
 			) {
 
 				this._targetEnd.copy( this._target );
@@ -975,12 +967,7 @@ export class CameraControls extends EventDispatcher {
 
 			// - dolly
 			if (
-				( this._state & ACTION.DOLLY ) === ACTION.DOLLY ||
-				( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
-				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
-				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
-				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE
+				( this._state & ( ACTION.DOLLY | ACTION.TOUCH_DOLLY ) ) !== 0
 			) {
 
 				this._sphericalEnd.radius = this._spherical.radius;
@@ -990,12 +977,7 @@ export class CameraControls extends EventDispatcher {
 
 			// - zoom
 			if (
-				( this._state & ACTION.ZOOM ) === ACTION.ZOOM ||
-				( this._state & ACTION.TOUCH_ZOOM ) === ACTION.TOUCH_ZOOM ||
-				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
-				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_ZOOM_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET ||
-				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+				( this._state & ( ACTION.ZOOM | ACTION.TOUCH_ZOOM ) ) !== 0
 			) {
 
 				this._zoomEnd = this._zoom;
@@ -1005,10 +987,7 @@ export class CameraControls extends EventDispatcher {
 
 			// - offset
 			if (
-				( this._state & ACTION.OFFSET ) === ACTION.OFFSET ||
-				( this._state & ACTION.TOUCH_OFFSET ) === ACTION.TOUCH_OFFSET ||
-				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
-				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET
+				( this._state & ( ACTION.OFFSET | ACTION.TOUCH_OFFSET ) ) !== 0
 			) {
 
 				this._focalOffsetEnd.copy( this._focalOffset );
@@ -1038,13 +1017,10 @@ export class CameraControls extends EventDispatcher {
 
 			// rotate
 			if (
-				( this._state & ACTION.ROTATE ) === ACTION.ROTATE ||
-				( this._state & ACTION.TOUCH_ROTATE ) === ACTION.TOUCH_ROTATE ||
-				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
-				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+				( this._state & ( ACTION.ROTATE | ACTION.TOUCH_ROTATE ) ) !== 0
 			) {
 
-				this._rotateInternal( deltaX, deltaY );
+				this._rotateInternal( deltaX, deltaY, this._state );
 				this._isUserControllingRotate = true;
 
 			}
@@ -1075,16 +1051,7 @@ export class CameraControls extends EventDispatcher {
 
 			// touch dolly or zoom
 			if (
-				( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
-				( this._state & ACTION.TOUCH_ZOOM ) === ACTION.TOUCH_ZOOM ||
-				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
-				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
-				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_ZOOM_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
-				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET ||
-				( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
-				( this._state & ACTION.TOUCH_ZOOM_ROTATE ) === ACTION.TOUCH_ZOOM_ROTATE
+				( this._state & ( ACTION.TOUCH_DOLLY | ACTION.TOUCH_ZOOM ) ) !== 0
 			) {
 
 				const dx = _v2.x - this._activePointers[ 1 ].clientX;
@@ -1097,11 +1064,7 @@ export class CameraControls extends EventDispatcher {
 				const dollyY = this.dollyToCursor ? ( lastDragPosition.y - this._elementRect.y ) / this._elementRect.height * - 2 + 1 : 0;
 
 				if (
-					( this._state & ACTION.TOUCH_DOLLY ) === ACTION.TOUCH_DOLLY ||
-					( this._state & ACTION.TOUCH_DOLLY_ROTATE ) === ACTION.TOUCH_DOLLY_ROTATE ||
-					( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
-					( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
-					( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET
+					( this._state & ACTION.TOUCH_DOLLY ) !== 0
 				) {
 
 					this._dollyInternal( dollyDelta * TOUCH_DOLLY_FACTOR, dollyX, dollyY );
@@ -1118,10 +1081,7 @@ export class CameraControls extends EventDispatcher {
 
 			// truck
 			if (
-				( this._state & ACTION.TRUCK ) === ACTION.TRUCK ||
-				( this._state & ACTION.TOUCH_TRUCK ) === ACTION.TOUCH_TRUCK ||
-				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
-				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK
+				( this._state & ( ACTION.TRUCK | ACTION.TOUCH_TRUCK ) ) !== 0
 			) {
 
 				this._truckInternal( deltaX, deltaY, false, false );
@@ -1131,10 +1091,7 @@ export class CameraControls extends EventDispatcher {
 
 			// screen-pan
 			if (
-				( this._state & ACTION.SCREEN_PAN ) === ACTION.SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_SCREEN_PAN ) === ACTION.TOUCH_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
-				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_ZOOM_SCREEN_PAN
+				( this._state & ( ACTION.SCREEN_PAN | ACTION.TOUCH_SCREEN_PAN ) ) !== 0
 			) {
 
 				this._truckInternal( deltaX, deltaY, false, true );
@@ -1144,10 +1101,7 @@ export class CameraControls extends EventDispatcher {
 
 			// offset
 			if (
-				( this._state & ACTION.OFFSET ) === ACTION.OFFSET ||
-				( this._state & ACTION.TOUCH_OFFSET ) === ACTION.TOUCH_OFFSET ||
-				( this._state & ACTION.TOUCH_DOLLY_OFFSET ) === ACTION.TOUCH_DOLLY_OFFSET ||
-				( this._state & ACTION.TOUCH_ZOOM_OFFSET ) === ACTION.TOUCH_ZOOM_OFFSET
+				( this._state & ( ACTION.OFFSET | ACTION.TOUCH_OFFSET ) ) !== 0
 			) {
 
 				this._truckInternal( deltaX, deltaY, true, false );
@@ -3202,10 +3156,14 @@ export class CameraControls extends EventDispatcher {
 
 	};
 
-	protected _rotateInternal = ( deltaX: number, deltaY: number ): void => {
+	protected _rotateInternal = ( deltaX: number, deltaY: number, state: ACTION ): void => {
 
-		const theta = PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.height; // divide by *height* to refer the resolution
-		const phi   = PI_2 * this.polarRotateSpeed   * deltaY / this._elementRect.height;
+		// gate each axis by whichever rotate bits (mouse or touch) are present in the state
+		const enableAzimuth = ( state & ( ACTION.ROTATE_AZIMUTH | ACTION.TOUCH_ROTATE_AZIMUTH ) ) !== 0;
+		const enablePolar   = ( state & ( ACTION.ROTATE_POLAR   | ACTION.TOUCH_ROTATE_POLAR ) )   !== 0;
+
+		const theta = enableAzimuth ? PI_2 * this.azimuthRotateSpeed * deltaX / this._elementRect.height : 0; // divide by *height* to refer the resolution
+		const phi   = enablePolar   ? PI_2 * this.polarRotateSpeed   * deltaY / this._elementRect.height : 0;
 		this.rotate( theta, phi, true );
 
 	};
