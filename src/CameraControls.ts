@@ -3398,6 +3398,11 @@ export class CameraControls extends EventDispatcher {
 		return this._controlSmoothTime;
 
 	}
+	/**
+	 * backward compatible
+	 * @deprecated use controlSmoothTime instead
+	 * @category Properties
+	 */
 	set draggingSmoothTime( value: SmoothTimeOption ) {
 
 		console.warn( '.draggingSmoothTime has been deprecated. use controlSmoothTime instead.' );
