@@ -171,8 +171,8 @@ See [the demo](https://github.com/yomotsu/camera-movement-comparison#dolly-vs-zo
 | `.maxAzimuthAngle`        | `number`  | `Infinity`  | In radians. |
 | `.boundaryFriction`       | `number`  | `0.0`       | Friction ratio of the boundary. |
 | `.boundaryEnclosesCamera` | `boolean` | `false`     | Whether camera position should be enclosed in the boundary or not. |
-| `.smoothTime`             | `number`  | `0.25`      | Approximate time in seconds to reach the target. A smaller value will reach the target faster. |
-| `.draggingSmoothTime`     | `number`  | `0.125`     | The smoothTime while dragging. |
+| `.smoothTime`             | `number \| object` | `0.25`  | Approximate time in seconds to reach the target. A smaller value will reach the target faster. A number applies to all operations, or pass an object keyed by `rotate` / `truck` / `dolly` / `zoom` / `offset`. |
+| `.controlSmoothTime`      | `number \| object` | `0.125` | The smoothTime used while the user is actively controlling the camera. Same number-or-object form as `.smoothTime`. |
 | `.azimuthRotateSpeed`     | `number`  | `1.0`       | Speed of azimuth rotation. |
 | `.polarRotateSpeed`       | `number`  | `1.0`       | Speed of polar rotation. |
 | `.dollySpeed`             | `number`  | `1.0`       | Speed of mouse-wheel dollying. |
@@ -823,6 +823,19 @@ cameraControls.normalizeRotations().setLookAt( 0, 0, 5, 0, 0, 0, true ); // v3
 ```
 
 The angle range for `normalizeRotations()` has been changed from 0deg to 360deg to -180deg to 180deg.
+
+### Granular smooth time
+
+`.smoothTime` and `.controlSmoothTime` now accept either a `number` (applied to every operation) or an object keyed by operation — `rotate`, `truck`, `dolly`, `zoom`, `offset`:
+
+```js
+cameraControls.smoothTime = 0.25;           // all operations
+cameraControls.smoothTime = { dolly: 0.1 }; // only dolly; the other operations keep their current values
+```
+
+- **Breaking:** reading `.smoothTime` / `.controlSmoothTime` now returns an object (`{ rotate, truck, dolly, zoom, offset }`) instead of a `number`.
+- `.draggingSmoothTime` is renamed to `.controlSmoothTime`. The old name still works as a deprecated alias.
+- The published type declarations are no longer downleveled (TypeScript >= 4.3 is now required to consume the types).
 
 ## V2 Migration Guide
 

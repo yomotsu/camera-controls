@@ -26,7 +26,6 @@
     "@typescript-eslint/eslint-plugin": "^8.36.0",
     "@typescript-eslint/parser": "^8.36.0",
     "conventional-changelog-conventionalcommits": "^9.1.0",
-    "downlevel-dts": "^0.11.0",
     "eslint": "^9.31.0",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
@@ -52,7 +51,7 @@
     "dev:rollup": "rollup --config --watch",
     "dev:serve": "serve -S -p 3000 ./ && kill $!",
     "dev:open": "open-cli http://localhost:3000/examples/",
-    "build": "rollup --config && terser dist/camera-controls.module.js -o dist/camera-controls.module.min.js --comments '/^!/' && downlevel-dts . .",
+    "build": "rollup --config && terser dist/camera-controls.module.js -o dist/camera-controls.module.min.js --comments '/^!/'",
     "prepack": "npm run build",
     "lint": "eslint src",
     "typedoc": "typedoc",
@@ -63,13 +62,6 @@
     "last 3 versions",
     "not dead"
   ],
-  "typesVersions": {
-    "<=3.4.0-0": {
-      "*": [
-        "./"
-      ]
-    }
-  },
   "keywords": [
     "three",
     "three.js",
