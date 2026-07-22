@@ -2898,7 +2898,26 @@ export class CameraControls extends EventDispatcher {
 
 		} else if ( ! updated && this._updatedLastTime ) {
 
-			this.dispatchEvent( { type: 'sleep' } );
+			// A transition can stop without `update()` ever observing a settling
+			// frame — e.g. `smoothTime` 0, where each move converges in the same
+			// frame it starts — so the `rest` owed to `_createOnRestPromise()`
+			// listeners is never emitted and they accumulate unbounded. Emit it
+			// here before sleeping; the `_hasRested` guard keeps it a no-op once
+			// `rest` has already fired the usual way.
+			if ( ! this._hasRested ) {
+
+				this._hasRested = true;
+				this.dispatchEvent( { type: 'rest' } );
+
+			}
+
+			// A `rest` handler may have started a new transition; only sleep when
+			// nothing is pending, so `sleep` never fires while the camera moves.
+			if ( ! this._needsUpdate ) {
+
+				this.dispatchEvent( { type: 'sleep' } );
+
+			}
 
 		}
 
