@@ -811,6 +811,7 @@ export class CameraControls extends EventDispatcher {
 				case ACTION.TOUCH_DOLLY:
 				case ACTION.TOUCH_DOLLY_ROTATE:
 				case ACTION.TOUCH_DOLLY_TRUCK:
+				case ACTION.TOUCH_DOLLY_SCREEN_PAN:
 				case ACTION.TOUCH_DOLLY_OFFSET: {
 
 					this._dollyInternal( - delta, x, y );
@@ -823,6 +824,7 @@ export class CameraControls extends EventDispatcher {
 				case ACTION.TOUCH_ZOOM:
 				case ACTION.TOUCH_ZOOM_ROTATE:
 				case ACTION.TOUCH_ZOOM_TRUCK:
+				case ACTION.TOUCH_ZOOM_SCREEN_PAN:
 				case ACTION.TOUCH_ZOOM_OFFSET: {
 
 					this._zoomInternal( - delta, x, y );
