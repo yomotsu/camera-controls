@@ -967,7 +967,7 @@ export class CameraControls extends EventDispatcher {
 				( this._state & ACTION.TOUCH_DOLLY_TRUCK ) === ACTION.TOUCH_DOLLY_TRUCK ||
 				( this._state & ACTION.TOUCH_DOLLY_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN ||
 				( this._state & ACTION.TOUCH_ZOOM_TRUCK ) === ACTION.TOUCH_ZOOM_TRUCK ||
-				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_DOLLY_SCREEN_PAN
+				( this._state & ACTION.TOUCH_ZOOM_SCREEN_PAN ) === ACTION.TOUCH_ZOOM_SCREEN_PAN
 			) {
 
 				this._targetEnd.copy( this._target );
